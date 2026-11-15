@@ -104,6 +104,8 @@ function FutureMode({
         )}
         {horizontal && (
           <T
+            testID={`home-future-${name}-availability`}
+            numberOfLines={1}
             maxFontSizeMultiplier={1.1}
             style={{ fontFamily: F.scientific, fontSize: 11, lineHeight: 12, color: '#8e7852' }}
           >
@@ -112,10 +114,18 @@ function FutureMode({
         )}
       </View>
       {!horizontal && (
-        <View style={{ position: 'absolute', top: 6, right: 12 }}>
+        <View style={{ position: 'absolute', top: 6, right: 12, width: 48, height: 18 }}>
           <T
+            testID={`home-future-${name}-availability`}
+            numberOfLines={1}
             maxFontSizeMultiplier={1.15}
-            style={{ fontFamily: F.scientific, fontSize: 10, lineHeight: 13, color: '#8e7852' }}
+            style={{
+              fontFamily: F.scientific,
+              fontSize: 10,
+              lineHeight: 14,
+              color: '#8e7852',
+              textAlign: 'right',
+            }}
           >
             À venir
           </T>

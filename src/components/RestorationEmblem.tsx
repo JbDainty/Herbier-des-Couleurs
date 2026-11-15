@@ -30,11 +30,11 @@ export const RestorationEmblem = memo(function RestorationEmblem({
         { x: 24, y: 39, c: '#b66d86', h: 39 },
         { x: 49, y: 23, c: '#c3a251', h: 53 },
         { x: 74, y: 43, c: '#6b9c87', h: 37 },
-      ].map((v, i) => (
+      ].map((v) => (
         <G key={v.x}>
           <Ellipse cx={v.x + 11} cy={102} rx="12" ry="3" fill="#5c6947" opacity="0.12" />
           <Path
-            d={`M${v.x} ${v.y}v49q0 13 11 13t11-13V${v.y}Z`}
+            d={`M${v.x} ${v.y}V88q0 13 11 13t11-13V${v.y}Z`}
             fill={`url(#${id})`}
             stroke="#789078"
             strokeWidth="0.8"
@@ -55,7 +55,7 @@ export const RestorationEmblem = memo(function RestorationEmblem({
             strokeWidth="0.7"
           />
           <Path
-            d={`M${v.x + 4} ${v.y + 7}v39q0 8 5 10`}
+            d={`M${v.x + 4} ${v.y + 7}V85q0 8 5 10`}
             fill="none"
             stroke="#fff9df"
             strokeOpacity="0.7"
