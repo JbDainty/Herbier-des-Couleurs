@@ -58,6 +58,25 @@ async function main() {
     await expect(page.getByTestId('home-stage-settled')).toBeAttached();
     expect(await page.evaluate(() => (window as any).homeSvgChanges)).toBe(0);
     await expect(page.getByTestId('home-butterfly')).toHaveCount(0);
+    // Inspect the drawn shapes: every pigment must remain inside its own glass,
+    // including the taller central tube on the Android menu.
+    const spills = await page.getByTestId('home-restoration-card').evaluate((node) => {
+      const pigments = node.querySelectorAll<SVGPathElement>(
+        'path[fill="#b66d86"], path[fill="#c3a251"], path[fill="#6b9c87"]',
+      );
+      return Array.from(pigments, (pigment) => {
+        const glass = pigment.parentElement!.querySelector('path')!;
+        const bounds = pigment.getBBox();
+        let outside = 0;
+        for (let y = bounds.y; y <= bounds.y + bounds.height; y += 0.5)
+          for (let x = bounds.x; x <= bounds.x + bounds.width; x += 0.5) {
+            const point = new DOMPoint(x, y);
+            if (pigment.isPointInFill(point) && !glass.isPointInFill(point)) outside++;
+          }
+        return outside;
+      });
+    });
+    expect(spills).toEqual([0, 0, 0]);
     await page.screenshot({ path: 'test-results/home-first-390.png' });
     for (const mode of ['day', 'mystery']) {
       const card = page.getByTestId(`home-future-${mode}`);
@@ -165,6 +184,18 @@ async function main() {
       const card = (await page.getByTestId('home-restoration-card').boundingBox())!;
       expect(action.height).toBeGreaterThanOrEqual(48);
       expect(action.y + action.height).toBeLessThanOrEqual(card.y + card.height + 1);
+      for (const mode of ['day', 'mystery']) {
+        const badge = page.getByTestId(`home-future-${mode}-availability`);
+        await expect(badge).toHaveText('À venir');
+        expect(
+          await badge.evaluate((node) => node.scrollWidth - node.clientWidth),
+        ).toBeLessThanOrEqual(1);
+        const bounds = (await badge.boundingBox())!;
+        const modeCard = (await page.getByTestId(`home-future-${mode}`).boundingBox())!;
+        expect(bounds.x).toBeGreaterThanOrEqual(modeCard.x);
+        expect(bounds.x + bounds.width).toBeLessThanOrEqual(modeCard.x + modeCard.width + 1);
+        expect(bounds.y + bounds.height).toBeLessThanOrEqual(modeCard.y + modeCard.height + 1);
+      }
       const masthead = (await page.getByTestId('home-masthead').boundingBox())!;
       const seeds = (await page.getByRole('button', { name: /^Graines dorées/ }).boundingBox())!;
       expect(seeds.y).toBeGreaterThanOrEqual(masthead.y - 1);
