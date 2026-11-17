@@ -143,7 +143,7 @@ npm run build:web
 npm run test:browser
 ```
 
-Les 150 tests automatisés couvrent les 1 000 solutions et leurs minima exacts avec les huit mécaniques, les mélanges, étoiles, graines, sauvegardes et migrations. Ils vérifient aussi les capacités et la physique des fioles, les séquences d’animation, le cycle audio natif et la taille des surfaces graphiques des bordures.
+Les 155 tests automatisés couvrent les 1 000 solutions et leurs minima exacts avec les huit mécaniques, les mélanges, étoiles, graines, sauvegardes et migrations. Ils vérifient aussi les capacités et la physique des fioles, les séquences d’animation, le cycle audio natif et la taille des surfaces graphiques des bordures.
 
 Les parcours Playwright sont détaillés dans [la revue complète](docs/application-review.md). Ils couvrent le prologue, l’aide, les menus, les sept écrans, les confirmations, la reprise de sauvegarde, les animations simultanées, les vingt musiques, les carnets et les dernières pages. Le navigateur et les exports Hermes ne remplacent pas une mesure de fluidité et de mémoire sur appareil Android/iOS. Les captures sont générées dans `test-results/`.
 
@@ -301,3 +301,5 @@ Depuis la version native 1.0.2, la première ouverture est une cinématique 3D p
 L’Herbier des Merveilles ajoute cinq espèces imaginaires sur fond d’or à 200 graines chacune, sans frais d’entrée, dans un grand livre animé occupant la place de quatre carnets de la bibliothèque Herbier. Les acquisitions sont permanentes et les vingt-cinq puzzles supplémentaires ne donnent aucune graine. Accès direct par « Merveilles » sous les carnets et depuis la boutique.
 
 Les 55 pages des collections sont désormais des défis experts à trois mécanismes combinés, cinq ou six teintes et deux chemins minimaux certifiés. Les indices et le retour « Chemin sûr » sont gratuits ; une impasse peut annuler les derniers choix, sans perdre l’espèce ni la progression principale. Les tentatives classiques en cours restent lisibles avant le passage aux nouveaux défis. Voir [docs/collection-challenges.md](docs/collection-challenges.md).
+
+Toute mécanique encore inconnue ouvre un petit encart commun à la campagne et aux collections : un résumé, une règle à la fois, avec le détail facultatif et le bouton « J’ai compris ». Les explications validées sont mémorisées dans le carnet, y compris au retour des pages de test. Voir [docs/mechanic-lessons.md](docs/mechanic-lessons.md).

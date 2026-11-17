@@ -5,7 +5,15 @@ import { TubeInsignia } from './TubeInsignia';
 import { BotanicalCoupling } from './BotanicalCoupling';
 
 /** The lesson uses the same physical fittings as the playable glass. */
-export function MechanicVials({ mechanic }: { mechanic: Mechanic }) {
+export function MechanicVials({
+  mechanic,
+  width = 250,
+  height = 114,
+}: {
+  mechanic: Mechanic;
+  width?: number;
+  height?: number;
+}) {
   const board = [[0, 1, 1, 1], []];
   const rules: Rules = {
     mechanics: [mechanic],
@@ -20,7 +28,7 @@ export function MechanicVials({ mechanic }: { mechanic: Mechanic }) {
   };
   const centers = mechanic === 'links' ? [102, 148] : [54, 196];
   return (
-    <Svg width={250} height={114} viewBox="0 0 250 114" accessible={false}>
+    <Svg width={width} height={height} viewBox="0 0 250 114" accessible={false}>
       {[0, 1].map((tube) => {
         const scale = mechanic === 'capacity' ? (tube === 0 ? 0.46 : 0.52) : 0.58;
         return (

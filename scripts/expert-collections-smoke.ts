@@ -38,7 +38,7 @@ async function main() {
     await page.goto(url + route);
   };
   const explain = async () => {
-    if (await page.getByTestId('mechanic-introduction').isVisible())
+    while (await page.getByTestId('mechanic-introduction').isVisible())
       await button('J’ai compris').click();
   };
   mkdirSync('test-results', { recursive: true });
