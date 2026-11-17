@@ -12,6 +12,7 @@ import {
   wallpaperUnlocked,
 } from '../src/state/economy';
 import { featuredCollection } from '../src/data/collections';
+import { GOLDEN_COLLECTION_ID } from '../src/data/collections';
 import { collectionArtwork } from '../src/data/collectionArtwork';
 import { wallpaperArtwork } from '../src/data/wallpaperArtwork';
 import { Button, C, Label, T, ui } from '../src/components/ui';
@@ -39,8 +40,8 @@ export default function Boutique() {
         <Label>VOTRE RÉSERVE · {save.seeds} GRAINES</Label>
         <T>
           Obtenir les trois étoiles d’une page de la campagne principale donne une graine, une seule
-          fois. Une ou deux étoiles ne donnent pas de graine. Les pages des jardins saisonniers n’en
-          donnent pas, même avec trois étoiles.
+          fois. Une ou deux étoiles ne donnent pas de graine. Les pages des collections n’en donnent
+          pas, même avec trois étoiles.
         </T>
         <T style={ui.muted}>
           Les indices et les mélanges sont gratuits : gardez vos graines pour vos décors et vos
@@ -106,6 +107,19 @@ export default function Boutique() {
           Retrouver mes jardins
         </Button>
       )}
+      <Paper testID="golden-shop-entry" style={[ui.card, { gap: 10, backgroundColor: '#ecdaa7' }]}>
+        <Label>LES CINQ MERVEILLES</Label>
+        <T serif style={{ fontSize: 28, color: '#745323' }}>
+          L’Herbier des Merveilles
+        </T>
+        <T>
+          Cinq espèces imaginaires d’exception sur fond d’or. Chaque merveille coûte 200 graines,
+          avec cinq nouvelles pages. L’ouverture de l’herbier est gratuite.
+        </T>
+        <Button onPress={() => router.push(`/jardin?collection=${GOLDEN_COLLECTION_ID}`)}>
+          Découvrir les cinq merveilles
+        </Button>
+      </Paper>
       <Label>LES DÉCORS DES ÉCOSYSTÈMES</Label>
       <T>
         Chaque paysage devient disponible à la découverte de son écosystème. Obtenir les trois

@@ -139,8 +139,9 @@ export function validateGardens(s: Save) {
       !garden ||
       !progress ||
       !Array.isArray(progress.species) ||
+      !progress.species.length ||
       new Set(progress.species).size !== progress.species.length ||
-      !progress.species.includes(garden.species[0].id) ||
+      (garden.kind !== 'golden' && !progress.species.includes(garden.species[0].id)) ||
       progress.species.some((id) => !garden.species.some((p) => p.id === id)) ||
       !progress.completed ||
       typeof progress.completed !== 'object' ||

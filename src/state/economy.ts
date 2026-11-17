@@ -45,6 +45,7 @@ export function acquireGarden(s: Save, id: string, now = new Date()): Save {
   if (
     s.testSession ||
     !garden ||
+    garden.kind === 'golden' ||
     s.gardens?.[id] ||
     featuredCollection(now)?.id !== id ||
     s.seeds < garden.cost
@@ -57,8 +58,11 @@ export function acquireGarden(s: Save, id: string, now = new Date()): Save {
   };
 }
 export function acquireGardenSpecies(s: Save, collection: string, id: string): Save {
-  const progress = s.gardens?.[collection];
-  const species = collectionById(collection)?.species.find((p) => p.id === id);
+  const garden = collectionById(collection);
+  const progress =
+    s.gardens?.[collection] ??
+    (garden?.kind === 'golden' ? { species: [], completed: {} } : undefined);
+  const species = garden?.species.find((p) => p.id === id);
   if (
     s.testSession ||
     !progress ||

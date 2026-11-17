@@ -5,4 +5,9 @@ export const collectionArtwork: Record<string, number> = {
   ambre: require('../../assets/collections/orchids/ambre.png'),
   lune: require('../../assets/collections/orchids/lune.png'),
   corail: require('../../assets/collections/orchids/corail.png'),
+  phenix: require('../../assets/collections/golden/phenix.png'),
+  constellations: require('../../assets/collections/golden/constellations.png'),
+  eclipse: require('../../assets/collections/golden/eclipse.png'),
+  cristal: require('../../assets/collections/golden/cristal.png'),
+  temps: require('../../assets/collections/golden/temps.png'),
 };

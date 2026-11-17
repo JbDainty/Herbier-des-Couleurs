@@ -155,8 +155,8 @@ export function SeedPouch({
             </T>
             <T>
               Chaque page de la campagne principale donne une graine lors de sa première réussite à
-              trois étoiles. Une ou deux étoiles ne donnent pas de graine. Les pages des jardins
-              saisonniers ne rapportent aucune graine, quel que soit le score.
+              trois étoiles. Une ou deux étoiles ne donnent pas de graine. Les pages des collections
+              ne rapportent aucune graine, quel que soit le score.
             </T>
             <T>
               Achetez les décors des écosystèmes et accueillez les orchidées de vos jardins dans la

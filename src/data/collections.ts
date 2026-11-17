@@ -11,8 +11,11 @@ export type GardenCollection = {
   subtitle: string;
   availableFrom: string;
   cost: number;
+  kind?: 'seasonal' | 'golden';
   species: GardenSpecies[];
 };
+
+export const GOLDEN_COLLECTION_ID = 'merveilles-or';
 
 /** Append future gardens here; purchased collections must never be removed from the catalogue. */
 export const collections: GardenCollection[] = [
@@ -70,6 +73,56 @@ export const collections: GardenCollection[] = [
       },
     ],
   },
+  {
+    id: GOLDEN_COLLECTION_ID,
+    kind: 'golden',
+    name: 'L’Herbier des Merveilles',
+    subtitle: 'Cinq espèces imaginaires d’exception, enluminées sur fond d’or.',
+    availableFrom: '2026-11-01',
+    cost: 0,
+    species: [
+      {
+        id: 'phenix',
+        name: 'Orchidée du Phénix',
+        description:
+          'Des pétales pourpres et corail se déploient comme des flammes. Des nervures d’or rejoignent un cœur de braise.',
+        cost: 200,
+        color: '#b34d67',
+      },
+      {
+        id: 'constellations',
+        name: 'Lotus des Constellations',
+        description:
+          'Ses pétales bleu nuit et violets portent un ciel d’étoiles. De longs filaments argentés entourent son cœur.',
+        cost: 200,
+        color: '#626db6',
+      },
+      {
+        id: 'eclipse',
+        name: 'Rose de l’Éclipse',
+        description:
+          'Une rose de velours noir et bordeaux, bordée d’or, dont le cœur s’entoure d’un halo lumineux.',
+        cost: 200,
+        color: '#773e59',
+      },
+      {
+        id: 'cristal',
+        name: 'Lys de Cristal',
+        description:
+          'Ses pétales translucides mêlent turquoise et nacre. Des gouttes de diamant brillent près de ses étamines dorées.',
+        cost: 200,
+        color: '#77adb7',
+      },
+      {
+        id: 'temps',
+        name: 'Passiflore du Temps',
+        description:
+          'Une couronne de filaments dorés s’enroule autour de pétales émeraude et mauves, comme une spirale suspendue.',
+        cost: 200,
+        color: '#8e7da8',
+      },
+    ],
+  },
 ];
 
 export const COLLECTION_CYCLE_MONTHS = 2;
@@ -81,6 +134,6 @@ export const collectionById = (id: string) => collections.find((c) => c.id === i
 export function featuredCollection(now = new Date()) {
   const day = collectionCycleStart(now);
   return collections
-    .filter((c) => c.availableFrom <= day)
+    .filter((c) => c.kind !== 'golden' && c.availableFrom <= day)
     .sort((a, b) => b.availableFrom.localeCompare(a.availableFrom))[0];
 }

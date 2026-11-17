@@ -143,7 +143,7 @@ npm run build:web
 npm run test:browser
 ```
 
-Les 139 tests automatisés couvrent les 1 000 solutions et leurs minima exacts avec les huit mécaniques, les mélanges, étoiles, graines, sauvegardes et migrations. Ils vérifient aussi les capacités et la physique des fioles, les séquences d’animation, le cycle audio natif et la taille des surfaces graphiques des bordures.
+Les 143 tests automatisés couvrent les 1 000 solutions et leurs minima exacts avec les huit mécaniques, les mélanges, étoiles, graines, sauvegardes et migrations. Ils vérifient aussi les capacités et la physique des fioles, les séquences d’animation, le cycle audio natif et la taille des surfaces graphiques des bordures.
 
 Les parcours Playwright sont détaillés dans [la revue complète](docs/application-review.md). Ils couvrent le prologue, l’aide, les menus, les sept écrans, les confirmations, la reprise de sauvegarde, les animations simultanées, les vingt musiques, les carnets et les dernières pages. Le navigateur et les exports Hermes ne remplacent pas une mesure de fluidité et de mémoire sur appareil Android/iOS. Les captures sont générées dans `test-results/`.
 
@@ -258,7 +258,7 @@ La boutique propose vingt décors d’écosystèmes (20 ou 50 graines), appliqu�
 
 Avant activation de revenus : intégrer les SDK retenus (Google Play Billing, StoreKit et fournisseur publicitaire), vérifier les achats côté serveur, gérer restauration et révocations, consentement/ATT, plafonnement réel, déclarations de confidentialité et tests sandbox. Les packs, encadrements saisonniers et la suppression des publicités ne sont pas implémentés comme produits achetables.
 
-Les 1 000 pages principales, les 30 pages d’orchidées et leur progression sont présentes. La revue botanique et éditoriale, l’équilibrage humain, les tests sur appareils, les achats réels et la préparation finale des boutiques restent à réaliser. La version Web de test est destinée à GitHub Pages. Aucune publication sur Google Play ou l’App Store, ni nouvelle publication de l’environnement cloud, n’est effectuée.
+Les 1 000 pages principales, les 30 pages d’orchidées, les 25 pages des merveilles et leur progression sont présentes. La revue botanique et éditoriale, l’équilibrage humain, les tests sur appareils, les achats réels et la préparation finale des boutiques restent à réaliser. La version Web de test est destinée à GitHub Pages. Aucune publication sur Google Play ou l’App Store, ni nouvelle publication de l’environnement cloud, n’est effectuée.
 
 ## Ambiances et mixage sonore
 
@@ -297,3 +297,5 @@ L’accueil est le menu principal du jeu. Le livre gravé portant « Menu », su
 `GAME_TEST_URL=http://localhost:8124/ node --import tsx scripts/carnet-menu-smoke.ts` contrôle le retour direct, les appuis répétés, les SVG immuables, les cinq destinations, la reprise et les animations désactivées. Le test `home-smoke.ts` vérifie aussi les accès sans défilement sur dix-neuf formats.
 
 Depuis la version native 1.0.2, la première ouverture est une cinématique 3D précalculée en H.264 vertical. Le livre, les gravures, les pages et les fleurs sont fabriqués hors ligne avec Blender. La vidéo est muette et le coordinateur audio gère sa musique. Un carnet signé arrive directement sur le cabinet et peut y choisir « Revoir le prologue ». Android 1.0.2 contient le lecteur `expo-video` ; installer cet APK une fois par-dessus la précédente version, puis les mises à jour compatibles arrivent par EAS Update. Le Web lit le même film, y compris hors ligne et par requêtes partielles. Détails dans [docs/native-prologue.md](docs/native-prologue.md).
+
+L’Herbier des Merveilles ajoute cinq espèces imaginaires sur fond d’or à 200 graines chacune, sans frais d’entrée, dans un grand livre animé occupant la place de quatre carnets de la bibliothèque Herbier. Les acquisitions sont permanentes et les vingt-cinq puzzles supplémentaires ne donnent aucune graine. Accès direct par « Merveilles » sous les carnets et depuis la boutique.
