@@ -1,5 +1,7 @@
 import { mediaRange } from './media-ranges.mjs';
-import { readdirSync, readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs';
+import { listing } from './store-metadata.mjs';
+import { decorateHtml, discoveryFiles } from './web-discovery.mjs';
+import { readdirSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 const basePath = (process.env.EXPO_PUBLIC_BASE_PATH || '').replace(/\/$/, '');
 const scope = `${basePath}/`;
@@ -11,24 +13,32 @@ const walk = (p) =>
 const manifest = JSON.parse(readFileSync('dist/manifest.json', 'utf8'));
 manifest.start_url = scope;
 manifest.scope = scope;
+manifest.lang = 'fr';
+manifest.description = listing.shortDescription;
+manifest.categories = ['games'];
 manifest.icons = manifest.icons.map((icon) => ({
   ...icon,
   src: scope + icon.src.replace(/^\//, ''),
 }));
 writeFileSync('dist/manifest.json', JSON.stringify(manifest, null, 2));
-let html = readFileSync('dist/index.html', 'utf8');
+const discovery = { origin: process.env.EXPO_PUBLIC_SITE_ORIGIN || '', basePath };
+let html = decorateHtml(readFileSync('dist/index.html', 'utf8'), discovery);
 html = html.replace(/<link[^>]+rel="manifest"[^>]*>/g, '');
 html = html.replace(
   '</head>',
   `<link rel="manifest" href="${scope}manifest.json"><link rel="icon" type="image/svg+xml" href="${scope}icon.svg"></head>`,
 );
 writeFileSync('dist/index.html', html);
+const internalHtml = decorateHtml(html, { ...discovery, index: false });
 // GitHub Pages serves these routes without a catch-all server or an HTTP 404.
 for (const route of ['atelier', 'herbier', 'carte', 'boutique', 'parametres', 'aide', 'carnet']) {
   mkdirSync(`dist/${route}`, { recursive: true });
-  writeFileSync(`dist/${route}/index.html`, html);
+  writeFileSync(`dist/${route}/index.html`, internalHtml);
 }
-copyFileSync('dist/index.html', 'dist/404.html');
+writeFileSync('dist/404.html', internalHtml);
+for (const [name, content] of discoveryFiles(discovery.origin, basePath)) {
+  writeFileSync(join('dist', name), content);
+}
 writeFileSync('dist/.nojekyll', '');
 const assets = walk('dist')
   .filter((p) => !p.endsWith('.map') && !p.endsWith('sw.js'))
