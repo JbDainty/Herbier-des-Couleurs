@@ -78,7 +78,7 @@ async function main() {
     const coverColors: string[] = [];
     for (let shelf = 0; shelf < 5; shelf++) {
       await expect(page.locator('[data-testid^="antique-botanical-portrait-"]')).toHaveCount(4);
-      await expect(page.getByTestId('herbarium-shelf-page')).toHaveText(`${shelf + 1} / 5`);
+      await expect(page.getByTestId('herbarium-shelf-page')).toHaveText(`${shelf + 1} / 6`);
       for (let book = 0; book < 4; book++) {
         const index = shelf * 4 + book;
         await expect(
@@ -108,7 +108,7 @@ async function main() {
     }
     await page.getByRole('button', { name: 'Carnets', exact: true }).click();
     await expect(page.getByTestId('herbarium-shelf')).toBeVisible();
-    await expect(page.getByTestId('herbarium-shelf-page')).toHaveText('5 / 5');
+    await expect(page.getByTestId('herbarium-shelf-page')).toHaveText('5 / 6');
     await page.getByRole('button', { name: 'Pigments et sceaux', exact: true }).click();
     await expect(page.getByText(/Découvert le|Apposé le/)).toHaveCount(8);
     await page.getByRole('button', { name: 'Suivants', exact: true }).click();
