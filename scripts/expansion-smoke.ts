@@ -45,7 +45,8 @@ async function main() {
       await seed(trial(level.id));
       await expect(page.getByTestId('mechanic-introduction')).toBeVisible();
       await page.screenshot({ path: `test-results/lesson-${mechanic}.png` });
-      await page.getByRole('button', { name: 'J’ai compris', exact: true }).click();
+      while (await page.getByTestId('mechanic-introduction').isVisible())
+        await page.getByRole('button', { name: 'J’ai compris', exact: true }).click();
       await expect(page.getByTestId('game-actions')).toBeInViewport();
       let expected = level.board;
       for (const m of level.solution) {
@@ -58,12 +59,16 @@ async function main() {
       expect((await state()).seeds).toBe(50);
       expect((await state()).completed).toEqual(real.completed);
     }
-    // Preview-only navigation restores the exact real attempt, never synthetic rewards.
+    // Preview-only navigation restores the real attempt, retaining only lessons acknowledged.
+    const returned = (await state()).testSession!.returnSave;
     await page.goto(url + 'parametres');
     await page
       .getByRole('button', { name: 'Quitter l’essai et retrouver ma partie', exact: true })
       .click();
-    expect(await state()).toEqual(real);
+    expect(await state()).toEqual(returned);
+    const { seenMechanics: learned, ...unchanged } = returned;
+    expect(learned!.length).toBeGreaterThan(0);
+    expect(unchanged).toEqual(real);
     for (const [width, height] of [
       [320, 400],
       [412, 915],

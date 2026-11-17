@@ -1,6 +1,7 @@
 import { blocked, crystalOpen, capacity } from '../src/engine/puzzle';
 import { colorNames } from '../src/data/botany';
 import { MechanicIntroduction } from '../src/components/MechanicIntroduction';
+import { mechanicsToIntroduce, acknowledgeMechanic } from '../src/state/mechanicLessons';
 import { F } from '../src/components/fonts';
 import { Paper } from '../src/components/Paper';
 import { PageTurnContext } from '../src/components/PageTurn';
@@ -81,7 +82,7 @@ function Workshop() {
   });
   const { wide } = layout;
   const rules = activeRules(save);
-  const introductions = (rules?.mechanics ?? []).filter((m) => !save.seenMechanics?.includes(m));
+  const introductions = won(save.board, rules) ? [] : mechanicsToIntroduce(save, rules);
   useEffect(() => reportSceneHeight(layout.height), [layout.height, reportSceneHeight]);
   const [replay, setReplay] = useState(!!save.completed[save.current]);
   const [tubeReward, setTubeReward] = useState<TubeReward | null>(null);
@@ -616,14 +617,11 @@ function Workshop() {
       </View>
       {!!introductions.length && (
         <MechanicIntroduction
+          key={`discovery-${save.current}`}
           mechanics={introductions}
           motion={save.settings.motion}
-          onClose={() =>
-            setSave((s) => ({
-              ...s,
-              seenMechanics: [...new Set([...(s.seenMechanics ?? []), ...introductions])],
-            }))
-          }
+          onAcknowledge={(id) => setSave((s) => acknowledgeMechanic(s, id))}
+          onClose={() => router.dismissTo('/')}
         />
       )}
       {confirm && (

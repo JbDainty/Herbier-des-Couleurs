@@ -24,6 +24,7 @@ import {
 import { gardenGuide } from '../src/state/gardenGuide';
 import { MechanicIntroduction } from '../src/components/MechanicIntroduction';
 import { mechanicDetails } from '../src/engine/mechanics';
+import { mechanicsToIntroduce, acknowledgeMechanic } from '../src/state/mechanicLessons';
 import { pour, type Move } from '../src/engine/puzzle';
 import { findHintPath } from '../src/engine/hintSearch';
 import { playPourSound } from '../src/services/pourSound';
@@ -58,9 +59,7 @@ export default function Jardin() {
   const session = save.gardenSession;
   const puzzle = session ? sessionGardenPuzzle(session) : undefined;
   const introductions =
-    playing && !session?.rewarded
-      ? (puzzle?.rules?.mechanics ?? []).filter((m) => !save.seenMechanics?.includes(m))
-      : [];
+    playing && !session?.rewarded ? mechanicsToIntroduce(save, puzzle?.rules) : [];
   const sessionKey = session
     ? `${session.collection}/${session.species}/${session.page}/${session.puzzleVersion ?? 1}`
     : '';
@@ -501,16 +500,14 @@ export default function Jardin() {
       )}
       {play && (rulesOpen || introductions.length > 0) && (
         <MechanicIntroduction
+          key={`${sessionKey}/${rulesOpen ? 'reference' : 'discovery'}`}
           mechanics={rulesOpen ? (puzzle?.rules?.mechanics ?? []) : introductions}
+          mode={rulesOpen ? 'reference' : 'discovery'}
           motion={save.settings.motion}
+          onAcknowledge={(id) => setSave((s) => acknowledgeMechanic(s, id))}
           onClose={() => {
-            setSave((s) => ({
-              ...s,
-              seenMechanics: Array.from(
-                new Set([...(s.seenMechanics ?? []), ...(puzzle?.rules?.mechanics ?? [])]),
-              ),
-            }));
-            setRulesOpen(false);
+            if (rulesOpen) setRulesOpen(false);
+            else setPlaying(false);
           }}
         />
       )}
