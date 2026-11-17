@@ -31,6 +31,8 @@ La remise à zéro explicite conserve les réglages et efface toute la progressi
 
 ## Contenu et calendrier
 
+Les 55 pages de collection chargent maintenant les [défis experts](collection-challenges.md) : trois mécanismes combinés, plusieurs chemins certifiés et récupération gratuite. Les anciens plateaux classiques restent archivés pour les tentatives déjà en cours.
+
 ### L’Herbier des Merveilles
 
 La collection permanente `merveilles-or` contient cinq espèces imaginaires à 200 graines chacune : Orchidée du Phénix, Lotus des Constellations, Rose de l’Éclipse, Lys de Cristal et Passiflore du Temps. Le grand livre doré se trouve dans **Herbier**, sur une page entière : deux largeurs et deux hauteurs de carnets en portrait, avec adaptation à la zone disponible sur écran court ou en paysage. Le bouton « Merveilles » du feuilletage y mène directement. Les vingt carnets existants restent disponibles.

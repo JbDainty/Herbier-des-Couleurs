@@ -97,8 +97,8 @@ it('never rewards repeated clears, even on a later day or with an old replay led
 });
 
 it('never grants seeds for seasonal first clears or three-star upgrades and replays', () => {
-  let save = startGarden(openGarden(), garden.id, 'aurore');
-  const puzzle = gardenPuzzle(garden.id, 'aurore', 0);
+  let save = loadGardenPage(openGarden(), garden.id, 'aurore', 0, 1);
+  const puzzle = gardenPuzzle(garden.id, 'aurore', 0, 1);
   for (const step of puzzle.solution.slice(0, -1)) save = moveGarden(save, step.from, step.to);
   // Move a completed tube to an empty tube and back: real extra moves before the final pour.
   const from = save.gardenSession!.board.findIndex(
@@ -117,7 +117,7 @@ it('never grants seeds for seasonal first clears or three-star upgrades and repl
   const firstBalance = save.seeds;
   const firstDate = save.gardens![garden.id].completed['aurore:0'].date;
   for (let attempt = 0; attempt < 3; attempt++) {
-    save = loadGardenPage(restore(JSON.stringify(save)), garden.id, 'aurore', 0);
+    save = loadGardenPage(restore(JSON.stringify(save)), garden.id, 'aurore', 0, 1);
     for (const step of puzzle.solution) save = moveGarden(save, step.from, step.to);
     expect(save.gardenSession!.seedReward).toBe(0);
     expect(save.seeds).toBe(firstBalance);
@@ -187,14 +187,15 @@ it('ships thirty distinct new garden puzzles with complete independently checked
       seen.add(key(puzzle.board));
       let board = puzzle.board;
       for (const step of puzzle.solution) {
-        const next = pour(board, step.from, step.to);
+        const next = pour(board, step.from, step.to, puzzle.rules);
         expect(next).not.toBeNull();
         board = next!;
       }
-      expect(won(board)).toBe(true);
-      expect(solveOptimal(puzzle.board, { maxMoves: puzzle.par, maxNodes: 400000 })?.minimum).toBe(
-        puzzle.par,
-      );
+      expect(won(board, puzzle.rules)).toBe(true);
+      expect(
+        solveOptimal(puzzle.board, { rules: puzzle.rules, maxMoves: puzzle.par, maxNodes: 5000000 })
+          ?.minimum,
+      ).toBe(puzzle.par);
     }
 });
 

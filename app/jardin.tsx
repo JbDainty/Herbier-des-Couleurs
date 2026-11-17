@@ -12,13 +12,18 @@ import { GoldenPlantSilhouette } from '../src/components/GoldenHerbarium';
 import { collectionArtwork } from '../src/data/collectionArtwork';
 import { acquireGardenSpecies } from '../src/state/economy';
 import {
-  gardenPuzzle,
   gardenStage,
   loadGardenPage,
   moveGarden,
   startGarden,
   undoGarden,
+  sessionGardenPuzzle,
+  rememberGardenPath,
+  recoverGarden,
 } from '../src/state/gardens';
+import { gardenGuide } from '../src/state/gardenGuide';
+import { MechanicIntroduction } from '../src/components/MechanicIntroduction';
+import { mechanicDetails } from '../src/engine/mechanics';
 import { pour, type Move } from '../src/engine/puzzle';
 import { findHintPath } from '../src/engine/hintSearch';
 import { playPourSound } from '../src/services/pourSound';
@@ -44,18 +49,29 @@ export default function Jardin() {
   const [selected, select] = useState<number | null>(null);
   const [hint, setHint] = useState<Move | null>(null);
   const [note, setNote] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [rulesOpen, setRulesOpen] = useState(false);
   const [pouring, setPouring] = useState<Move | null>(null);
   const pending = useRef<Move | null>(null);
   const search = useRef<AbortController | null>(null);
   const stopPour = useRef<() => void>(() => {});
   const session = save.gardenSession;
-  const sessionKey = session ? `${session.collection}/${session.species}/${session.page}` : '';
+  const puzzle = session ? sessionGardenPuzzle(session) : undefined;
+  const introductions =
+    playing && !session?.rewarded
+      ? (puzzle?.rules?.mechanics ?? []).filter((m) => !save.seenMechanics?.includes(m))
+      : [];
+  const sessionKey = session
+    ? `${session.collection}/${session.species}/${session.page}/${session.puzzleVersion ?? 1}`
+    : '';
   useEffect(() => {
     pending.current = null;
     select(null);
     setHint(null);
     setPouring(null);
     setNote('');
+    setSearching(false);
+    setRulesOpen(false);
     search.current?.abort();
   }, [sessionKey]);
   useEffect(
@@ -70,10 +86,13 @@ export default function Jardin() {
     setHint(null);
     setNote('');
     search.current?.abort();
+    setSearching(false);
   };
   const tap = (to: number) => {
-    if (!session || session.rewarded || pending.current) return;
+    if (!session || session.rewarded || pending.current || introductions.length || rulesOpen)
+      return;
     search.current?.abort();
+    setSearching(false);
     setHint(null);
     setNote('');
     if (selected === null) {
@@ -84,9 +103,11 @@ export default function Jardin() {
       select(null);
       return;
     }
-    const board = pour(session.board, selected, to);
+    const board = pour(session.board, selected, to, puzzle?.rules);
     if (!board) {
-      setNote('Versez sur une couleur identique ou dans une fiole vide.');
+      setNote(
+        'Ce versement ne respecte pas les règles de cette page. Consultez ses mécanismes si nécessaire.',
+      );
       select(session.board[to].length ? to : null);
       return;
     }
@@ -111,20 +132,38 @@ export default function Jardin() {
     setPouring(null);
   };
   const askHint = async () => {
-    if (!session || session.rewarded || pending.current) return;
+    if (!session || !puzzle || session.rewarded || pending.current || searching) return;
     search.current?.abort();
+    const show = (move: Move) => {
+      setHint(move);
+      setNote(`Versez le flacon ${move.from + 1} dans le flacon ${move.to + 1}.`);
+    };
+    const safe = gardenGuide(session, puzzle);
+    if (safe.at === session.moves && safe.path[0]) {
+      setSave((s) => rememberGardenPath(s, session.board, safe.path));
+      show(safe.path[0]);
+      return;
+    }
     const controller = new AbortController();
     search.current = controller;
-    const result = await findHintPath(session.board, undefined, {
+    setSearching(true);
+    setNote('Recherche d’une continuation depuis votre position…');
+    const result = await findHintPath(session.board, puzzle.rules, {
       signal: controller.signal,
+      maxNodes: 120000,
+      maxMs: 1700,
     }).catch(() => ({ status: 'limit' as const, expanded: 0 }));
     if (controller.signal.aborted) return;
+    setSearching(false);
     if (result.status === 'found' && result.path[0]) {
-      setHint(result.path[0]);
+      setSave((s) => rememberGardenPath(s, session.board, result.path));
+      show(result.path[0]);
+    } else
       setNote(
-        `Versez le flacon ${result.path[0].from + 1} dans le flacon ${result.path[0].to + 1}.`,
+        result.status === 'blocked'
+          ? 'Cette position est une impasse. « Chemin sûr » revient gratuitement au dernier point pour lequel une solution est connue.'
+          : 'La recherche demande plus de temps. « Chemin sûr » reste disponible pour reprendre une solution certifiée.',
       );
-    } else setNote('Essayez d’annuler un versement ou de recommencer cette page.');
   };
   const owned = requested
     ? [requested]
@@ -161,15 +200,48 @@ export default function Jardin() {
             {garden.name} · Page {session.page + 1} sur 5
           </T>
           <T style={ui.muted}>Vos pages de la campagne principale vous attendent à votre retour.</T>
+          {(session.puzzleVersion ?? 1) === 1 && !session.rewarded && (
+            <Paper style={[ui.card, { gap: 10 }]}>
+              <T>
+                Votre tentative en cours a été conservée. Vous pouvez la terminer ou recommencer
+                cette page en défi expert. Votre espèce et les pages déjà restaurées restent
+                acquises.
+              </T>
+              <Button
+                secondary
+                onPress={() => {
+                  resetSelection();
+                  setSave((s) =>
+                    loadGardenPage(s, session.collection, session.species, session.page, 2),
+                  );
+                }}
+              >
+                Recommencer en défi expert
+              </Button>
+            </Paper>
+          )}
+          {!!puzzle?.rules?.mechanics.length && (
+            <>
+              <T testID="garden-mechanics">
+                Défi expert ·{' '}
+                {puzzle.rules.mechanics.map((m) => mechanicDetails[m].name).join(' · ')}
+              </T>
+              <Button secondary onPress={() => setRulesOpen(true)}>
+                Les mécanismes de cette page
+              </Button>
+            </>
+          )}
           {!session.rewarded ? (
-            <Paper style={[ui.card, { padding: 10, gap: 14 }]}>
+            <Paper testID="garden-puzzle" style={[ui.card, { padding: 10, gap: 14 }]}>
               <View style={{ alignItems: 'center' }}>
                 <LiquidBoard
                   board={session.board}
+                  rules={puzzle?.rules}
+                  known={session.known}
                   selected={selected}
                   hint={hint}
                   pouring={pouring}
-                  disabled={!!pouring}
+                  disabled={!!pouring || introductions.length > 0 || rulesOpen}
                   motion={save.settings.motion}
                   patterns={save.settings.patterns}
                   initialWidth={Math.max(220, Math.min(width - 80, 620))}
@@ -178,10 +250,10 @@ export default function Jardin() {
                   onFinish={finish}
                 />
               </View>
-              <View style={{ gap: 6, flexDirection: 'row' }}>
+              <View style={{ gap: 6, flexDirection: 'row', flexWrap: 'wrap' }}>
                 <Button
                   secondary
-                  style={{ flex: 1, paddingHorizontal: 4 }}
+                  style={{ width: '48%', paddingHorizontal: 4 }}
                   disabled={!!pouring || !session.history.length}
                   onPress={() => {
                     setSave(undoGarden);
@@ -192,11 +264,17 @@ export default function Jardin() {
                 </Button>
                 <Button
                   secondary
-                  style={{ flex: 1, paddingHorizontal: 4 }}
+                  style={{ width: '48%', paddingHorizontal: 4 }}
                   disabled={!!pouring}
                   onPress={() => {
                     setSave((s) =>
-                      loadGardenPage(s, session.collection, session.species, session.page),
+                      loadGardenPage(
+                        s,
+                        session.collection,
+                        session.species,
+                        session.page,
+                        session.puzzleVersion ?? 1,
+                      ),
                     );
                     resetSelection();
                   }}
@@ -205,13 +283,35 @@ export default function Jardin() {
                 </Button>
                 <Button
                   secondary
-                  style={{ flex: 1, paddingHorizontal: 4 }}
-                  disabled={!!pouring}
+                  style={{ width: '48%', paddingHorizontal: 4 }}
+                  disabled={!!pouring || searching}
                   onPress={() => void askHint()}
                 >
                   Indice gratuit
                 </Button>
+                <Button
+                  secondary
+                  style={{ width: '48%', paddingHorizontal: 4 }}
+                  disabled={!!pouring}
+                  onPress={() => {
+                    resetSelection();
+                    const next = recoverGarden(save);
+                    const recovered = next.gardenSession!;
+                    setSave(recoverGarden);
+                    const move = recovered.guide?.path[0];
+                    setHint(move ?? null);
+                    setNote(
+                      `${session.moves > recovered.moves ? `${session.moves - recovered.moves} ${session.moves - recovered.moves === 1 ? 'mouvement annulé' : 'mouvements annulés'}. ` : ''}${move ? `Versez le flacon ${move.from + 1} dans le flacon ${move.to + 1}.` : 'Une solution reste accessible.'}`,
+                    );
+                  }}
+                >
+                  Chemin sûr
+                </Button>
               </View>
+              <T style={ui.muted}>
+                Chemin sûr revient au dernier point résoluble, sans coût et sans perte de votre
+                espèce.
+              </T>
               {!!note && <T accessibilityLiveRegion="polite">{note}</T>}
             </Paper>
           ) : (
@@ -397,6 +497,21 @@ export default function Jardin() {
           purchase={purchase}
           motion={save.settings.motion}
           onClose={() => confirm(null)}
+        />
+      )}
+      {play && (rulesOpen || introductions.length > 0) && (
+        <MechanicIntroduction
+          mechanics={rulesOpen ? (puzzle?.rules?.mechanics ?? []) : introductions}
+          motion={save.settings.motion}
+          onClose={() => {
+            setSave((s) => ({
+              ...s,
+              seenMechanics: Array.from(
+                new Set([...(s.seenMechanics ?? []), ...(puzzle?.rules?.mechanics ?? [])]),
+              ),
+            }));
+            setRulesOpen(false);
+          }}
         />
       )}
     </BookScrollView>
