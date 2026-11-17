@@ -71,11 +71,11 @@ export function ResetProgressDialog({
               <>
                 <T style={{ fontSize: 16, color: C.muted }}>
                   Vos pages terminées, étoiles, plantes restaurées, pigments, graines gagnées et
-                  papiers acquis seront effacés de cet appareil.
+                  papiers, décors acquis et jardins de collection seront effacés de cet appareil.
                 </T>
                 <T style={{ color: C.muted }}>
-                  Vous recommencerez à la page 1 avec une graine de départ. Vos réglages de son et
-                  d’accessibilité seront conservés.
+                  Vous recommencerez à la page 1 avec une réserve de graines vide. Vos réglages de
+                  son et d’accessibilité seront conservés.
                 </T>
                 <T style={{ color: '#805747' }}>
                   Votre pseudo sera effacé et le livre s’ouvrira à nouveau pour un nouveau départ.

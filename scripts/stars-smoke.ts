@@ -51,7 +51,7 @@ async function main() {
         JSON.parse(localStorage.getItem('color-world.save')!),
       );
       expect(stored.completed[1].stars).toBe(stars);
-      expect(stored.seeds).toBe(fixture.save.seeds + (stars === 3 ? 1 : 0));
+      expect(stored.seeds).toBe(fixture.save.seeds + 1 + (stars === 3 ? 1 : 0));
       expect(stored.pigments).toHaveLength(1);
     }
     const replay = attempt(3, true);
@@ -73,7 +73,7 @@ async function main() {
     await expect(page.getByTestId('page-saved-best-stars')).toHaveText('Record : ★★★');
     const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('color-world.save')!));
     expect(stored.completed).toEqual(replay.save.completed);
-    expect(stored.seeds).toBe(replay.save.seeds);
+    expect(stored.seeds).toBe(replay.save.seeds + 1);
     expect(stored.pigments).toEqual(replay.save.pigments);
     await page.screenshot({ path: 'test-results/stars-current-attempt-and-best.png' });
     await page.getByRole('button', { name: 'Passer l’animation' }).click();
@@ -83,7 +83,7 @@ async function main() {
     expect(target.x + target.width).toBeLessThanOrEqual(320);
     expect(errors).toEqual([]);
     console.log(
-      'Stars passed: legitimate 4/5/6/7-move attempts earn 3/3/2/1 stars; exact minimum and target shown only in result, actual replay rating displayed while best/date/seeds/pigments stay intact, narrow mobile controls usable.',
+      'Stars passed: legitimate 4/5/6/7-move attempts earn 3/3/2/1 stars, guaranteed first-clear seeds and first-three-star bonus; daily replay seed, best/date/pigments preserved, narrow mobile controls usable.',
     );
   } finally {
     await browser.close();

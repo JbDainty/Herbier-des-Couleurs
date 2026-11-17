@@ -37,11 +37,11 @@ async function main() {
     ).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'Herbier', exact: true })).toHaveCount(1);
     await expect(page.getByText('Le cabinet de Dainty', { exact: true })).toHaveCount(0);
-    await expect(page.getByTestId('seed-count')).toHaveText('1');
+    await expect(page.getByTestId('seed-count')).toHaveText('0');
     await expect(page.getByRole('heading', { name: 'Modes de jeu', exact: true })).toBeVisible();
     await expect(page.getByTestId('home-current-page')).toHaveText('Page 01');
     expect((await stored()).guideSeen).toBe(false);
-    expect((await stored()).seeds).toBe(1);
+    expect((await stored()).seeds).toBe(0);
     const first = await stored();
     // An entrance uses immutable SVG drawings; transforms move native layers only.
     await page.waitForTimeout(350);
@@ -269,7 +269,7 @@ async function main() {
     await page.getByRole('textbox', { name: 'Votre pseudo', exact: true }).fill('Camille');
     await page.getByRole('button', { name: 'Créer mon carnet', exact: true }).click();
     await expect(home).toBeVisible();
-    expect((await stored()).seeds).toBe(1);
+    expect((await stored()).seeds).toBe(0);
     expect((await stored()).guideSeen).toBe(false);
     expect((await stored()).completed).toEqual({});
     expect(errors).toEqual([]);

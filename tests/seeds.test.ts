@@ -14,13 +14,13 @@ import {
 } from '../src/state/model';
 import { firstPageAttempt } from '../scripts/test-fixtures';
 
-it('starts a new journey with one seed and grants one only for a three-star attempt', () => {
-  expect(initial().seeds).toBe(1);
+it('starts with an empty collection wallet and guarantees one seed plus a first-three-star bonus', () => {
+  expect(initial().seeds).toBe(0);
   for (const [extra, earned] of [
-    [0, 1],
-    [1, 1],
-    [2, 0],
-    [3, 0],
+    [0, 2],
+    [1, 2],
+    [2, 1],
+    [3, 1],
   ]) {
     const { save, last } = firstPageAttempt(extra);
     const won = move(save, last.from, last.to);
@@ -29,7 +29,7 @@ it('starts a new journey with one seed and grants one only for a three-star atte
     expect(reward(restore(JSON.stringify(won))).seeds).toBe(won.seeds);
   }
 });
-it('rewards each real three-star replay, retaining best stars and unique pigments', () => {
+it('a real replay uses the daily reward, retaining best stars and unique pigments', () => {
   let save = initial();
   for (const m of levels[0].solution) save = move(save, m.from, m.to);
   const best = save.completed,
@@ -40,7 +40,7 @@ it('rewards each real three-star replay, retaining best stars and unique pigment
   expect(save.completed).toEqual(best);
   expect(save.pigments).toEqual(pigments);
 });
-it('charges once for the same hint across repeated taps, reload, undo and restart', () => {
+it('remembers free hints across repeated taps, reload, undo and restart', () => {
   const first = initial(),
     suggestion = levels[0].solution[0];
   const paid = purchaseHint(first, suggestion);
@@ -52,16 +52,18 @@ it('charges once for the same hint across repeated taps, reload, undo and restar
   const moved = move(resumed, suggestion.from, suggestion.to);
   expect(currentHint(moved)).toBeUndefined();
   expect(currentHint(undo(moved))).toEqual(suggestion);
-  expect(purchaseHint(moved, levels[0].solution[1])).toBe(moved);
+  const another = purchaseHint(moved, levels[0].solution[1]);
+  expect(another.seeds).toBe(moved.seeds);
+  expect(currentHint(another)).toEqual(levels[0].solution[1]);
   expect(paid.board).toEqual(first.board);
 });
-it('a different real hint costs a new seed; invalid suggestions cost nothing', () => {
+it('different real hints preserve the collection wallet; invalid suggestions do nothing', () => {
   let save = { ...initial(), seeds: 2 };
   expect(purchaseHint(save, { from: 0, to: 0 })).toBe(save);
   save = purchaseHint(save, levels[0].solution[0]);
   save = move(save, levels[0].solution[0].from, levels[0].solution[0].to);
   save = purchaseHint(save, levels[0].solution[1]);
-  expect(save.seeds).toBe(0);
+  expect(save.seeds).toBe(2);
   expect(Object.keys(save.paidHints)).toHaveLength(2);
   expect(restore(JSON.stringify(save))).toEqual(save);
 });
@@ -85,7 +87,7 @@ it('normalizes a personal signature and reset clears it and paid hints while kee
   const fresh = resetProgress(save);
   expect(fresh.nickname).toBe('');
   expect(fresh.started).toBe(false);
-  expect(fresh.seeds).toBe(1);
+  expect(fresh.seeds).toBe(0);
   expect(fresh.paidHints).toEqual({});
   expect(fresh.settings).toEqual(save.settings);
 });

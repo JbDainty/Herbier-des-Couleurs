@@ -609,8 +609,8 @@ export function BotanicalGuide({
               },
               {
                 icon: 'seed-outline',
-                title: 'Une graine pour éclairer le chemin',
-                text: 'Vous commencez avec une graine. Chaque réussite à trois étoiles en rapporte une nouvelle. Un nouvel indice coûte une graine, après confirmation. Vous pouvez cocher « Ne plus me prévenir » et réactiver cet avertissement dans les paramètres. Relire le même indice dans la même situation reste gratuit.',
+                title: 'Des graines pour faire grandir la collection',
+                text: 'Une nouvelle page terminée donne une graine, et ses premières trois étoiles une graine supplémentaire. Les rejeux offrent jusqu’à trois graines par jour. Ces graines permettent d’acquérir les décors des écosystèmes et les jardins de collection dans la boutique. Les indices sont gratuits.',
               },
               {
                 icon: 'arrow-undo-outline',
@@ -620,7 +620,7 @@ export function BotanicalGuide({
               {
                 icon: 'refresh-outline',
                 title: 'Mélanger pour repartir autrement',
-                text: 'Bloqué ? Mélanger utilise une graine pour proposer une nouvelle disposition résoluble pour la même page. Après confirmation, les mouvements repartent à zéro. Les étoiles et les pages déjà gagnées restent conservées. Le minimum et les objectifs des étoiles correspondent au nouveau mélange.',
+                text: 'Bloqué ? Mélanger propose gratuitement une nouvelle disposition résoluble pour la même page. Après confirmation, les mouvements repartent à zéro. Les étoiles et les pages déjà gagnées restent conservées. Le minimum et les objectifs des étoiles correspondent au nouveau mélange.',
               },
             ].map((item) => (
               <View

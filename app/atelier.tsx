@@ -22,7 +22,6 @@ import {
   undo,
   restoration,
   currentHint,
-  hintPurchased,
   purchaseHint,
   remixPage,
   activeRules,
@@ -40,7 +39,6 @@ import { SpellIcon } from '../src/components/SpellIcon';
 import { HintScroll } from '../src/components/HintScroll';
 import {
   HintSlot,
-  emptySeedHint,
   missingPathHint,
   blockedPathHint,
   compactHint,
@@ -89,7 +87,7 @@ function Workshop() {
   const [tubeReward, setTubeReward] = useState<TubeReward | null>(null);
   const [winReady, setWinReady] = useState(won(save.board, rules));
   const hintPending = useRef(false);
-  const [confirm, setConfirm] = useState<'hint' | 'mix' | null>(null);
+  const [confirm, setConfirm] = useState<'mix' | null>(null);
   const mixOpacity = useRef(new Animated.Value(1)).current;
   const mixAnimation = useRef<Animated.CompositeAnimation | null>(null);
   const mixPending = useRef(false);
@@ -255,15 +253,6 @@ function Workshop() {
   const askHint = () => {
     if (busy || victory || hintPending.current) return;
     const owned = currentHint(save);
-    if (!hintPurchased(save) && save.seeds < 1) {
-      setNote((previous) => ({
-        text: emptySeedHint,
-        kind: 'hint',
-        request: previous.request + 1,
-        pending: false,
-      }));
-      return;
-    }
     hintPending.current = true;
     setHint(null);
     setNote((previous) => ({
@@ -317,12 +306,10 @@ function Workshop() {
   };
   const requestHint = () => {
     if (busy || victory || hintPending.current || mixPending.current) return;
-    if (!hintPurchased(save) && save.seeds > 0 && save.settings.confirmHints !== false)
-      setConfirm('hint');
-    else askHint();
+    askHint();
   };
   const mixColors = () => {
-    if (busy || victory || mixPending.current || save.seeds < 1) return;
+    if (busy || victory || mixPending.current) return;
     mixPending.current = true;
     setBusy(true);
     setSelected(null);
@@ -476,14 +463,7 @@ function Workshop() {
           name: 'Mélanger',
           icon: 'mix' as const,
           action: () => {
-            if (save.seeds < 1) {
-              setNote((previous) => ({
-                text: emptySeedHint,
-                kind: 'hint',
-                request: previous.request + 1,
-                pending: false,
-              }));
-            } else setConfirm('mix');
+            setConfirm('mix');
           },
           disabled: victory,
         },
@@ -494,11 +474,7 @@ function Workshop() {
           accessibilityLabel={a.name}
           accessibilityRole="button"
           accessibilityHint={
-            a.name === 'Indice'
-              ? hintPurchased(save)
-                ? 'Conseil déjà cueilli, sans nouvelle dépense'
-                : 'Un nouveau conseil coûte une graine'
-              : undefined
+            a.name === 'Indice' ? 'Conseil gratuit, sans dépenser de graines' : undefined
           }
           onPress={a.action}
           disabled={busy || a.disabled || introductions.length > 0}
@@ -655,14 +631,9 @@ function Workshop() {
           kind={confirm}
           motion={save.settings.motion}
           onCancel={() => setConfirm(null)}
-          onConfirm={(skip) => {
-            const kind = confirm;
+          onConfirm={() => {
             setConfirm(null);
-            if (kind === 'hint') {
-              if (skip)
-                setSave((v) => ({ ...v, settings: { ...v.settings, confirmHints: false } }));
-              askHint();
-            } else mixColors();
+            mixColors();
           }}
         />
       )}
