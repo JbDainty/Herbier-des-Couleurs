@@ -171,7 +171,7 @@ describe('couleurs intégralement regroupées', () => {
     const completed = move(s, 0, 2);
     expect(won(completed.board)).toBe(true);
     expect(completed.pigments).toHaveLength(1);
-    expect(completed.seeds).toBe(s.seeds + 2);
+    expect(completed.seeds).toBe(s.seeds + 1);
     expect(completed.completed[1]).toBeDefined();
   });
   it('propose un indice de consolidation quand toutes les couleurs sont déjà séparées', () => {

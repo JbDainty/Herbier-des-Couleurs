@@ -4,7 +4,6 @@ import type { Level } from '../data/campaign';
 import snapshots from '../data/collectionPuzzles.json';
 import { clone, pour, won, type Board } from '../engine/puzzle';
 import { pageStars } from './stars';
-import { pageSeedReward } from './seedRewards';
 
 export type GardenProgress = {
   species: string[];
@@ -100,10 +99,9 @@ export function moveGarden(
   const key = gardenPageKey(session.species, session.page);
   const previous = progress.completed[key];
   const stars = pageStars(next.moves, puzzle.par);
-  const earned = pageSeedReward(previous?.stars, stars);
   return {
     ...s,
-    gardenSession: { ...next, rewarded: true, seedReward: earned },
+    gardenSession: { ...next, rewarded: true, seedReward: 0 },
     gardens: {
       ...s.gardens,
       [session.collection]: {
@@ -114,7 +112,6 @@ export function moveGarden(
         },
       },
     },
-    seeds: s.seeds + earned,
   };
 }
 export function undoGarden(s: Save): Save {

@@ -154,9 +154,9 @@ export function SeedPouch({
               Des graines pour votre collection
             </T>
             <T>
-              Chaque nouvelle page terminée offre une graine. Les premières trois étoiles de cette
-              page ajoutent une graine, une seule fois. Ensuite, rejouer ne rapporte plus de graine,
-              sauf pour obtenir les trois étoiles de cette page pour la première fois.
+              Chaque page de la campagne principale donne une graine lors de sa première réussite à
+              trois étoiles. Une ou deux étoiles ne donnent pas de graine. Les pages des jardins
+              saisonniers ne rapportent aucune graine, quel que soit le score.
             </T>
             <T>
               Achetez les décors des écosystèmes et accueillez les orchidées de vos jardins dans la

@@ -51,7 +51,7 @@ async function main() {
         JSON.parse(localStorage.getItem('color-world.save')!),
       );
       expect(stored.completed[1].stars).toBe(stars);
-      expect(stored.seeds).toBe(fixture.save.seeds + 1 + (stars === 3 ? 1 : 0));
+      expect(stored.seeds).toBe(fixture.save.seeds + (stars === 3 ? 1 : 0));
       expect(stored.pigments).toHaveLength(1);
     }
     // The last first clear earned one star: only the missing three-star seed remains.
@@ -68,7 +68,7 @@ async function main() {
       const stored = await page.evaluate(() =>
         JSON.parse(localStorage.getItem('color-world.save')!),
       );
-      expect(stored.seeds).toBe(2);
+      expect(stored.seeds).toBe(1);
       expect(stored.completed[1].stars).toBe(3);
       expect(stored.pigments).toHaveLength(1);
     }
@@ -101,7 +101,7 @@ async function main() {
     expect(target.x + target.width).toBeLessThanOrEqual(320);
     expect(errors).toEqual([]);
     console.log(
-      'Stars passed: legitimate 4/5/6/7-move attempts earn 3/3/2/1 stars, guaranteed first-clear seeds and first-three-star bonus; no replay income, best/date/pigments preserved, narrow mobile controls usable.',
+      'Stars passed: legitimate 4/5/6/7-move attempts earn 3/3/2/1 stars; only the first three stars grant one seed, lower scores grant none; no replay income, best/date/pigments preserved, narrow mobile controls usable.',
     );
   } finally {
     await browser.close();

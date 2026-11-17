@@ -14,13 +14,13 @@ import {
 } from '../src/state/model';
 import { firstPageAttempt } from '../scripts/test-fixtures';
 
-it('starts with an empty collection wallet and guarantees one seed plus a first-three-star bonus', () => {
+it('starts empty and awards a seed only for the first three stars of a main-campaign page', () => {
   expect(initial().seeds).toBe(0);
   for (const [extra, earned] of [
-    [0, 2],
-    [1, 2],
-    [2, 1],
-    [3, 1],
+    [0, 1],
+    [1, 1],
+    [2, 0],
+    [3, 0],
   ]) {
     const { save, last } = firstPageAttempt(extra);
     const won = move(save, last.from, last.to);
@@ -36,7 +36,7 @@ it('a real replay never awards another seed, retaining best stars and unique pig
     pigments = save.pigments;
   save = loadLevel(save, 1);
   for (const m of levels[0].solution) save = move(save, m.from, m.to);
-  expect(save.seeds).toBe(2);
+  expect(save.seeds).toBe(1);
   expect(save.lastSeedReward).toBe(0);
   expect(save.completed).toEqual(best);
   expect(save.pigments).toEqual(pigments);
@@ -45,14 +45,14 @@ it('awards only the missing first-three-star seed when improving a completed cam
   const attempt = firstPageAttempt(2);
   let save = move(attempt.save, attempt.last.from, attempt.last.to);
   expect(save.completed[1].stars).toBe(2);
-  expect(save.seeds).toBe(1);
+  expect(save.seeds).toBe(0);
   const date = save.completed[1].date;
   const pigments = save.pigments;
   for (let replay = 0; replay < 3; replay++) {
     save = loadLevel(restore(JSON.stringify(save)), 1);
     for (const step of levels[0].solution) save = move(save, step.from, step.to);
     expect(save.lastSeedReward).toBe(replay === 0 ? 1 : 0);
-    expect(save.seeds).toBe(2);
+    expect(save.seeds).toBe(1);
     expect(save.completed[1]).toEqual({ stars: 3, date });
     expect(save.pigments).toEqual(pigments);
   }

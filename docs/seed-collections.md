@@ -1,25 +1,28 @@
 # Graines, décors et jardins de collection
 
-## Équilibrage initial
+## Équilibrage actuel
 
-| Action ou acquisition                           |                                             Graines |
-| ----------------------------------------------- | --------------------------------------------------: |
-| Première réussite d’une page, même à une étoile |                                                  +1 |
-| Premières trois étoiles de cette page           |                                        +1, une fois |
-| Rejeu terminé                                   | 0, sauf la prime unique des premières trois étoiles |
-| Annuler, recommencer, indice, mélanger          |                                                   0 |
-| Décor des cinq premiers écosystèmes             |                                           20 chacun |
-| Décor des quinze suivants                       |                                           50 chacun |
-| Jardin des orchidées, première espèce incluse   |                                                 150 |
-| Chacune des cinq autres orchidées               |                                                  45 |
+| Action ou acquisition                                    |      Graines |
+| -------------------------------------------------------- | -----------: |
+| Page principale réussie avec une ou deux étoiles         |            0 |
+| Premières trois étoiles d’une page principale            | +1, une fois |
+| Rejeu d’une page principale déjà réussie à trois étoiles |            0 |
+| Page de collection saisonnière, même à trois étoiles     |            0 |
+| Annuler, recommencer, indice, mélanger                   |            0 |
+| Décor des cinq premiers écosystèmes                      |    20 chacun |
+| Décor des quinze suivants                                |    50 chacun |
+| Jardin des orchidées, première espèce incluse            |          150 |
+| Chacune des cinq autres orchidées                        |           45 |
 
-La réserve initiale est vide. Les premiers chapitres des cinq premiers écosystèmes comptent vingt pages chacun, puis les quinze nouveaux écosystèmes cinquante pages chacun. Leurs gains garantis couvrent donc leur décor. Les cinq revisites de trente pages des premiers écosystèmes apportent les 150 graines restantes : 1 000 pages garanties paient les vingt décors (850) et l’entrée du jardin (150), même sans bonus d’étoiles. Les primes uniques des trois étoiles et les nouvelles pages des jardins financent ensuite les espèces supplémentaires. Cet équilibrage initial doit être éprouvé avec des joueurs avant de fixer les futurs prix.
+La réserve initiale est vide. Les 1 000 pages principales permettent de gagner au maximum **1 000 graines**, en obtenant trois étoiles sur chacune. Une page principale réussie à une ou deux étoiles peut être rejouée pour obtenir sa seule graine à trois étoiles. Une fois celle-ci obtenue, aucune tentative supplémentaire ne rapporte de graine, même après mélange, rechargement ou changement de jour.
 
-La campagne et les jardins appliquent la même règle : une page peut rapporter au maximum deux graines au total, une pour sa première réussite et une pour ses premières trois étoiles. Améliorer une ancienne page à trois étoiles rapporte uniquement la prime encore manquante. Une reprise avec une ou deux étoiles, un nouveau jour, un rechargement du bilan ou un nouveau mélange ne donnent aucune graine supplémentaire. L’ancien champ `replayRewards` reste lisible pour la compatibilité des sauvegardes mais n’accorde aucun gain.
+Les premiers chapitres des cinq premiers écosystèmes comptent vingt pages chacun, puis les quinze nouveaux écosystèmes cinquante pages chacun. Obtenir trois étoiles sur toutes les pages d’un premier chapitre permet de payer son décor. Les vingt décors coûtent 850 graines ; le jardin et ses six orchidées coûtent 375 graines (150 + 5 × 45). La boutique actuelle coûte donc **1 225 graines**, soit 225 de plus que le maximum de gains d’un nouveau carnet. Les trente puzzles saisonniers ne financent aucun achat. Avant l’activation des achats réels, le joueur doit choisir ses acquisitions avec son solde limité.
+
+L’ancien champ `replayRewards` reste lisible pour la compatibilité des sauvegardes mais n’accorde aucun gain. La progression, les étoiles et les illustrations des jardins restent enregistrées même sans récompense monétaire.
 
 ## Sauvegardes existantes
 
-Le format principal reste `version: 2`. `economyVersion: 1` marque la migration : solde conservé, une graine créditée par page principale déjà terminée, remboursement des papiers sauge (100) et rose (150) déjà acquis. Ces papiers et leur sélection restent conservés. Aucun remboursement d’anciens indices ou mélanges n’est inventé : leur historique de dépenses n’existe pas.
+Le format principal reste `version: 2`. `economyVersion: 1` marque la migration : solde conservé sans crédit automatique des anciennes pages terminées, remboursement des papiers sauge (100) et rose (150) déjà acquis. Ces papiers et leur sélection restent conservés. Les graines déjà attribuées par les règles précédentes restent acquises ; cette mise à jour ne retire ni solde ni acquisition. Les anciennes sessions de jardin peuvent toujours être relues, mais les victoires suivantes donnent zéro graine. Aucun remboursement d’anciens indices ou mélanges n’est inventé : leur historique de dépenses n’existe pas.
 
 Les nouvelles acquisitions, les espèces, les puzzles interrompus et les récompenses sont enregistrés dans le même document local, avec la file d’écriture existante. Le jardin utilise son propre plateau, historique, mouvements et registre de pages ; entrer dans un jardin ne remplace pas une tentative de la campagne. Les achats vérifient solde, disponibilité et propriété dans le modèle, en plus de la confirmation visuelle. Rééquiper un décor acquis est gratuit.
 
@@ -37,6 +40,6 @@ Seul le jardin à la une peut être acquis pour la première fois. Une fois acqu
 
 ## Vérification et achats réels
 
-`tests/collections.test.ts` simule les 1 000 récompenses garanties, l’achat des vingt décors puis du jardin, les doubles achats, la migration répétée, l’absence de gains de rejeu et la prime unique des trois étoiles, la rotation et la reprise indépendante des orchidées. Il vérifie les trente certificats et leurs minima. `node --import tsx scripts/collections-smoke.ts` joue les cinq premières pages dans l’interface et contrôle achats, rechargements, sauvegardes anciennes et trois tailles d’écran. `GAME_TEST_URL` désigne le serveur Expo ou l’export Web à tester.
+`tests/collections.test.ts` simule le plafond de 1 000 graines de la campagne à trois étoiles, l’achat des vingt décors puis du jardin, les doubles achats, la migration répétée, l’absence de gains à une ou deux étoiles, la prime unique des trois étoiles de la campagne et l’absence de gains sur les trente pages saisonnières, la rotation et la reprise indépendante des orchidées. Il vérifie les trente certificats et leurs minima. `node --import tsx scripts/collections-smoke.ts` joue les cinq premières pages dans l’interface et contrôle achats, rechargements, sauvegardes anciennes et trois tailles d’écran. `GAME_TEST_URL` désigne le serveur Expo ou l’export Web à tester.
 
 Cette livraison dépense uniquement des graines gagnées en jeu. Les packs payants, StoreKit et Google Play Billing restent désactivés. La sauvegarde est locale : avant de vendre des graines, il faudra un registre de transactions fiable, la validation des reçus, la restauration des droits, la gestion des remboursements et les tests des boutiques.
