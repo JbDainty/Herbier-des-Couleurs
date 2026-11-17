@@ -205,10 +205,8 @@ export default function Jardin() {
               <T serif style={{ fontSize: 30, lineHeight: 36, textAlign: 'center' }}>
                 {session.page === 4 ? 'Votre orchidée rayonne' : 'Une nouvelle nuance retrouvée'}
               </T>
-              <T>
-                {gardenStage(save, garden.id, flower.id)} / 5 pages restaurées · +
-                {session.seedReward} graines
-              </T>
+              <T>{gardenStage(save, garden.id, flower.id)} / 5 pages restaurées</T>
+              <T style={ui.muted}>Les pages de ce jardin ne rapportent pas de graines.</T>
               <Button
                 onPress={() => {
                   resetSelection();

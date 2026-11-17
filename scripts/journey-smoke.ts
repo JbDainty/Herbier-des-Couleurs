@@ -125,20 +125,20 @@ async function main() {
     );
     expect((await stored()).seeds).toBe(0);
     for (const m of levels[0].solution) await transfer(m.from, m.to);
-    await expect(page.getByTestId('page-seed-reward')).toContainText('+2 graines');
-    expect((await stored()).seeds).toBe(2);
+    await expect(page.getByTestId('page-seed-reward')).toContainText('+1 graine');
+    expect((await stored()).seeds).toBe(1);
     await page.getByRole('button', { name: 'Rejouer la page' }).click();
     await hint.click();
     await expect(page.getByTestId('hint-writing-text')).toHaveText(
       'Versez le flacon 1 dans le flacon 3.',
     );
-    expect((await stored()).seeds).toBe(2); // The same free advice remains free on replay.
+    expect((await stored()).seeds).toBe(1); // The same free advice remains free on replay.
     await transfer(0, 2);
     await hint.click();
     await expect(page.getByTestId('hint-writing-text')).toHaveText(
       'Versez le flacon 2 dans le flacon 3.',
     );
-    expect((await stored()).seeds).toBe(2);
+    expect((await stored()).seeds).toBe(1);
     expect(Object.keys((await stored()).paidHints)).toHaveLength(2);
     // Zeroing the game returns to signature and an empty seed reserve; preferences are retained.
     await openScreen(page, 'Paramètres');
@@ -162,7 +162,7 @@ async function main() {
     );
     expect(errors).toEqual([]);
     console.log(
-      'Journey passed: opening film/signature, real entry music before any move, 10s seed animation, empty initial reserve, free hints across double taps/reload/undo/replay, guaranteed first-clear and three-star seeds, personalized settings, honest Apple/Google buttons, no manual export, reset restarts film, 320px layout.',
+      'Journey passed: opening film/signature, real entry music before any move, 10s seed animation, empty initial reserve, free hints across double taps/reload/undo/replay, one seed only for the first three stars, personalized settings, honest Apple/Google buttons, no manual export, reset restarts film, 320px layout.',
     );
   } finally {
     await browser.close();

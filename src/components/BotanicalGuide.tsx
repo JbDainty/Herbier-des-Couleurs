@@ -610,7 +610,7 @@ export function BotanicalGuide({
               {
                 icon: 'seed-outline',
                 title: 'Des graines pour faire grandir la collection',
-                text: 'Une nouvelle page terminée donne une graine, et ses premières trois étoiles une graine supplémentaire, une seule fois. Rejouer ne rapporte plus de graine, sauf pour obtenir les trois étoiles de cette page pour la première fois. Ces graines permettent d’acquérir les décors des écosystèmes et les jardins de collection dans la boutique. Les indices sont gratuits.',
+                text: 'Chaque page de la campagne principale donne une graine lors de sa première réussite à trois étoiles. Une ou deux étoiles ne donnent pas de graine. Les pages des jardins saisonniers ne rapportent aucune graine, même avec trois étoiles. Vos graines permettent d’acquérir les décors des écosystèmes et les jardins de collection dans la boutique. Les indices sont gratuits.',
               },
               {
                 icon: 'arrow-undo-outline',

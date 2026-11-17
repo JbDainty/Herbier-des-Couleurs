@@ -32,15 +32,14 @@ const garden = collections[0];
 const now = new Date('2026-11-17T12:00:00Z');
 const openGarden = () => acquireGarden({ ...initial(), seeds: 400 }, garden.id, now);
 
-it('funds every ecosystem wallpaper from guaranteed page rewards, without requiring three stars', () => {
+it('caps campaign income at 1000 seeds, funding all wallpapers and the garden with three stars', () => {
   let save = initial();
   const prices = new Map(
     wallpapers.map((w) => [journeyRegions.find((r) => r.ecosystem === w.ecosystem)!.end, w]),
   );
   for (const page of levels) {
     save = loadLevel(save, page.id);
-    for (const [index, step] of page.solution.entries()) {
-      if (index === page.solution.length - 1) save = { ...save, moves: page.par * 3 };
+    for (const step of page.solution) {
       save = move(save, step.from, step.to);
     }
     expect(save.lastSeedReward).toBe(1);
@@ -85,19 +84,19 @@ it('never rewards repeated clears, even on a later day or with an old replay led
     save = loadLevel(save, 1);
     for (const step of levels[0].solution) save = move(save, step.from, step.to);
   }
-  expect(save.seeds).toBe(2); // 1 completion + 1 first-three-star, with no replay income.
+  expect(save.seeds).toBe(1); // Only the first three stars, with no replay income.
   expect(save.pigments).toHaveLength(1);
   expect(reward(save)).toBe(save);
   const legacyLedger = { ...save, replayRewards: { day: '2026-11-17', count: 0 } };
   const replay = { ...legacyLedger, attemptRewarded: false };
   const later = reward(replay, '2026-11-18T12:00:00Z');
-  expect(later.seeds).toBe(2);
+  expect(later.seeds).toBe(1);
   expect(later.lastSeedReward).toBe(0);
   expect(later.replayRewards).toEqual(legacyLedger.replayRewards);
   expect(restore(JSON.stringify(later))).toEqual(later);
 });
 
-it('grants only the missing three-star bonus on an orchid replay and never grants it twice', () => {
+it('never grants seeds for seasonal first clears or three-star upgrades and replays', () => {
   let save = startGarden(openGarden(), garden.id, 'aurore');
   const puzzle = gardenPuzzle(garden.id, 'aurore', 0);
   for (const step of puzzle.solution.slice(0, -1)) save = moveGarden(save, step.from, step.to);
@@ -114,19 +113,19 @@ it('grants only the missing three-star bonus on an orchid replay and never grant
   const last = puzzle.solution.at(-1)!;
   save = moveGarden(save, last.from, last.to);
   expect(save.gardens![garden.id].completed['aurore:0'].stars).toBe(1);
-  expect(save.gardenSession!.seedReward).toBe(1);
+  expect(save.gardenSession!.seedReward).toBe(0);
   const firstBalance = save.seeds;
   const firstDate = save.gardens![garden.id].completed['aurore:0'].date;
   for (let attempt = 0; attempt < 3; attempt++) {
     save = loadGardenPage(restore(JSON.stringify(save)), garden.id, 'aurore', 0);
     for (const step of puzzle.solution) save = moveGarden(save, step.from, step.to);
-    expect(save.gardenSession!.seedReward).toBe(attempt === 0 ? 1 : 0);
-    expect(save.seeds).toBe(firstBalance + 1);
+    expect(save.gardenSession!.seedReward).toBe(0);
+    expect(save.seeds).toBe(firstBalance);
     expect(save.gardens![garden.id].completed['aurore:0']).toEqual({ stars: 3, date: firstDate });
   }
 });
 
-it('credits past campaign completions and retired papers once, without changing a live attempt', () => {
+it('only refunds retired papers once, without crediting past pages or changing a live attempt', () => {
   let save = initial();
   for (const page of levels.slice(0, 6)) {
     save = loadLevel(save, page.id);
@@ -140,7 +139,7 @@ it('credits past campaign completions and retired papers once, without changing 
   delete legacy.ownedWallpapers;
   delete legacy.gardens;
   const migrated = restore(JSON.stringify(legacy));
-  expect(migrated.seeds).toBe(49 + 6 + 100);
+  expect(migrated.seeds).toBe(49 + 100);
   expect(migrated.board).toEqual(save.board);
   expect(migrated.history).toEqual(save.history);
   expect(migrated.pigments).toEqual(save.pigments);
@@ -199,7 +198,7 @@ it('ships thirty distinct new garden puzzles with complete independently checked
     }
 });
 
-it('resumes orchid puzzles, supports undo and rewards without touching the main campaign', () => {
+it('resumes orchid puzzles and records progress without changing seeds or the main campaign', () => {
   let save = startGarden(openGarden(), garden.id, 'aurore');
   const campaign = {
     current: save.current,
@@ -207,6 +206,7 @@ it('resumes orchid puzzles, supports undo and rewards without touching the main 
     history: save.history,
     completed: save.completed,
     pigments: save.pigments,
+    seeds: save.seeds,
   };
   for (let page = 0; page < 5; page++) {
     save = loadGardenPage(save, garden.id, 'aurore', page);
@@ -217,7 +217,7 @@ it('resumes orchid puzzles, supports undo and rewards without touching the main 
     expect(restore(JSON.stringify(advanced))).toEqual(advanced);
     for (const step of puzzle.solution) save = moveGarden(save, step.from, step.to);
     expect(save.gardenSession!.rewarded).toBe(true);
-    expect(save.gardenSession!.seedReward).toBe(2);
+    expect(save.gardenSession!.seedReward).toBe(0);
     expect(moveGarden(save, first.from, first.to)).toBe(save);
     expect(restore(JSON.stringify(save))).toEqual(save);
   }
@@ -228,7 +228,47 @@ it('resumes orchid puzzles, supports undo and rewards without touching the main 
     history: save.history,
     completed: save.completed,
     pigments: save.pigments,
+    seeds: save.seeds,
   }).toEqual(campaign);
+});
+
+it('all thirty seasonal pages preserve the wallet, including first three-star completions', () => {
+  let save = openGarden();
+  for (const flower of garden.species) {
+    save = acquireGardenSpecies(save, garden.id, flower.id);
+    const balance = save.seeds;
+    for (let page = 0; page < 5; page++) {
+      save = loadGardenPage(save, garden.id, flower.id, page);
+      for (const step of gardenPuzzle(garden.id, flower.id, page).solution)
+        save = moveGarden(save, step.from, step.to);
+      expect(save.gardens![garden.id].completed[`${flower.id}:${page}`].stars).toBe(3);
+      expect(save.gardenSession!.seedReward).toBe(0);
+      expect(save.seeds).toBe(balance);
+      save = restore(JSON.stringify(save));
+      expect(save.seeds).toBe(balance);
+    }
+  }
+  expect(Object.keys(save.gardens![garden.id].completed)).toHaveLength(30);
+  expect(save.seeds).toBe(25); // 400 initial fixture - 150 garden - 225 extra species.
+});
+
+it('preserves already credited seeds and a winning garden session from the previous rules', () => {
+  let save = startGarden(openGarden(), garden.id, 'aurore');
+  for (const step of gardenPuzzle(garden.id, 'aurore', 0).solution)
+    save = moveGarden(save, step.from, step.to);
+  const previous = {
+    ...save,
+    seeds: 275,
+    lastSeedReward: 2,
+    gardenSession: { ...save.gardenSession!, seedReward: 2 },
+  };
+  const restored = restore(JSON.stringify(previous));
+  expect(restored).toEqual(previous);
+  save = loadGardenPage(restored, garden.id, 'aurore', 1);
+  for (const step of gardenPuzzle(garden.id, 'aurore', 1).solution)
+    save = moveGarden(save, step.from, step.to);
+  expect(save.seeds).toBe(275);
+  expect(save.gardenSession!.seedReward).toBe(0);
 });
 
 it('rejects corrupt ownership, impossible garden boards and skipped premium pages', () => {

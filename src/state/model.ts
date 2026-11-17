@@ -412,8 +412,7 @@ export function restore(raw: string | null): Save {
   const migrationCredit =
     v.economyVersion === 1
       ? 0
-      : Object.keys(v.completed).length +
-        themes
+      : themes
           .filter((t) => t.cost > 0 && v.owned?.includes(t.id))
           .reduce((sum, t) => sum + t.cost, 0);
   return {

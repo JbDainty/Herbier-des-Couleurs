@@ -38,18 +38,15 @@ export default function Boutique() {
       <Paper style={[ui.card, { gap: 8 }]}>
         <Label>VOTRE RÉSERVE · {save.seeds} GRAINES</Label>
         <T>
-          Une nouvelle page terminée donne une graine. Les premières trois étoiles en donnent une
-          autre, une seule fois. Rejouer une page déjà réussie ne donne plus de graine, sauf pour
-          obtenir ses trois étoiles pour la première fois.
+          Obtenir les trois étoiles d’une page de la campagne principale donne une graine, une seule
+          fois. Une ou deux étoiles ne donnent pas de graine. Les pages des jardins saisonniers n’en
+          donnent pas, même avec trois étoiles.
         </T>
         <T style={ui.muted}>
           Les indices et les mélanges sont gratuits : gardez vos graines pour vos décors et vos
           jardins.
         </T>
-        <T style={ui.muted}>
-          Vos anciennes pages ont aussi été prises en compte. Les graines déjà gagnées et les
-          papiers acquis sont conservés.
-        </T>
+        <T style={ui.muted}>Vos graines déjà gagnées et vos acquisitions sont conservées.</T>
       </Paper>
       {!!featured && (
         <Paper testID="featured-garden" style={[ui.card, { gap: 12, backgroundColor: '#f1e8f3' }]}>
@@ -73,6 +70,7 @@ export default function Boutique() {
             Un jardin acquis reste accessible et complétable, même quand une nouvelle collection
             arrive à la une.
           </T>
+          <T style={ui.muted}>Les pages de ce jardin ne rapportent pas de graines.</T>
           <Button
             disabled={!!save.testSession || (!gardenOwned && save.seeds < featured.cost)}
             onPress={() => {
@@ -110,8 +108,8 @@ export default function Boutique() {
       )}
       <Label>LES DÉCORS DES ÉCOSYSTÈMES</Label>
       <T>
-        Chaque paysage devient disponible à la découverte de son écosystème. Les graines garanties
-        de son premier chapitre couvrent son prix.
+        Chaque paysage devient disponible à la découverte de son écosystème. Obtenir les trois
+        étoiles de toutes les pages de son premier chapitre permet de réunir son prix en graines.
       </T>
       <Paper testID="wallpaper-preview" style={[ui.card, { gap: 12 }]}>
         <Image

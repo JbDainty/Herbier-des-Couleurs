@@ -91,13 +91,18 @@ async function main() {
         }
       }
       await expect(page.getByTestId('garden-victory')).toBeVisible();
+      await expect(page.getByTestId('garden-victory')).toContainText(
+        'ne rapportent pas de graines',
+      );
+      expect((await stored()).seeds).toBe(70);
+      expect((await stored()).gardenSession!.seedReward).toBe(0);
       if (index < 4) await button('Restaurer la page suivante').click();
     }
     await page
       .getByTestId('garden-victory')
       .screenshot({ path: 'test-results/orchid-restored.png' });
     await button('Contempler mon jardin').click();
-    expect((await stored()).seeds).toBe(80);
+    expect((await stored()).seeds).toBe(70);
     await page
       .getByTestId('garden-species-aurore')
       .getByRole('button', { name: 'Rejouer cette orchidée', exact: true })
@@ -106,15 +111,15 @@ async function main() {
       await tube(step.from).click();
       await tube(step.to).click();
     }
-    await expect(page.getByTestId('garden-victory')).toContainText('+0 graines');
-    expect((await stored()).seeds).toBe(80);
+    await expect(page.getByTestId('garden-victory')).toContainText('ne rapportent pas de graines');
+    expect((await stored()).seeds).toBe(70);
     await button('Retrouver toutes mes orchidées').click();
     const card = page.getByTestId('garden-species-velours');
     await card
       .getByRole('button', { name: 'Accueillir cette orchidée · 45 graines', exact: true })
       .click();
     await button('Confirmer pour 45 graines').dblclick();
-    expect((await stored()).seeds).toBe(35);
+    expect((await stored()).seeds).toBe(25);
     await page.reload();
     await button('Retrouver toutes mes orchidées').click();
     await expect(
@@ -177,18 +182,18 @@ async function main() {
     await page
       .getByTestId('garden-species-aurore')
       .screenshot({ path: 'test-results/orchid-collection.png' });
-    // Old saves receive the campaign credit and retired-paper refund once.
+    // Old saves preserve their balance and receive only the retired-paper refund once.
     const legacy = { ...save, seeds: 7, theme: 'rose', owned: ['ivoire', 'rose'] };
     delete legacy.economyVersion;
     await page.evaluate((s) => localStorage.setItem('color-world.save', JSON.stringify(s)), legacy);
     await page.goto(url);
-    await expect(page.getByTestId('seed-count')).toHaveText('177');
+    await expect(page.getByTestId('seed-count')).toHaveText('157');
     await page.getByRole('link', { name: 'Boutique', exact: true }).click();
     await button('Acquérir ce décor · 20 graines').click();
     await button('Confirmer pour 20 graines').click();
-    expect((await stored()).seeds).toBe(157);
+    expect((await stored()).seeds).toBe(137);
     await page.reload();
-    await expect(page.getByTestId('seed-count')).toHaveText('157');
+    await expect(page.getByTestId('seed-count')).toHaveText('137');
     expect(errors).toEqual([]);
     console.log(
       'Collection flow passed: wallpaper preview/cancel/purchase/activation/reload, free hints, garden and species purchases without double debit, all five orchid pages, interrupted-puzzle resume, main campaign preserved, three viewports and one-time legacy credit.',
