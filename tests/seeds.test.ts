@@ -29,16 +29,33 @@ it('starts with an empty collection wallet and guarantees one seed plus a first-
     expect(reward(restore(JSON.stringify(won))).seeds).toBe(won.seeds);
   }
 });
-it('a real replay uses the daily reward, retaining best stars and unique pigments', () => {
+it('a real replay never awards another seed, retaining best stars and unique pigments', () => {
   let save = initial();
   for (const m of levels[0].solution) save = move(save, m.from, m.to);
   const best = save.completed,
     pigments = save.pigments;
   save = loadLevel(save, 1);
   for (const m of levels[0].solution) save = move(save, m.from, m.to);
-  expect(save.seeds).toBe(3);
+  expect(save.seeds).toBe(2);
+  expect(save.lastSeedReward).toBe(0);
   expect(save.completed).toEqual(best);
   expect(save.pigments).toEqual(pigments);
+});
+it('awards only the missing first-three-star seed when improving a completed campaign page', () => {
+  const attempt = firstPageAttempt(2);
+  let save = move(attempt.save, attempt.last.from, attempt.last.to);
+  expect(save.completed[1].stars).toBe(2);
+  expect(save.seeds).toBe(1);
+  const date = save.completed[1].date;
+  const pigments = save.pigments;
+  for (let replay = 0; replay < 3; replay++) {
+    save = loadLevel(restore(JSON.stringify(save)), 1);
+    for (const step of levels[0].solution) save = move(save, step.from, step.to);
+    expect(save.lastSeedReward).toBe(replay === 0 ? 1 : 0);
+    expect(save.seeds).toBe(2);
+    expect(save.completed[1]).toEqual({ stars: 3, date });
+    expect(save.pigments).toEqual(pigments);
+  }
 });
 it('remembers free hints across repeated taps, reload, undo and restart', () => {
   const first = initial(),

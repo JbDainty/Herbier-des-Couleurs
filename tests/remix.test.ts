@@ -68,7 +68,7 @@ describe('certified mixtures', () => {
     expect(undo(first).board).toEqual(paid.board);
     for (const m of puzzle.solution) s = move(s, m.from, m.to);
     expect(s.completed[32].stars).toBe(3);
-    expect(s.seeds).toBe(original.seeds + 1);
+    expect(s.seeds).toBe(original.seeds);
     expect(remixPage(s)).toBe(s);
     const again = loadLevel(s, 32);
     expect(again.remix).toBeUndefined();

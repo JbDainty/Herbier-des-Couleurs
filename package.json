@@ -35,10 +35,7 @@
     "test:native-prologue": "node --import tsx scripts/native-prologue-smoke.ts",
     "assets:prologue": "node --import tsx scripts/generate-prologue-textures.ts",
     "assets:botanical": "node --import tsx scripts/generate-botanical-rasters.ts",
-    "test:cinematic": "node --import tsx scripts/cinematic-smoke.ts",
-    "test:collections": "node --import tsx scripts/collections-smoke.ts",
-    "test:remix": "node --import tsx scripts/remix-smoke.ts",
-    "levels:orchids": "node --import tsx scripts/generate-orchid-pages.ts"
+    "test:cinematic": "node --import tsx scripts/cinematic-smoke.ts"
   },
   "dependencies": {
     "@expo-google-fonts/alegreya": "^0.4.2",

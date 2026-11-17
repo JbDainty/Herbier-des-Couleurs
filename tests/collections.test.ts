@@ -24,7 +24,6 @@ import {
   startGarden,
   undoGarden,
 } from '../src/state/gardens';
-import { replayReward } from '../src/state/seedRewards';
 import { key, pour, won } from '../src/engine/puzzle';
 import { solveOptimal } from '../src/engine/optimal';
 import { journeyRegions } from '../src/data/ecology';
@@ -80,22 +79,51 @@ it('preserves collection seeds through free hints and certified remixes', () => 
   expect(remixPage(save, () => 0.3).seeds).toBe(23);
 });
 
-it('bounds repeat rewards and never grants the three-star bonus twice', () => {
+it('never rewards repeated clears, even on a later day or with an old replay ledger', () => {
   let save = initial();
   for (let attempt = 0; attempt < 8; attempt++) {
     save = loadLevel(save, 1);
     for (const step of levels[0].solution) save = move(save, step.from, step.to);
   }
-  expect(save.seeds).toBe(5); // 1 completion + 1 first-three-star + 3 daily replays.
+  expect(save.seeds).toBe(2); // 1 completion + 1 first-three-star, with no replay income.
   expect(save.pigments).toHaveLength(1);
   expect(reward(save)).toBe(save);
-  const capped = { ...save, replayRewards: { day: '2026-11-17', count: 3 } };
-  expect(replayReward(capped, '2026-11-17T23:00:00Z').earned).toBe(0);
-  expect(replayReward(capped, '2026-11-16T23:00:00Z').earned).toBe(0);
-  expect(replayReward(capped, '2026-11-18T00:00:00Z')).toEqual({
-    earned: 1,
-    replayRewards: { day: '2026-11-18', count: 1 },
-  });
+  const legacyLedger = { ...save, replayRewards: { day: '2026-11-17', count: 0 } };
+  const replay = { ...legacyLedger, attemptRewarded: false };
+  const later = reward(replay, '2026-11-18T12:00:00Z');
+  expect(later.seeds).toBe(2);
+  expect(later.lastSeedReward).toBe(0);
+  expect(later.replayRewards).toEqual(legacyLedger.replayRewards);
+  expect(restore(JSON.stringify(later))).toEqual(later);
+});
+
+it('grants only the missing three-star bonus on an orchid replay and never grants it twice', () => {
+  let save = startGarden(openGarden(), garden.id, 'aurore');
+  const puzzle = gardenPuzzle(garden.id, 'aurore', 0);
+  for (const step of puzzle.solution.slice(0, -1)) save = moveGarden(save, step.from, step.to);
+  // Move a completed tube to an empty tube and back: real extra moves before the final pour.
+  const from = save.gardenSession!.board.findIndex(
+    (tube) => tube.length === 4 && tube.every((color) => color === tube[0]),
+  );
+  const empty = save.gardenSession!.board.findIndex((tube) => !tube.length);
+  expect(from).toBeGreaterThanOrEqual(0);
+  for (let i = 0; i < puzzle.par; i++) {
+    save = moveGarden(save, from, empty);
+    save = moveGarden(save, empty, from);
+  }
+  const last = puzzle.solution.at(-1)!;
+  save = moveGarden(save, last.from, last.to);
+  expect(save.gardens![garden.id].completed['aurore:0'].stars).toBe(1);
+  expect(save.gardenSession!.seedReward).toBe(1);
+  const firstBalance = save.seeds;
+  const firstDate = save.gardens![garden.id].completed['aurore:0'].date;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    save = loadGardenPage(restore(JSON.stringify(save)), garden.id, 'aurore', 0);
+    for (const step of puzzle.solution) save = moveGarden(save, step.from, step.to);
+    expect(save.gardenSession!.seedReward).toBe(attempt === 0 ? 1 : 0);
+    expect(save.seeds).toBe(firstBalance + 1);
+    expect(save.gardens![garden.id].completed['aurore:0']).toEqual({ stars: 3, date: firstDate });
+  }
 });
 
 it('credits past campaign completions and retired papers once, without changing a live attempt', () => {

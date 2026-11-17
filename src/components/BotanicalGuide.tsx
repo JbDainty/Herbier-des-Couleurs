@@ -610,7 +610,7 @@ export function BotanicalGuide({
               {
                 icon: 'seed-outline',
                 title: 'Des graines pour faire grandir la collection',
-                text: 'Une nouvelle page terminée donne une graine, et ses premières trois étoiles une graine supplémentaire. Les rejeux offrent jusqu’à trois graines par jour. Ces graines permettent d’acquérir les décors des écosystèmes et les jardins de collection dans la boutique. Les indices sont gratuits.',
+                text: 'Une nouvelle page terminée donne une graine, et ses premières trois étoiles une graine supplémentaire, une seule fois. Rejouer ne rapporte plus de graine, sauf pour obtenir les trois étoiles de cette page pour la première fois. Ces graines permettent d’acquérir les décors des écosystèmes et les jardins de collection dans la boutique. Les indices sont gratuits.',
               },
               {
                 icon: 'arrow-undo-outline',

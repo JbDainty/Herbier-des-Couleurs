@@ -98,6 +98,17 @@ async function main() {
       .screenshot({ path: 'test-results/orchid-restored.png' });
     await button('Contempler mon jardin').click();
     expect((await stored()).seeds).toBe(80);
+    await page
+      .getByTestId('garden-species-aurore')
+      .getByRole('button', { name: 'Rejouer cette orchidée', exact: true })
+      .click();
+    for (const step of gardenPuzzle('orchidees-lumiere', 'aurore', 0).solution) {
+      await tube(step.from).click();
+      await tube(step.to).click();
+    }
+    await expect(page.getByTestId('garden-victory')).toContainText('+0 graines');
+    expect((await stored()).seeds).toBe(80);
+    await button('Retrouver toutes mes orchidées').click();
     const card = page.getByTestId('garden-species-velours');
     await card
       .getByRole('button', { name: 'Accueillir cette orchidée · 45 graines', exact: true })
@@ -105,6 +116,7 @@ async function main() {
     await button('Confirmer pour 45 graines').dblclick();
     expect((await stored()).seeds).toBe(35);
     await page.reload();
+    await button('Retrouver toutes mes orchidées').click();
     await expect(
       card.getByRole('button', { name: 'Restaurer cette orchidée', exact: true }),
     ).toBeVisible();
@@ -128,6 +140,7 @@ async function main() {
       localStorage.setItem('color-world.save', JSON.stringify(current));
     });
     await page.reload();
+    await button('Retrouver toutes mes orchidées').click();
     await card.getByRole('button', { name: 'Restaurer cette orchidée', exact: true }).click();
     const freshBoard = (await stored()).gardenSession!.board;
     await button('Indice gratuit').click();

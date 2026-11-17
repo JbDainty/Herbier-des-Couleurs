@@ -80,7 +80,7 @@ async function main() {
     }
     await expect(page.getByTestId('victory-summary')).toBeVisible();
     expect((await saved()).moves).toBe(certificate.par);
-    expect((await saved()).seeds).toBe(before.seeds + 1);
+    expect((await saved()).seeds).toBe(before.seeds);
     await expect(page.getByTestId('page-star-target')).toHaveAttribute(
       'aria-label',
       new RegExp(`Minimum possible : ${certificate.par} mouvements`),

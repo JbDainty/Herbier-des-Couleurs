@@ -7,7 +7,7 @@ import { pageStars } from './stars';
 import { attemptPuzzle, campaignPool, newRemix, validRemix, type Remix } from '../engine/remix';
 import { wallpapers, themes } from './economy';
 import { validateGardens, type GardenProgress, type GardenSession } from './gardens';
-import { replayReward, type ReplayRewards } from './seedRewards';
+import { pageSeedReward, type ReplayRewards } from './seedRewards';
 
 export type Settings = {
   sound: boolean;
@@ -46,6 +46,7 @@ export type Save = {
   ownedWallpapers?: string[];
   gardens?: Record<string, GardenProgress>;
   gardenSession?: GardenSession;
+  /** Legacy ledger, preserved for compatibility without granting further replay seeds. */
   replayRewards?: ReplayRewards;
   lastSeedReward?: number;
 };
@@ -123,9 +124,7 @@ export function reward(s: Save, now = new Date().toISOString()): Save {
   const id = s.current,
     first = !s.completed[id],
     stars = pageStars(s.moves, attemptPuzzle(id, s.remix).par);
-  const replay = first ? { earned: 0, replayRewards: s.replayRewards } : replayReward(s, now);
-  const earned =
-    (first ? 1 : 0) + (stars === 3 && s.completed[id]?.stars !== 3 ? 1 : 0) + replay.earned;
+  const earned = pageSeedReward(s.completed[id]?.stars, stars);
 
   return {
     ...s,
@@ -138,7 +137,6 @@ export function reward(s: Save, now = new Date().toISOString()): Save {
     },
     attemptRewarded: true,
     seeds: s.seeds + earned,
-    replayRewards: replay.replayRewards,
     lastSeedReward: earned,
     pigments: first ? [...s.pigments, discoverPigment(id, now)] : s.pigments,
   };

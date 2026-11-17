@@ -155,7 +155,8 @@ export function SeedPouch({
             </T>
             <T>
               Chaque nouvelle page terminée offre une graine. Les premières trois étoiles de cette
-              page ajoutent une graine. Les rejeux offrent jusqu’à trois graines par jour.
+              page ajoutent une graine, une seule fois. Ensuite, rejouer ne rapporte plus de graine,
+              sauf pour obtenir les trois étoiles de cette page pour la première fois.
             </T>
             <T>
               Achetez les décors des écosystèmes et accueillez les orchidées de vos jardins dans la

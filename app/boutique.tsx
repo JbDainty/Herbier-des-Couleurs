@@ -39,7 +39,8 @@ export default function Boutique() {
         <Label>VOTRE RÉSERVE · {save.seeds} GRAINES</Label>
         <T>
           Une nouvelle page terminée donne une graine. Les premières trois étoiles en donnent une
-          autre. Rejouer permet de gagner jusqu’à trois graines par jour.
+          autre, une seule fois. Rejouer une page déjà réussie ne donne plus de graine, sauf pour
+          obtenir ses trois étoiles pour la première fois.
         </T>
         <T style={ui.muted}>
           Les indices et les mélanges sont gratuits : gardez vos graines pour vos décors et vos
