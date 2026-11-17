@@ -151,15 +151,16 @@ export function SeedPouch({
           >
             <Label>LA RÉSERVE DU BOTANISTE</Label>
             <T serif style={{ fontSize: 30 }}>
-              De petites graines de savoir
+              Des graines pour votre collection
             </T>
             <T>
-              Votre carnet commence avec une graine. Chaque page achevée avec trois étoiles en fait
-              éclore une nouvelle, même lorsque vous la rejouez.
+              Chaque nouvelle page terminée offre une graine. Les premières trois étoiles de cette
+              page ajoutent une graine, une seule fois. Ensuite, rejouer ne rapporte plus de graine,
+              sauf pour obtenir les trois étoiles de cette page pour la première fois.
             </T>
             <T>
-              Un nouvel indice coûte une graine. Relire le même conseil pour la même disposition des
-              fioles est gratuit.
+              Achetez les décors des écosystèmes et accueillez les orchidées de vos jardins dans la
+              boutique. Les indices et les mélanges sont gratuits.
             </T>
             <T style={{ fontFamily: F.scientific, color: C.muted }}>
               Votre réserve : {count} {count === 1 ? 'graine' : 'graines'}.

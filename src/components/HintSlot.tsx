@@ -2,19 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { handwrittenLettering } from './PencilNote';
 
-export const emptySeedHint =
-  'Votre réserve est vide. Obtenez trois étoiles sur une page pour gagner une graine.';
+export const emptySeedHint = 'Les indices sont gratuits. Gardez vos graines pour votre collection.';
 export const missingPathHint =
-  'La recherche n’a pas abouti. Aucune graine dépensée. Vous pouvez annuler ou recommencer.';
+  'La recherche n’a pas abouti. Vous pouvez annuler un versement ou recommencer cette page.';
 export const blockedPathHint =
-  'Cette disposition n’a plus d’issue. Aucune graine dépensée. Revenez en arrière avec Annuler.';
+  'Cette disposition n’a plus d’issue. Revenez en arrière avec Annuler.';
 export const compactHint = (text: string) =>
   text === emptySeedHint
-    ? 'Votre réserve est vide. Visez trois étoiles.'
+    ? 'Les indices sont gratuits.'
     : text === missingPathHint || text === blockedPathHint
       ? text === blockedPathHint
-        ? 'Disposition bloquée. Annulez ; aucune graine dépensée.'
-        : 'Recherche incomplète. Aucune graine dépensée.'
+        ? 'Disposition bloquée. Revenez en arrière avec Annuler.'
+        : 'Recherche incomplète. Annulez ou recommencez.'
       : text;
 const paragraphs = [
   emptySeedHint,

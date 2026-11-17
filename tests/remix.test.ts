@@ -22,18 +22,16 @@ for (const level of levels) {
   for (const m of level.solution) unlocked = move(unlocked, m.from, m.to);
 }
 describe('certified mixtures', () => {
-  it('requires one seed and charges only a committed mixture, including the last seed', () => {
+  it('allows free mixtures even with an empty collection wallet', () => {
     const start = initial();
     const mixed = remixPage(start, random);
     expect(mixed.seeds).toBe(0);
     expect(mixed.remix).toBeDefined();
-    expect(
-      remixPage(mixed, () => {
-        throw Error('No randomization without a seed');
-      }),
-    ).toBe(mixed);
+    const again = remixPage(mixed, random);
+    expect(again.board).not.toEqual(mixed.board);
+    expect(again.seeds).toBe(0);
     expect(restore(JSON.stringify(mixed)).seeds).toBe(0);
-    expect(start.seeds).toBe(1);
+    expect(start.seeds).toBe(0);
     expect(start.remix).toBeUndefined();
   });
   it('keeps every page’s colors and tube count with a real solution and exact inherited minimum', () => {
@@ -45,7 +43,7 @@ describe('certified mixtures', () => {
         expect(mixed.board.length).toBe(start.board.length);
         expect(mixed.board.flat().sort()).toEqual(start.board.flat().sort());
         expect(validRemix(level.id, mixed.remix!)).toBe(true);
-        expect(mixed.seeds).toBe(start.seeds - 1);
+        expect(mixed.seeds).toBe(start.seeds);
         expect(mixed.completed).toEqual(start.completed);
         const attempt = attemptPuzzle(level.id, mixed.remix);
         expect(attempt.par).toBe(attempt.solution.length);
@@ -59,7 +57,7 @@ describe('certified mixtures', () => {
         expect(restore(JSON.stringify(mixed))).toEqual(mixed);
       }
   });
-  it('uses the mixture’s minimum for stars, spends hints once, supports undo, then restarts the original page', () => {
+  it('uses the mixture’s minimum for stars, keeps hints free once, supports undo, then restarts the original page', () => {
     let s = remixPage(loadLevel(unlocked, 32), random);
     const original = s;
     const puzzle = attemptPuzzle(s.current, s.remix);
@@ -70,7 +68,7 @@ describe('certified mixtures', () => {
     expect(undo(first).board).toEqual(paid.board);
     for (const m of puzzle.solution) s = move(s, m.from, m.to);
     expect(s.completed[32].stars).toBe(3);
-    expect(s.seeds).toBe(original.seeds + 1);
+    expect(s.seeds).toBe(original.seeds);
     expect(remixPage(s)).toBe(s);
     const again = loadLevel(s, 32);
     expect(again.remix).toBeUndefined();

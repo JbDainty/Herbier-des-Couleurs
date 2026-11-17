@@ -102,7 +102,7 @@ async function rewards(page: Page, url: string) {
   ).toBe(2);
   expect(
     await page.evaluate(() => JSON.parse(localStorage.getItem('color-world.save')!).seeds),
-  ).toBe(won.seeds + 1);
+  ).toBe(won.seeds);
   // Replay is available before revealing the pigment as well.
   await page.getByRole('button', { name: 'Rejouer la page' }).click();
   await expect(page.getByTestId('book-page-turn')).toHaveCount(0);
@@ -237,7 +237,7 @@ async function resetting(page: Page, url: string) {
   expect(await stored()).toEqual({ ...initial(), settings: save.settings });
   await openCarnet(page);
   await expect(page.getByTestId('page-folio')).toHaveText('PAGE 01');
-  await expect(page.getByTestId('seed-count')).toHaveText('1');
+  await expect(page.getByTestId('seed-count')).toHaveText('0');
 }
 
 async function main() {

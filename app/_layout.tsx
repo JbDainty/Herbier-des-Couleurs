@@ -9,6 +9,7 @@ import { botanicalFonts } from '../src/components/fonts';
 import { GameProvider, useGame } from '../src/state/store';
 import { T, C } from '../src/components/ui';
 import { PaperTexture } from '../src/components/Paper';
+import { SelectedWallpaper } from '../src/components/SelectedWallpaper';
 import { GreenhouseBackdrop } from '../src/components/Greenhouse';
 import { SceneVeil } from '../src/components/SceneVeil';
 import { SceneSizeContext } from '../src/components/SceneSize';
@@ -179,6 +180,7 @@ function Shell() {
         ecosystem={ecosystemForPage(save.current)}
       />
       <PaperTexture background />
+      {ready && save.started && <SelectedWallpaper />}
       <View
         pointerEvents="none"
         style={{

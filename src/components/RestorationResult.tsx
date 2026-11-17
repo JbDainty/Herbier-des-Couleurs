@@ -157,11 +157,7 @@ function ResultFolio({
         </T>
         <T
           testID="page-seed-reward"
-          accessibilityLabel={
-            stars === 3
-              ? 'Trois étoiles : une graine a rejoint votre réserve.'
-              : 'Trois étoiles feront éclore une nouvelle graine.'
-          }
+          accessibilityLabel={`${save.lastSeedReward ?? 0} graines ont rejoint votre réserve.`}
           maxFontSizeMultiplier={1.3}
           numberOfLines={1}
           adjustsFontSizeToFit
@@ -176,9 +172,7 @@ function ResultFolio({
         >
           {save.testSession
             ? 'Essai : aucun gain enregistré'
-            : stars === 3
-              ? '+1 graine'
-              : '★★★ = une graine'}
+            : `+${save.lastSeedReward ?? 0} ${(save.lastSeedReward ?? 0) === 1 ? 'graine' : 'graines'}`}
         </T>
       </View>
       {showDetails && (

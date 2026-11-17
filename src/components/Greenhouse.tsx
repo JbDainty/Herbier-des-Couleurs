@@ -1,5 +1,7 @@
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
+import { useGame } from '../state/store';
+import { wallpaperArtwork } from '../data/wallpaperArtwork';
 import {
   Defs,
   LinearGradient,
@@ -14,6 +16,7 @@ import {
 } from 'react-native-svg';
 
 function GreenhouseBackdropDrawing({ onReady }: { onReady?: () => void }) {
+  const { save } = useGame();
   return (
     <View
       pointerEvents="none"
@@ -22,7 +25,9 @@ function GreenhouseBackdropDrawing({ onReady }: { onReady?: () => void }) {
       style={[StyleSheet.absoluteFill, { zIndex: 0 }]}
     >
       <Image
-        source={require('../../assets/illustrations/serre.png')}
+        source={wallpaperArtwork(save.wallpaper) ?? require('../../assets/illustrations/serre.png')}
+        testID="workshop-wallpaper"
+        resizeMethod="resize"
         fadeDuration={0}
         onLoadEnd={onReady}
         resizeMode="cover"

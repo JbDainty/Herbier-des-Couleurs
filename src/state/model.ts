@@ -5,6 +5,9 @@ import { Board, clone, pour, won, capacity, type Move } from '../engine/puzzle';
 import { discoverPigment, Pigment } from './pigments';
 import { pageStars } from './stars';
 import { attemptPuzzle, campaignPool, newRemix, validRemix, type Remix } from '../engine/remix';
+import { wallpapers, themes } from './economy';
+import { validateGardens, type GardenProgress, type GardenSession } from './gardens';
+import { pageSeedReward, type ReplayRewards } from './seedRewards';
 
 export type Settings = {
   sound: boolean;
@@ -38,6 +41,14 @@ export type Save = {
   theme: string;
   owned: string[];
   daily: string | null;
+  economyVersion?: 1;
+  wallpaper?: string;
+  ownedWallpapers?: string[];
+  gardens?: Record<string, GardenProgress>;
+  gardenSession?: GardenSession;
+  /** Legacy ledger, preserved for compatibility without granting further replay seeds. */
+  replayRewards?: ReplayRewards;
+  lastSeedReward?: number;
 };
 export function initial(): Save {
   return {
@@ -50,7 +61,12 @@ export function initial(): Save {
     paidHints: {},
     current: 1,
     completed: {},
-    seeds: 1,
+    seeds: 0,
+    economyVersion: 1,
+    wallpaper: 'default',
+    ownedWallpapers: [],
+    gardens: {},
+    lastSeedReward: 0,
     pigments: [],
     board: clone(levels[0].board),
     known: initialKnowledge(levels[0].board, levels[0].rules),
@@ -99,6 +115,7 @@ export function loadLevel(s: Save, id: number): Save {
     campaign: 4,
     known: initialKnowledge(levels[id - 1].board, levels[id - 1].rules),
     historyKnown: [],
+    lastSeedReward: 0,
   };
 }
 export function reward(s: Save, now = new Date().toISOString()): Save {
@@ -107,6 +124,7 @@ export function reward(s: Save, now = new Date().toISOString()): Save {
   const id = s.current,
     first = !s.completed[id],
     stars = pageStars(s.moves, attemptPuzzle(id, s.remix).par);
+  const earned = pageSeedReward(s.completed[id]?.stars, stars);
 
   return {
     ...s,
@@ -118,7 +136,8 @@ export function reward(s: Save, now = new Date().toISOString()): Save {
       },
     },
     attemptRewarded: true,
-    seeds: s.seeds + (stars === 3 ? 1 : 0),
+    seeds: s.seeds + earned,
+    lastSeedReward: earned,
     pigments: first ? [...s.pigments, discoverPigment(id, now)] : s.pigments,
   };
 }
@@ -162,7 +181,7 @@ export function undo(s: Save): Save {
 }
 /** Start a new certified puzzle for the same page, retaining the earned collection. */
 export function remixPage(s: Save, random = Math.random): Save {
-  if (won(s.board, activeRules(s)) || s.seeds < 1) return s;
+  if (won(s.board, activeRules(s))) return s;
   let remix = newRemix(s.current, s.remix, random);
   for (
     let attempt = 0;
@@ -180,7 +199,6 @@ export function remixPage(s: Save, random = Math.random): Save {
   return {
     ...s,
     remix,
-    seeds: s.seeds - 1,
     board: clone(attemptPuzzle(s.current, remix).board),
     known: initialKnowledge(
       attemptPuzzle(s.current, remix).board,
@@ -359,10 +377,54 @@ export function restore(raw: string | null): Save {
     throw Error('Thèmes invalides.');
   if (v.daily !== undefined && v.daily !== null && !/^\d{4}-\d{2}-\d{2}$/.test(v.daily))
     throw Error('Date invalide.');
+  if (v.economyVersion !== undefined && v.economyVersion !== 1) throw Error('Économie inconnue.');
+  if (!Number.isSafeInteger(v.seeds)) throw Error('Réserve de graines invalide.');
+  if (
+    v.ownedWallpapers !== undefined &&
+    (!Array.isArray(v.ownedWallpapers) ||
+      new Set(v.ownedWallpapers).size !== v.ownedWallpapers.length ||
+      v.ownedWallpapers.some((id) => !wallpapers.some((w) => w.id === id)))
+  )
+    throw Error('Décors invalides.');
+  if (
+    v.wallpaper !== undefined &&
+    v.wallpaper !== 'default' &&
+    !v.ownedWallpapers?.includes(v.wallpaper)
+  )
+    throw Error('Décor non acquis.');
+  if (
+    v.replayRewards !== undefined &&
+    (!v.replayRewards ||
+      typeof v.replayRewards.day !== 'string' ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(v.replayRewards.day) ||
+      !Number.isFinite(Date.parse(v.replayRewards.day)) ||
+      !Number.isInteger(v.replayRewards.count) ||
+      v.replayRewards.count < 0 ||
+      v.replayRewards.count > 3)
+  )
+    throw Error('Récompenses quotidiennes invalides.');
+  if (
+    v.lastSeedReward !== undefined &&
+    (!Number.isInteger(v.lastSeedReward) || v.lastSeedReward < 0 || v.lastSeedReward > 3)
+  )
+    throw Error('Récompense invalide.');
+  validateGardens(v);
+  const migrationCredit =
+    v.economyVersion === 1
+      ? 0
+      : Object.keys(v.completed).length +
+        themes
+          .filter((t) => t.cost > 0 && v.owned?.includes(t.id))
+          .reduce((sum, t) => sum + t.cost, 0);
   return {
     ...initial(),
     ...v,
     version: 2,
+    economyVersion: 1,
+    seeds: v.seeds + migrationCredit,
+    wallpaper: v.wallpaper ?? 'default',
+    ownedWallpapers: v.ownedWallpapers ?? [],
+    gardens: v.gardens ?? {},
     // Existing signed carnets keep their place; the guide remains available from Aide.
     guideSeen: v.guideSeen ?? v.started,
     nickname: typeof v.nickname === 'string' ? normalizeNickname(v.nickname) : '',
@@ -409,18 +471,16 @@ export const currentHint = (s: Save): Move | undefined => {
   if (!hintPurchased(s) || h.revision !== 1 || !pour(s.board, h.from, h.to, activeRules(s))) return;
   return { from: h.from, to: h.to };
 };
-/** Charge only for a valid, newly revealed suggestion; duplicate taps are idempotent. */
+/** Remember valid suggestions without spending collection seeds; duplicate taps are idempotent. */
 export function purchaseHint(s: Save, suggestion: Move): Save {
   if (
     won(s.board, activeRules(s)) ||
     currentHint(s) ||
-    (!hintPurchased(s) && s.seeds < 1) ||
     !pour(s.board, suggestion.from, suggestion.to, activeRules(s))
   )
     return s;
   return {
     ...s,
-    seeds: s.seeds - (hintPurchased(s) ? 0 : 1),
     paidHints: {
       ...s.paidHints,
       [hintKey(s)]: { ...suggestion, context: hintContext(s), revision: 1 },

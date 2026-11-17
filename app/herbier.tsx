@@ -112,6 +112,21 @@ export default function Herbier() {
               </T>
             )}
           </View>
+          {!!Object.keys(save.gardens ?? {}).length && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Mes jardins de collection"
+              onPress={() => router.push('/jardin')}
+              style={{
+                minWidth: 44,
+                minHeight: 44,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Icon name="leaf-outline" size={25} color="#805c91" />
+            </Pressable>
+          )}
           <SeedPouch compact count={save.seeds} motion={save.settings.motion && !opening} />
         </View>
         <View style={{ height: layout.tabHeight, flexDirection: 'row', gap: 8 }}>

@@ -51,7 +51,25 @@ async function main() {
         JSON.parse(localStorage.getItem('color-world.save')!),
       );
       expect(stored.completed[1].stars).toBe(stars);
-      expect(stored.seeds).toBe(fixture.save.seeds + (stars === 3 ? 1 : 0));
+      expect(stored.seeds).toBe(fixture.save.seeds + 1 + (stars === 3 ? 1 : 0));
+      expect(stored.pigments).toHaveLength(1);
+    }
+    // The last first clear earned one star: only the missing three-star seed remains.
+    for (const earned of [1, 0]) {
+      await page.getByRole('button', { name: 'Rejouer la page', exact: true }).click();
+      await expect(page.getByTestId('page-earned-stars')).toHaveCount(0);
+      for (const step of levels[0].solution) {
+        await page.getByRole('button', { name: new RegExp(`^Flacon ${step.from + 1},`) }).click();
+        await page.getByRole('button', { name: new RegExp(`^Flacon ${step.to + 1},`) }).click();
+      }
+      await expect(page.getByTestId('page-seed-reward')).toHaveText(
+        `+${earned} ${earned === 1 ? 'graine' : 'graines'}`,
+      );
+      const stored = await page.evaluate(() =>
+        JSON.parse(localStorage.getItem('color-world.save')!),
+      );
+      expect(stored.seeds).toBe(2);
+      expect(stored.completed[1].stars).toBe(3);
       expect(stored.pigments).toHaveLength(1);
     }
     const replay = attempt(3, true);
@@ -83,7 +101,7 @@ async function main() {
     expect(target.x + target.width).toBeLessThanOrEqual(320);
     expect(errors).toEqual([]);
     console.log(
-      'Stars passed: legitimate 4/5/6/7-move attempts earn 3/3/2/1 stars; exact minimum and target shown only in result, actual replay rating displayed while best/date/seeds/pigments stay intact, narrow mobile controls usable.',
+      'Stars passed: legitimate 4/5/6/7-move attempts earn 3/3/2/1 stars, guaranteed first-clear seeds and first-three-star bonus; no replay income, best/date/pigments preserved, narrow mobile controls usable.',
     );
   } finally {
     await browser.close();

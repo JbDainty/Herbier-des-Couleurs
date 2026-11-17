@@ -19,11 +19,6 @@ export default function Parametres() {
   const [resetOpen, setResetOpen] = useState(false);
   const options: { key: keyof Settings; name: string; detail: string }[] = [
     {
-      key: 'confirmHints',
-      name: 'Confirmer les indices',
-      detail: 'Demander confirmation avant de dépenser une graine pour un nouvel indice.',
-    },
-    {
       key: 'sound',
       name: 'Sons de l’atelier',
       detail: 'Eau du ruisseau, tintement des fioles, pages, vent et félicitations.',
