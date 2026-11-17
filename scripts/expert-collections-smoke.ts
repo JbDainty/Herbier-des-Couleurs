@@ -135,6 +135,12 @@ async function main() {
     await seed(legacy);
     await expect(page.getByTestId('garden-mechanics')).toHaveCount(0);
     expect((await stored()).gardenSession!.board).toEqual(legacy.gardenSession!.board);
+    await button('Recommencer en défi expert').click();
+    await expect(page.getByTestId('mechanic-introduction')).toBeVisible();
+    expect((await stored()).gardenSession!.puzzleVersion).toBe(2);
+    expect((await stored()).gardenSession!.moves).toBe(0);
+    expect((await stored()).seeds).toBe(base.seeds);
+    await seed(legacy);
     for (const m of oldPuzzle.solution.slice(1)) await transfer(m.from, m.to);
     await expect(page.getByTestId('garden-victory')).toBeVisible();
     await button('Restaurer la page suivante').click();

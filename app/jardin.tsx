@@ -200,6 +200,26 @@ export default function Jardin() {
             {garden.name} · Page {session.page + 1} sur 5
           </T>
           <T style={ui.muted}>Vos pages de la campagne principale vous attendent à votre retour.</T>
+          {(session.puzzleVersion ?? 1) === 1 && !session.rewarded && (
+            <Paper style={[ui.card, { gap: 10 }]}>
+              <T>
+                Votre tentative en cours a été conservée. Vous pouvez la terminer ou recommencer
+                cette page en défi expert. Votre espèce et les pages déjà restaurées restent
+                acquises.
+              </T>
+              <Button
+                secondary
+                onPress={() => {
+                  resetSelection();
+                  setSave((s) =>
+                    loadGardenPage(s, session.collection, session.species, session.page, 2),
+                  );
+                }}
+              >
+                Recommencer en défi expert
+              </Button>
+            </Paper>
+          )}
           {!!puzzle?.rules?.mechanics.length && (
             <>
               <T testID="garden-mechanics">

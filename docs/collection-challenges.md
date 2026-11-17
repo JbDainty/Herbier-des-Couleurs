@@ -22,7 +22,7 @@ Le contrôle des règles est commun à l’interface, au moteur, aux indices et 
 
 ## Compatibilité et économie
 
-Une session sans `puzzleVersion` est une tentative classique de version 1. Elle garde son plateau, son historique, ses règles et son certificat d’origine dans `collectionPuzzles.json`. Recommencer cette tentative conserve aussi sa version. Une nouvelle tentative ou la page suivante charge la version 2 experte. Les acquisitions et les cinq étapes de restauration par espèce restent identiques ; aucun score déjà acquis n’est rétrogradé.
+Une session sans `puzzleVersion` est une tentative classique de version 1. Elle garde son plateau, son historique, ses règles et son certificat d’origine dans `collectionPuzzles.json`. Recommencer cette tentative conserve aussi sa version. Le bouton explicite « Recommencer en défi expert » permet de passer immédiatement à la nouvelle difficulté en remettant les versements de cette page à zéro. Une nouvelle tentative ou la page suivante charge la version 2 experte. Les acquisitions et les cinq étapes de restauration par espèce restent identiques ; aucun score déjà acquis n’est rétrogradé.
 
 Les aides, la récupération et les victoires de collection ne donnent ni ne dépensent de graines. Le plafond de campagne et les prix de la boutique restent identiques.
 
