@@ -39,7 +39,7 @@ http
         return;
       }
       try {
-        if (!(await stat(file)).isFile()) file = resolve(root, 'index.html');
+        if ((await stat(file)).isDirectory()) file = resolve(file, 'index.html');
       } catch {
         if (extname(file)) {
           res.writeHead(404);

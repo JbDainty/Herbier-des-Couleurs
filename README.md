@@ -172,6 +172,8 @@ L’indice utilise un chemin complet trouvé par le solveur depuis l’état cou
 
 ## Android et iOS
 
+Les fiches françaises Apple, Google Play et le brouillon Xiaomi GetApps sont préparés dans [le dossier de référencement](store/README.md), avec un générateur et des contrôles de longueur (`npm run store:generate`, `npm run store:check`). Ce dossier explique aussi les métadonnées SEO réellement intégrées à l’export Web. La préparation de ces fichiers ne publie pas le jeu sur les boutiques.
+
 Les mêmes routes, règles, SVG et sauvegardes sont partagés. Les bundles Metro/Hermes Android et iOS ont été exportés dans l’environnement cloud. **Cela ne constitue pas un essai sur appareil ni une compilation signée.**
 
 Pour essayer sur un téléphone compatible avec le SDK 54, lancer `npx expo start`, puis ouvrir avec une version compatible d’Expo Go. Pour des compilations natives locales :

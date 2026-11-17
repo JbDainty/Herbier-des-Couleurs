@@ -11,7 +11,12 @@ const match = remote.match(
 );
 if (!match)
   throw new Error('Le déploiement nécessite une origine HTTPS GitHub sans identifiants intégrés.');
-const env = { ...process.env, EXPO_PUBLIC_BASE_PATH: `/${match[2]}` };
+const env = {
+  ...process.env,
+  EXPO_PUBLIC_BASE_PATH: process.env.EXPO_PUBLIC_BASE_PATH ?? `/${match[2]}`,
+  EXPO_PUBLIC_SITE_ORIGIN:
+    process.env.EXPO_PUBLIC_SITE_ORIGIN || `https://${match[1].toLowerCase()}.github.io`,
+};
 const run = (command, args, cwd = root) =>
   execFileSync(command, args, { cwd, env, stdio: 'inherit' });
 // Build before touching the published branch. Authentication stays with native Git.
