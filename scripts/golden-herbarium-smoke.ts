@@ -2,6 +2,7 @@ import { chromium, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { initial, type Save } from '../src/state/model';
 import { GOLDEN_COLLECTION_ID, collectionById } from '../src/data/collections';
+import { mechanicIds } from '../src/engine/mechanics';
 import { gardenPuzzle } from '../src/state/gardens';
 
 async function main() {
@@ -25,6 +26,7 @@ async function main() {
     ...initial(),
     started: true,
     guideSeen: true,
+    seenMechanics: [...mechanicIds],
     nickname: 'Merveilles',
     seeds: 1200,
     settings: { ...initial().settings, sound: false, music: false, haptics: false },

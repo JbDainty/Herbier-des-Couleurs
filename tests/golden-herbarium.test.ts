@@ -85,10 +85,11 @@ it('ships 25 unique golden puzzles with minimum certificates, preserving all exi
       expect(seen.has(key(puzzle.board))).toBe(false);
       seen.add(key(puzzle.board));
       let board = puzzle.board;
-      for (const step of puzzle.solution) board = pour(board, step.from, step.to)!;
-      expect(won(board)).toBe(true);
-      expect(solveOptimal(puzzle.board, { maxMoves: puzzle.par, maxNodes: 400000 })?.minimum).toBe(
-        puzzle.par,
-      );
+      for (const step of puzzle.solution) board = pour(board, step.from, step.to, puzzle.rules)!;
+      expect(won(board, puzzle.rules)).toBe(true);
+      expect(
+        solveOptimal(puzzle.board, { rules: puzzle.rules, maxMoves: puzzle.par, maxNodes: 5000000 })
+          ?.minimum,
+      ).toBe(puzzle.par);
     }
 });
