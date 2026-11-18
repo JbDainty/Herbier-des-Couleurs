@@ -47,6 +47,10 @@ export default function Boutique() {
           Les indices et les mélanges sont gratuits : gardez vos graines pour vos décors et vos
           jardins.
         </T>
+        <T style={ui.muted}>
+          Le Vitrail du jour donne une graine après ses trois défis, une seule fois par jour et sans
+          étoiles. Rejouer les feuillets passés ne donne pas de nouvelle graine.
+        </T>
         <T style={ui.muted}>Vos graines déjà gagnées et vos acquisitions sont conservées.</T>
       </Paper>
       {!!featured && (

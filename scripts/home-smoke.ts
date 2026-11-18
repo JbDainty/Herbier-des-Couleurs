@@ -78,12 +78,14 @@ async function main() {
     });
     expect(spills).toEqual([0, 0, 0]);
     await page.screenshot({ path: 'test-results/home-first-390.png' });
-    for (const mode of ['day', 'mystery']) {
+    await expect(page.getByTestId('home-future-day')).toHaveAttribute('role', 'button');
+    await expect(page.getByTestId('home-future-day')).toContainText('Le Vitrail du jour');
+    for (const mode of ['mystery']) {
       const card = page.getByTestId(`home-future-${mode}`);
       await expect(card).toContainText('À venir');
       await expect(card.getByRole('button')).toHaveCount(0);
       const beforeUrl = page.url();
-      await card.click();
+      await card.click({ force: true });
       expect(page.url()).toBe(beforeUrl);
       expect(await stored()).toEqual(first);
     }
@@ -186,7 +188,7 @@ async function main() {
       expect(action.y + action.height).toBeLessThanOrEqual(card.y + card.height + 1);
       for (const mode of ['day', 'mystery']) {
         const badge = page.getByTestId(`home-future-${mode}-availability`);
-        await expect(badge).toHaveText('À venir');
+        await expect(badge).toHaveText(mode === 'day' ? '3 vitraux' : 'À venir');
         expect(
           await badge.evaluate((node) => node.scrollWidth - node.clientWidth),
         ).toBeLessThanOrEqual(1);
