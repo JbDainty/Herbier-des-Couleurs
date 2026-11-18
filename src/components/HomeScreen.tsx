@@ -18,6 +18,7 @@ import { T, Icon } from './ui';
 import { useNativeProgress } from './useNativeProgress';
 import { usePrimaryAnimation } from './usePrimaryAnimation';
 import { unlockAmbience } from '../services/ambience';
+import { useVitrailDate } from './useVitrailDate';
 
 function FutureMode({
   name,
@@ -26,6 +27,7 @@ function FutureMode({
   height,
   horizontal,
   fontScale,
+  availability,
 }: {
   name: 'day' | 'mystery';
   title: string;
@@ -33,6 +35,7 @@ function FutureMode({
   height: number;
   horizontal: boolean;
   fontScale: number;
+  availability?: string;
 }) {
   const brief = height < 100;
   const veryBrief = !horizontal && height < 82;
@@ -40,10 +43,15 @@ function FutureMode({
   const color = name === 'day' ? '#536d4d' : '#75617b';
   const emblem = spaciousRow ? 42 : horizontal ? 26 : brief ? 22 : 34;
   return (
-    <View
+    <Pressable
       testID={`home-future-${name}`}
       accessible
-      accessibilityLabel={`${title}, mode à venir. ${subtitle}`}
+      accessibilityRole={name === 'day' ? 'button' : undefined}
+      accessibilityLabel={
+        name === 'day' ? `${title}. ${subtitle}` : `${title}, mode à venir. ${subtitle}`
+      }
+      disabled={name !== 'day'}
+      onPress={() => router.push('/vitrail')}
       style={{
         height,
         width: '100%',
@@ -109,7 +117,7 @@ function FutureMode({
             maxFontSizeMultiplier={1.1}
             style={{ fontFamily: F.scientific, fontSize: 11, lineHeight: 12, color: '#8e7852' }}
           >
-            À venir
+            {availability ?? 'À venir'}
           </T>
         )}
       </View>
@@ -127,17 +135,18 @@ function FutureMode({
               textAlign: 'right',
             }}
           >
-            À venir
+            {availability ?? 'À venir'}
           </T>
         </View>
       )}
-    </View>
+    </Pressable>
   );
 }
 
 /** A game-first cabinet: the playable mode leads, scenery is never a duplicate destination. */
 export function HomeScreen() {
   const { save } = useGame();
+  const today = useVitrailDate();
   const { fontScale } = useWindowDimensions();
   const measured = useMeasuredSize();
   const frame = measured.size;
@@ -441,7 +450,11 @@ export function HomeScreen() {
       ]}
     >
       {[
-        { name: 'day' as const, title: 'Le Feuillet du jour', subtitle: 'Un puzzle par jour.' },
+        {
+          name: 'day' as const,
+          title: 'Le Vitrail du jour',
+          subtitle: 'Trois vitraux, une graine.',
+        },
         {
           name: 'mystery' as const,
           title: 'Les Encres oubliées',
@@ -454,6 +467,13 @@ export function HomeScreen() {
             height={Math.max(0, futureHeight)}
             horizontal={horizontal}
             fontScale={fontScale}
+            availability={
+              mode.name === 'day'
+                ? save.vitrail?.days[today]?.rewarded
+                  ? 'Terminé'
+                  : '3 vitraux'
+                : undefined
+            }
           />
         </View>
       ))}

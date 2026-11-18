@@ -8,6 +8,7 @@ import { attemptPuzzle, campaignPool, newRemix, validRemix, type Remix } from '.
 import { wallpapers, themes } from './economy';
 import { validateGardens, type GardenProgress, type GardenSession } from './gardens';
 import { pageSeedReward, type ReplayRewards } from './seedRewards';
+import { validateVitrail, type VitrailProgress } from './vitrail';
 
 export type Settings = {
   sound: boolean;
@@ -41,6 +42,7 @@ export type Save = {
   theme: string;
   owned: string[];
   daily: string | null;
+  vitrail?: VitrailProgress;
   economyVersion?: 1;
   wallpaper?: string;
   ownedWallpapers?: string[];
@@ -409,6 +411,7 @@ export function restore(raw: string | null): Save {
   )
     throw Error('Récompense invalide.');
   validateGardens(v);
+  validateVitrail(v);
   const migrationCredit =
     v.economyVersion === 1
       ? 0

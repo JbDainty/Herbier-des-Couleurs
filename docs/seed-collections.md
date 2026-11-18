@@ -2,22 +2,26 @@
 
 ## Équilibrage actuel
 
-| Action ou acquisition                                    |      Graines |
-| -------------------------------------------------------- | -----------: |
-| Page principale réussie avec une ou deux étoiles         |            0 |
-| Premières trois étoiles d’une page principale            | +1, une fois |
-| Rejeu d’une page principale déjà réussie à trois étoiles |            0 |
-| Page de collection saisonnière, même à trois étoiles     |            0 |
-| Annuler, recommencer, indice, mélanger                   |            0 |
-| Décor des cinq premiers écosystèmes                      |    20 chacun |
-| Décor des quinze suivants                                |    50 chacun |
-| Jardin des orchidées, première espèce incluse            |          150 |
-| Chacune des cinq autres orchidées                        |           45 |
-| Chaque merveille de l’herbier doré                       |          200 |
+| Action ou acquisition                                    |               Graines |
+| -------------------------------------------------------- | --------------------: |
+| Page principale réussie avec une ou deux étoiles         |                     0 |
+| Premières trois étoiles d’une page principale            |          +1, une fois |
+| Rejeu d’une page principale déjà réussie à trois étoiles |                     0 |
+| Page de collection saisonnière, même à trois étoiles     |                     0 |
+| Trois vitraux du jour terminés, sans étoiles             | +1, une fois par jour |
+| Vitrail isolé ou rejeu d’un feuillet passé               |                     0 |
+| Annuler, recommencer, indice, mélanger                   |                     0 |
+| Décor des cinq premiers écosystèmes                      |             20 chacun |
+| Décor des quinze suivants                                |             50 chacun |
+| Jardin des orchidées, première espèce incluse            |                   150 |
+| Chacune des cinq autres orchidées                        |                    45 |
+| Chaque merveille de l’herbier doré                       |                   200 |
 
 La réserve initiale est vide. Les 1 000 pages principales permettent de gagner au maximum **1 000 graines**, en obtenant trois étoiles sur chacune. Une page principale réussie à une ou deux étoiles peut être rejouée pour obtenir sa seule graine à trois étoiles. Une fois celle-ci obtenue, aucune tentative supplémentaire ne rapporte de graine, même après mélange, rechargement ou changement de jour.
 
-Les premiers chapitres des cinq premiers écosystèmes comptent vingt pages chacun, puis les quinze nouveaux écosystèmes cinquante pages chacun. Obtenir trois étoiles sur toutes les pages d’un premier chapitre permet de payer son décor. Les vingt décors coûtent 850 graines ; le jardin et ses six orchidées coûtent 375 graines (150 + 5 × 45). Les cinq merveilles dorées ajoutent 1 000 graines : la boutique complète coûte donc **2 225 graines**, soit 1 225 de plus que le maximum de gains d’un nouveau carnet. Les trente puzzles saisonniers ne financent aucun achat. Avant l’activation des achats réels, le joueur doit choisir ses acquisitions avec son solde limité.
+Le [Vitrail du jour](daily-vitrail.md) ajoute une graine après les trois défis de la date UTC courante, sans étoiles. La réserve initiale de 365 journées permet de gagner jusqu’à **365 graines supplémentaires**, soit **1 365** avec toute la campagne. Les archives et les replays ne donnent aucune graine. Le plafond des 1 000 récompenses de campagne reste indépendant.
+
+Les premiers chapitres des cinq premiers écosystèmes comptent vingt pages chacun, puis les quinze nouveaux écosystèmes cinquante pages chacun. Obtenir trois étoiles sur toutes les pages d’un premier chapitre permet de payer son décor. Les vingt décors coûtent 850 graines ; le jardin et ses six orchidées coûtent 375 graines (150 + 5 × 45). Les cinq merveilles dorées ajoutent 1 000 graines : la boutique complète coûte donc **2 225 graines**, soit 1 225 de plus que le maximum de gains de la campagne principale. Les trente puzzles saisonniers ne financent aucun achat. Avant l’activation des achats réels, le joueur doit choisir ses acquisitions avec son solde limité.
 
 L’ancien champ `replayRewards` reste lisible pour la compatibilité des sauvegardes mais n’accorde aucun gain. La progression, les étoiles et les illustrations des jardins restent enregistrées même sans récompense monétaire.
 
@@ -39,7 +43,7 @@ La collection permanente `merveilles-or` contient cinq espèces imaginaires à 2
 
 Consulter cet herbier est gratuit et ne crée aucune acquisition. Chaque espèce doit être achetée séparément, dans l’ordre souhaité ; aucune première plante n’est offerte et aucun droit d’entrée n’est facturé. L’acquisition crée le registre du livre uniquement au premier achat. Les illustrations sur fond d’or se dévoilent après acquisition ; les entrées verrouillées montrent des silhouettes gravées. Cinq puzzles originaux par espèce, vingt-cinq au total, enregistrent leur progression séparément de la campagne et des orchidées. Aucun puzzle de collection ne donne de graine.
 
-Cette collection ne participe pas à la rotation saisonnière et ne remplace pas le jardin d’orchidées à la une. Les cinq espèces coûtent 1 000 graines ; la boutique complète coûte désormais **2 225 graines**, pour un gain maximal de 1 000 dans un nouveau carnet. Les prix des contenus précédents restent inchangés. Le reflet de dorure et les particules respectent le réglage des animations, la priorité des animations principales et la mise en arrière-plan.
+Cette collection ne participe pas à la rotation saisonnière et ne remplace pas le jardin d’orchidées à la une. Les cinq espèces coûtent 1 000 graines ; la boutique complète coûte désormais **2 225 graines**, pour un gain maximal de 1 000 dans la campagne principale, auquel s’ajoute le journalier. Les prix des contenus précédents restent inchangés. Le reflet de dorure et les particules respectent le réglage des animations, la priorité des animations principales et la mise en arrière-plan.
 
 `tests/golden-herbarium.test.ts` contrôle prix, propriété, ordre d’achat, reprise, minima des vingt-cinq puzzles et absence de gains. `node --import tsx scripts/golden-herbarium-smoke.ts` vérifie la couverture de quatre emplacements, les animations, les silhouettes, les achats sans double débit, les cinq pages d’une merveille, les rechargements et quatre formats d’écran.
 

@@ -143,7 +143,7 @@ npm run build:web
 npm run test:browser
 ```
 
-Les 155 tests automatisés couvrent les 1 000 solutions et leurs minima exacts avec les huit mécaniques, les mélanges, étoiles, graines, sauvegardes et migrations. Ils vérifient aussi les capacités et la physique des fioles, les séquences d’animation, le cycle audio natif et la taille des surfaces graphiques des bordures.
+Les 168 tests automatisés couvrent les 1 000 solutions et leurs minima exacts avec les huit mécaniques, les mélanges, étoiles, graines, sauvegardes et migrations. Ils vérifient aussi les capacités et la physique des fioles, les séquences d’animation, le cycle audio natif et la taille des surfaces graphiques des bordures, ainsi que les 1 095 vitraux journaliers et leur récompense unique.
 
 Les parcours Playwright sont détaillés dans [la revue complète](docs/application-review.md). Ils couvrent le prologue, l’aide, les menus, les sept écrans, les confirmations, la reprise de sauvegarde, les animations simultanées, les vingt musiques, les carnets et les dernières pages. Le navigateur et les exports Hermes ne remplacent pas une mesure de fluidité et de mémoire sur appareil Android/iOS. Les captures sont générées dans `test-results/`.
 
@@ -303,3 +303,5 @@ L’Herbier des Merveilles ajoute cinq espèces imaginaires sur fond d’or à 2
 Les 55 pages des collections sont désormais des défis experts à trois mécanismes combinés, cinq ou six teintes et deux chemins minimaux certifiés. Les indices et le retour « Chemin sûr » sont gratuits ; une impasse peut annuler les derniers choix, sans perdre l’espèce ni la progression principale. Les tentatives classiques en cours restent lisibles avant le passage aux nouveaux défis. Voir [docs/collection-challenges.md](docs/collection-challenges.md).
 
 Toute mécanique encore inconnue ouvre un petit encart commun à la campagne et aux collections : un résumé, une règle à la fois, avec le détail facultatif et le bouton « J’ai compris ». Les explications validées sont mémorisées dans le carnet, y compris au retour des pages de test. Voir [docs/mechanic-lessons.md](docs/mechanic-lessons.md).
+
+Le Vitrail du jour propose trois puzzles de lumière progressifs, sans étoiles : terminer le trio donne une graine, une fois par jour. Une année complète de 365 trios uniques est embarquée, du 18 novembre 2026 au 17 novembre 2027, avec renouvellement à minuit UTC, reprise, indices gratuits et calendrier des archives rejouables sans gain. Les miroirs, séparateurs et mélanges de lumière sont expliqués à leur première rencontre. Voir [docs/daily-vitrail.md](docs/daily-vitrail.md).
