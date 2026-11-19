@@ -122,12 +122,27 @@ export function VitrailScene({
           accessibilityRole="button"
           accessibilityLabel="Menu principal"
           onPress={() => router.dismissTo('/')}
-          style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
+          style={({ pressed }) => ({
+            width: 44,
+            height: 44,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: '#a58b51',
+            backgroundColor: pressed ? '#eadab3' : '#fff4dd',
+            shadowColor: '#293e34',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.18,
+            shadowRadius: 3,
+            elevation: 3,
+            transform: [{ scale: pressed ? 0.97 : 1 }],
+          })}
         >
-          <Icon name="book-outline" size={22} />
+          <Icon name="book-outline" size={26} color={C.green} />
           <T
             maxFontSizeMultiplier={1.1}
-            style={{ fontFamily: F.scientific, fontSize: 9, lineHeight: 11 }}
+            style={{ fontFamily: F.bold, fontSize: 10, lineHeight: 12, color: C.green }}
           >
             Menu
           </T>
