@@ -40,11 +40,21 @@ Le calendrier conserve le nombre de vitraux terminés pour chaque date. Les feui
 
 Le champ optionnel `vitrail` possède son propre format `version: 1`. Les anciens carnets n’ont rien à migrer. Le modèle vérifie les dates, les étapes débloquées, les orientations, l’historique et le registre des récompenses au rechargement. Une remise à zéro du carnet efface aussi cette progression.
 
+## Le calendrier des empreintes de lumière
+
+Le calendrier reprend le parchemin, les ornements végétaux, les encres et le ruban de fermeture du jeu. Chaque journée achevée porte un tampon botanique incliné : rameau, fleur ou soleil, avec une encre sauge, dorée ou mauve. Les trois petites feuilles indiquent une journée encore en cours. Une liane fine relie les empreintes et un halo doré désigne aujourd’hui. La rosace du mois s’éclaire avec les vitraux restaurés ; son total comprend les journées publiées du mois, y compris celles à venir, pour ne pas perdre de lumière au passage de minuit.
+
+Les tampons sont calculés depuis `vitrail.days[date].completed === 3`, y compris les archives terminées sans récompense. Les journées déjà jouées sont donc reconnues sans migration. Ouvrir le calendrier, changer de mois et consulter les compteurs ne modifient ni la sauvegarde ni les graines. Appuyer sur une date disponible rouvre sa partie ; appuyer sur le mois ramène au mois courant. Les jours futurs et les dates hors réserve restent fermés.
+
+`src/layout/vitrailCalendar.ts` ajuste la fenêtre aux zones sûres et aux mois de quatre, cinq ou six semaines. En portrait, tout le mois reste visible sur les téléphones standards. En paysage, une colonne latérale accueille les informations et la fermeture. Sur une fenêtre exceptionnellement courte, seule la grille peut défiler : les commandes du mois et le bouton Fermer restent visibles. Le halo et le fondu des changements de mois respectent le réglage Animations ; le halo s’arrête en arrière-plan, à la fermeture ou pendant une animation prioritaire.
+
 Après le 17 novembre 2027, le mode indique que de nouveaux feuillets sont en préparation et conserve les archives : **aucune grille n’est recyclée**. Une mise à jour doit prolonger la réserve avant cette date. `node --import tsx scripts/generate-vitrails.ts 730` complète la banque jusqu’à 730 jours sans remplacer les grilles déjà publiées. Sans argument, le script conserve les 365 journées existantes. Ne jamais remplacer une date publiée ou ses certificats ; étendre les tests de plage lors d’un ajout.
 
 ## Vérification
 
 `tests/vitrail.test.ts` contrôle les 1 095 certificats et leur unicité, les trois paliers, les mélanges et croisements, les boucles, les indices depuis d’autres dispositions, le gain unique après trois défis, les rechargements, le changement de date, les archives et la compatibilité des sauvegardes.
+
+`tests/vitrail-calendar.test.ts` vérifie les jours de semaine, les mois de quatre à six rangées, les tampons des anciennes archives, la distinction des journées partielles et futures, les limites de navigation, le tracé végétal et le budget de hauteur sur onze formats. `GAME_TEST_URL=http://localhost:8126/ node --import tsx scripts/vitrail-calendar-smoke.ts` contrôle aussi le calendrier réel sur ces formats, un mois entièrement estampillé, la sélection d’une archive, le retour à aujourd’hui, les animations et l’absence d’écriture dans le portefeuille ou la progression.
 
 `GAME_TEST_URL=http://localhost:8126/ node --import tsx scripts/vitrail-smoke.ts` joue les vrais boutons depuis l’accueil, les trois introductions, la reprise exacte, l’annulation, les indices, le trio complet, le rejeu, le calendrier, le renouvellement dans un écran ouvert et un deuxième trio sans réseau. Il vérifie quatre formats, des cibles de rotation d’au moins 44 pixels, les graines et la conservation de la campagne et des jardins.
 
