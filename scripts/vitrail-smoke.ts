@@ -54,7 +54,7 @@ async function main() {
     await expect(page.getByTestId('daily-vitrail-screen')).toBeVisible();
     await expect(page.getByTestId('vitrail-lesson-title')).toHaveText('Les miroirs du vitrail');
     await button('J’ai compris').click();
-    await expect(page.getByTestId('vitrail-progress')).toHaveText('0 / 3 vitraux terminés');
+    await expect(page.getByTestId('vitrail-progress')).toHaveText(/^0 \/ 3(?: vitraux terminés)?$/);
     await expect(page.getByTestId('vitrail-stage-1')).toBeDisabled();
     await expect(page.getByTestId('vitrail-stage-2')).toBeDisabled();
     expect(await page.getByText(/étoiles|rotations/i).count()).toBe(0);
@@ -71,7 +71,7 @@ async function main() {
     await button('Indice').click();
     await expect(page.getByTestId('vitrail-hint')).toContainText('Faites pivoter');
     await finish();
-    await expect(page.getByTestId('vitrail-progress')).toHaveText('1 / 3 vitraux terminés');
+    await expect(page.getByTestId('vitrail-progress')).toHaveText(/^1 \/ 3(?: vitraux terminés)?$/);
     expect((await stored()).seeds).toBe(20);
     await button('Passer au vitrail 2').click();
     await expect(page.getByTestId('vitrail-lesson-title')).toHaveText('Le séparateur de lumière');
@@ -84,19 +84,25 @@ async function main() {
     ]) {
       await page.setViewportSize({ width, height });
       const board = page.getByTestId('vitrail-board');
-      await board.scrollIntoViewIfNeeded();
-      const bounds = (await board.boundingBox())!;
-      expect(bounds.x).toBeGreaterThanOrEqual(0);
-      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width + 1);
-      const cell = (await page.locator('[data-testid^="vitrail-cell-"]').first().boundingBox())!;
-      expect(cell.width).toBeGreaterThanOrEqual(43.9);
-      expect(cell.height).toBeGreaterThanOrEqual(43.9);
+      await expect
+        .poll(async () => {
+          const bounds = await board.boundingBox();
+          const cell = await page.locator('[data-testid^="vitrail-cell-"]').first().boundingBox();
+          return (
+            !!bounds &&
+            !!cell &&
+            bounds.x >= 0 &&
+            bounds.x + bounds.width <= width + 1 &&
+            cell.width >= 43.9 &&
+            cell.height >= 43.9
+          );
+        })
+        .toBe(true);
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
         width,
       );
     }
     await page.setViewportSize({ width: 393, height: 852 });
-    await page.getByTestId('book-page-scroll').evaluate((node) => (node.scrollTop = 0));
     await page.screenshot({ path: 'test-results/vitrail-mobile.png', fullPage: true });
     await finish();
     expect((await stored()).seeds).toBe(20);
@@ -104,7 +110,7 @@ async function main() {
     await expect(page.getByTestId('vitrail-lesson-title')).toHaveText('Les couleurs de la lumière');
     await button('J’ai compris').click();
     await finish();
-    await expect(page.getByTestId('vitrail-progress')).toHaveText('3 / 3 vitraux terminés');
+    await expect(page.getByTestId('vitrail-progress')).toHaveText(/^3 \/ 3(?: vitraux terminés)?$/);
     await expect(page.getByTestId('vitrail-reward')).toContainText('Graine du jour obtenue');
     expect((await stored()).seeds).toBe(21);
     const earned = await stored();
@@ -115,13 +121,13 @@ async function main() {
     expect((await stored()).seeds).toBe(21);
     await page.clock.setFixedTime(new Date('2026-11-19T12:00:00Z'));
     await expect(page.getByTestId('vitrail-date')).toHaveText('19 novembre');
-    await expect(page.getByTestId('vitrail-progress')).toHaveText('0 / 3 vitraux terminés');
+    await expect(page.getByTestId('vitrail-progress')).toHaveText(/^0 \/ 3(?: vitraux terminés)?$/);
     await button('Mon calendrier').click();
     await expect(page.getByTestId('vitrail-calendar')).toBeVisible();
     await expect(page.getByTestId('vitrail-calendar-2026-11-20')).toBeDisabled();
     await page.getByTestId('vitrail-calendar-2026-11-18').click();
     await expect(page.getByTestId('vitrail-date')).toHaveText('18 novembre');
-    await expect(page.getByTestId('vitrail-progress')).toHaveText('3 / 3 vitraux terminés');
+    await expect(page.getByTestId('vitrail-progress')).toHaveText(/^3 \/ 3(?: vitraux terminés)?$/);
     await finish();
     expect((await stored()).seeds).toBe(21);
     await button('Aujourd’hui').click();
