@@ -137,19 +137,22 @@ async function main() {
       await checkHalos();
       for (let i = 0; i < puzzle.targets.length; i++)
         await expect(page.locator(`#vitrail-target-check-${i}`)).toHaveCount(1);
-      await calendar.scrollIntoViewIfNeeded();
-      const buttonBounds = (await calendar.boundingBox())!,
-        label = calendar.getByText('Voir mon calendrier', { exact: true });
-      const textBounds = (await label.boundingBox())!;
-      expect(buttonBounds.height).toBeGreaterThanOrEqual(48);
-      expect(textBounds.x).toBeGreaterThanOrEqual(buttonBounds.x);
-      expect(textBounds.x + textBounds.width).toBeLessThanOrEqual(
-        buttonBounds.x + buttonBounds.width + 1,
-      );
-      expect(textBounds.y).toBeGreaterThanOrEqual(buttonBounds.y);
-      expect(textBounds.y + textBounds.height).toBeLessThanOrEqual(
-        buttonBounds.y + buttonBounds.height + 1,
-      );
+      const label = calendar.getByText(/^(Voir mon calendrier|Calendrier)$/);
+      await expect
+        .poll(async () => {
+          const b = await calendar.boundingBox(),
+            t = await label.boundingBox();
+          return (
+            !!b &&
+            !!t &&
+            b.height >= 48 &&
+            t.x >= b.x &&
+            t.x + t.width <= b.x + b.width + 1 &&
+            t.y >= b.y &&
+            t.y + t.height <= b.y + b.height + 1
+          );
+        })
+        .toBe(true);
       expect(
         await label.evaluate((node) => node.scrollWidth - node.clientWidth),
       ).toBeLessThanOrEqual(1);

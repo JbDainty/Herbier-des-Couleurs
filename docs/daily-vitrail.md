@@ -2,6 +2,14 @@
 
 Le nouveau mode remplace la carte « Le Feuillet du jour · À venir » sur l’accueil. Il reprend le jardin d’accueil, le papier, les bordures végétales, les polices, la réserve de graines et les icônes du jeu. Les règles et la progression sont indépendantes de la campagne et des collections achetées.
 
+## Une page de jeu sans défilement
+
+`VitrailScene` remplace le document déroulant par une composition calculée dans `src/layout/vitrail.ts`, à partir de la largeur et de la hauteur réellement mesurées après les zones sûres du système. L’en-tête, les étapes, les commandes, la récompense et le calendrier possèdent des emplacements réservés. Le carré de jeu occupe le reste de l’espace et tient dans ses deux dimensions, pour les grilles 4 × 4 et 5 × 5.
+
+En portrait, les étapes sont regroupées en onglets, les quatre commandes tiennent sur une rangée et le calendrier partage le pied de page avec la récompense. En paysage, la grille utilise la hauteur à gauche et les informations et commandes se regroupent à droite. Les libellés courts des formats étroits conservent leurs noms complets pour les lecteurs d’écran. La navigation vers l’Herbier, les écosystèmes et la boutique reste accessible par Menu, sans barre de navigation supplémentaire sur la partie.
+
+La partie, l’indice et la victoire utilisent le même budget de hauteur ; aucune nouvelle ligne ne pousse les commandes sous l’écran. La grille reste entière même sur les très petits formats, avec des cellules réduites si nécessaire. Les cellules atteignent au moins 44 points sur les formats de téléphone standards vérifiés, y compris après déduction des zones sûres. Les fenêtres d’explication et le calendrier conservent leur propre présentation.
+
 ## Une année embarquée
 
 `src/data/vitrailYear.json` contient 365 dates consécutives, du **18 novembre 2026 au 17 novembre 2027 inclus**, avec trois grilles par date : 1 095 vitraux. Aucun téléchargement ni tirage aléatoire n’intervient pendant la partie. Le même jour UTC donne les mêmes trois grilles à tous les joueurs. L’écran surveille le changement de date et la remise au premier plan : le renouvellement à **00:00 UTC** ne demande pas de redémarrage.
@@ -39,3 +47,5 @@ Après le 17 novembre 2027, le mode indique que de nouveaux feuillets sont en pr
 `GAME_TEST_URL=http://localhost:8126/ node --import tsx scripts/vitrail-smoke.ts` joue les vrais boutons depuis l’accueil, les trois introductions, la reprise exacte, l’annulation, les indices, le trio complet, le rejeu, le calendrier, le renouvellement dans un écran ouvert et un deuxième trio sans réseau. Il vérifie quatre formats, des cibles de rotation d’au moins 44 pixels, les graines et la conservation de la campagne et des jardins.
 
 `GAME_TEST_URL=http://localhost:8126/ node --import tsx scripts/vitrail-rendering-smoke.ts` contrôle les halos avant et après la victoire, la conservation de la couleur attendue sous une mauvaise lumière, les ornements aux bords et le libellé complet du calendrier sur quatre formats. Il reproduit aussi le dernier geste d’une victoire pour vérifier que le cadre de sélection disparaît.
+
+`tests/vitrail-layout.test.ts` passe les 1 095 grilles sur 19 formats et deux tailles de texte, avec contrôle des limites et des emplacements des commandes. `GAME_TEST_URL=http://localhost:8126/ node --import tsx scripts/vitrail-fit-smoke.ts` vérifie aussi l’écran réel sur les trois difficultés au début, au milieu et à la fin de la réserve, en jeu avec un indice puis après victoire : aucun défilement de page, aucune commande hors écran, aucun libellé tronqué et prise en compte d’une réduction de hauteur pour les zones système.
