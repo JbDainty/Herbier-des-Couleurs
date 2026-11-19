@@ -103,7 +103,7 @@ export function VitrailScene({
         {name === 'rules'
           ? 'Règles'
           : name === 'restart'
-            ? layout.controlsWidth < 320
+            ? layout.actionWidth < 280
               ? 'Repartir'
               : 'Recommencer'
             : name === 'replay'
@@ -294,6 +294,9 @@ export function VitrailScene({
         justifyContent: trace.solved ? 'center' : 'space-between',
         gap: 6,
         paddingHorizontal: 4,
+        width: '100%',
+        maxWidth: 420,
+        alignSelf: 'center',
       }}
     >
       {trace.solved ? (
@@ -358,7 +361,13 @@ export function VitrailScene({
   const actions = (
     <View
       testID="vitrail-actions"
-      style={{ height: layout.actionsHeight, flexDirection: 'row', gap: 6 }}
+      style={{
+        width: layout.actionWidth,
+        alignSelf: 'center',
+        height: layout.actionsHeight,
+        flexDirection: 'row',
+        gap: 6,
+      }}
     >
       {trace.solved ? (
         <>
@@ -376,7 +385,7 @@ export function VitrailScene({
                 else restart();
               }}
             >
-              {layout.controlsWidth < 320
+              {layout.actionWidth < 280
                 ? session.level < 2
                   ? 'Vitrail suivant'
                   : 'Rejouer'
@@ -433,6 +442,7 @@ export function VitrailScene({
         gap: 6,
         borderRadius: 18,
         backgroundColor: '#f4ead6ed',
+        paddingHorizontal: layout.footerInset,
       }}
     >
       {archived ? (
@@ -462,7 +472,7 @@ export function VitrailScene({
             adjustsFontSizeToFit
             style={{
               fontFamily: F.scientific,
-              fontSize: layout.controlsWidth < 320 ? 12 : 14,
+              fontSize: layout.controlsWidth < 280 ? 11 : layout.controlsWidth < 320 ? 12 : 14,
               lineHeight: 18,
               textDecorationLine: 'underline',
             }}
@@ -581,10 +591,12 @@ export function VitrailScene({
             {stages}
             <Paper
               testID="vitrail-play-card"
-              frame={!layout.tight}
+              frame={layout.framed}
               style={{
                 height: layout.panelHeight,
-                padding: layout.panelPadding,
+                paddingHorizontal: layout.panelPadding,
+                paddingVertical: layout.panelVerticalPadding,
+                justifyContent: 'center',
                 borderRadius: 22,
                 backgroundColor: '#f4ead6ef',
                 gap: layout.gap,
@@ -592,7 +604,7 @@ export function VitrailScene({
             >
               <View
                 style={{
-                  height: layout.boardAreaHeight,
+                  height: layout.boardSize,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}

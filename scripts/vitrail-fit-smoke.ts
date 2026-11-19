@@ -79,6 +79,50 @@ async function main() {
           }
           if (root.scrollHeight > root.clientHeight + 1) problems.push('vertical overflow');
           if (root.scrollWidth > root.clientWidth + 1) problems.push('horizontal overflow');
+          const paper = root.querySelector<HTMLElement>('[data-testid="vitrail-play-card"]');
+          if (paper?.querySelector('[data-testid="vitrail-actions"]')) {
+            const p = paper.getBoundingClientRect(),
+              style = getComputedStyle(paper);
+            const x = parseFloat(style.paddingLeft),
+              y = parseFloat(style.paddingTop);
+            const b = root.querySelector('[data-testid="vitrail-board"]')!.getBoundingClientRect();
+            const c = root
+              .querySelector('[data-testid="vitrail-caption"]')!
+              .getBoundingClientRect();
+            const a = root
+              .querySelector('[data-testid="vitrail-actions"]')!
+              .getBoundingClientRect();
+            for (const r of [b, c, a])
+              if (
+                r.left < p.left + x - 1 ||
+                r.right > p.right - x + 1 ||
+                r.top < p.top + y - 1 ||
+                r.bottom > p.bottom - y + 1
+              )
+                problems.push('content overlaps reserved paper border');
+            if (
+              c.top - b.bottom < -1 ||
+              c.top - b.bottom > 7 ||
+              a.top - c.bottom < -1 ||
+              a.top - c.bottom > 7
+            )
+              problems.push('board, message and controls are separated');
+            if (Math.abs(b.top - p.top - (p.bottom - a.bottom)) > 1)
+              problems.push('play group not centered in paper');
+          }
+          const footer = root.querySelector<HTMLElement>('[data-testid="vitrail-footer"]')!;
+          const f = footer.getBoundingClientRect(),
+            inset = parseFloat(getComputedStyle(footer).paddingLeft);
+          for (const button of Array.from(footer.querySelectorAll('[role="button"]'))) {
+            const b = button.getBoundingClientRect();
+            if (
+              b.left < f.left + inset - 1 ||
+              b.right > f.right - inset + 1 ||
+              b.top < f.top + inset - 1 ||
+              b.bottom > f.bottom - inset + 1
+            )
+              problems.push('footer button touches outside border');
+          }
           for (const node of Array.from(root.querySelectorAll<HTMLElement>('div, span'))) {
             if (
               !Array.from(node.childNodes).some(
