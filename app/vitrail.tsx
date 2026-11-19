@@ -6,6 +6,7 @@ import { HomeGarden } from '../src/components/HomeGarden';
 import { Paper } from '../src/components/Paper';
 import { VitrailBoard } from '../src/components/VitrailBoard';
 import { VitrailLesson } from '../src/components/VitrailLesson';
+import { VictoryAction } from '../src/components/VictoryAction';
 import { useVitrailDate } from '../src/components/useVitrailDate';
 import { CarnetIllustration, type CarnetEmblem } from '../src/components/CarnetIllustration';
 import { Button, C, Icon, T } from '../src/components/ui';
@@ -254,7 +255,7 @@ export default function Vitrail() {
                     puzzle={puzzle}
                     rotations={session.rotations}
                     width={boardWidth}
-                    selected={selected}
+                    selected={trace.solved ? null : selected}
                     patterns={save.settings.patterns}
                     disabled={!!lesson || trace.solved}
                     onRotate={(cell) => {
@@ -278,15 +279,21 @@ export default function Vitrail() {
                         ? 'Les trois vitraux rayonnent'
                         : 'Votre vitrail s’illumine'}
                     </T>
-                    {session.level < 2 ? (
-                      <Button
-                        onPress={() => setSave((s) => openVitrail(s, day, session.level + 1))}
+                    <View style={{ width: '100%', alignItems: 'center' }}>
+                      <VictoryAction
+                        compact
+                        icon={session.level < 2 ? 'leaf-outline' : 'book-outline'}
+                        onPress={() => {
+                          if (session.level < 2)
+                            setSave((s) => openVitrail(s, day, session.level + 1));
+                          else setCalendar(true);
+                        }}
                       >
-                        Passer au vitrail {session.level + 2}
-                      </Button>
-                    ) : (
-                      <Button onPress={() => setCalendar(true)}>Voir mon calendrier</Button>
-                    )}
+                        {session.level < 2
+                          ? `Passer au vitrail ${session.level + 2}`
+                          : 'Voir mon calendrier'}
+                      </VictoryAction>
+                    </View>
                     <Button secondary onPress={restart}>
                       Rejouer ce vitrail
                     </Button>

@@ -16,6 +16,8 @@ Les miroirs renvoient un rayon à angle droit. Un séparateur reçoit le rayon p
 
 Une fleur exige exactement sa couleur : une composante supplémentaire ne convient pas. La propagation utilise un ensemble fini de canaux et de directions et termine même si le joueur crée une boucle. Le réglage des motifs ajoute les lettres des canaux aux sources et aux fleurs.
 
+Chaque fleur porte un halo permanent de la couleur attendue, même avant d’être éclairée ou lorsqu’un rayon incorrect lui parvient. Les pétales restent lisibles, la bonne lumière renforce le halo et une coche confirme la réussite. Les ornements des ports restent dans les limites du dessin. Après la victoire, la sélection du dernier fragment disparaît et le bouton de continuation utilise le ruban du jeu, avec un libellé sur une ligne ajusté à la largeur disponible.
+
 Chaque nouveau type de pièce ouvre une explication concise avant le premier geste ; seul « J’ai compris » mémorise la carte affichée. Le rappel « Les règles du vitrail » reste disponible. La découverte est conservée d’un jour à l’autre dans le carnet.
 
 Tous les gestes sont réversibles. Annuler, recommencer et demander un indice sont gratuits. Un indice indique une rotation vers le certificat enregistré ; suivre ces indices mène toujours à une victoire, y compris depuis des choix arbitraires. Le joueur peut aussi réussir avec une autre disposition acceptée par le moteur. La dernière tentative et ses 200 dernières rotations sont conservées lors d’une fermeture.
@@ -35,3 +37,5 @@ Après le 17 novembre 2027, le mode indique que de nouveaux feuillets sont en pr
 `tests/vitrail.test.ts` contrôle les 1 095 certificats et leur unicité, les trois paliers, les mélanges et croisements, les boucles, les indices depuis d’autres dispositions, le gain unique après trois défis, les rechargements, le changement de date, les archives et la compatibilité des sauvegardes.
 
 `GAME_TEST_URL=http://localhost:8126/ node --import tsx scripts/vitrail-smoke.ts` joue les vrais boutons depuis l’accueil, les trois introductions, la reprise exacte, l’annulation, les indices, le trio complet, le rejeu, le calendrier, le renouvellement dans un écran ouvert et un deuxième trio sans réseau. Il vérifie quatre formats, des cibles de rotation d’au moins 44 pixels, les graines et la conservation de la campagne et des jardins.
+
+`GAME_TEST_URL=http://localhost:8126/ node --import tsx scripts/vitrail-rendering-smoke.ts` contrôle les halos avant et après la victoire, la conservation de la couleur attendue sous une mauvaise lumière, les ornements aux bords et le libellé complet du calendrier sur quatre formats. Il reproduit aussi le dernier geste d’une victoire pour vérifier que le cadre de sélection disparaît.
