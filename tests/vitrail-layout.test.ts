@@ -61,10 +61,18 @@ it('reserves space for the board and every control on all 1095 puzzles and 19 fo
                 l.captionHeight +
                 l.actionsHeight +
                 l.gap * 2 +
-                l.panelPadding * 2,
+                l.panelVerticalPadding * 2,
             ).toBeLessThanOrEqual(l.panelHeight + 0.01);
             expect(l.boardSize + l.panelPadding * 2).toBeLessThanOrEqual(l.contentWidth);
+            const stack = l.boardSize + l.captionHeight + l.actionsHeight + l.gap * 2;
+            expect(stack + l.panelVerticalPadding * 2).toBeLessThanOrEqual(l.panelHeight + 0.01);
+            expect(l.actionWidth + l.panelPadding * 2).toBeLessThanOrEqual(l.contentWidth);
+            if (l.framed) {
+              expect(l.panelPadding).toBeGreaterThanOrEqual(32);
+              expect((l.panelHeight - stack) / 2).toBeGreaterThanOrEqual(48);
+            }
           }
+          expect(l.footerHeight).toBeGreaterThanOrEqual(l.actionsHeight + l.footerInset * 2);
           if (
             (width >= 320 && height >= 520 && !l.landscape) ||
             (l.landscape && width >= 568 && height >= 272)

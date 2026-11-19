@@ -10,6 +10,8 @@ En portrait, les étapes sont regroupées en onglets, les quatre commandes tienn
 
 La partie, l’indice et la victoire utilisent le même budget de hauteur ; aucune nouvelle ligne ne pousse les commandes sous l’écran. La grille reste entière même sur les très petits formats, avec des cellules réduites si nécessaire. Les cellules atteignent au moins 44 points sur les formats de téléphone standards vérifiés, y compris après déduction des zones sûres. Les fenêtres d’explication et le calendrier conservent leur propre présentation.
 
+Le cadre végétal réserve ses bandes décoratives : 32 points sur les côtés et 48 en haut et en bas. Il apparaît seulement si ces marges laissent la place à une grille avec des cellules de 44 points ; sinon le papier reste sans ornements dans l’aire de jeu. La grille, le message et les commandes forment un groupe centré, avec un espacement constant entre eux. La rangée des commandes ne dépasse pas 420 points afin de garder « Rejouer » et « Règles » côte à côte, même sur tablette. Le bandeau du calendrier réserve aussi sa propre marge intérieure autour des boutons.
+
 ## Une année embarquée
 
 `src/data/vitrailYear.json` contient 365 dates consécutives, du **18 novembre 2026 au 17 novembre 2027 inclus**, avec trois grilles par date : 1 095 vitraux. Aucun téléchargement ni tirage aléatoire n’intervient pendant la partie. Le même jour UTC donne les mêmes trois grilles à tous les joueurs. L’écran surveille le changement de date et la remise au premier plan : le renouvellement à **00:00 UTC** ne demande pas de redémarrage.
@@ -49,3 +51,5 @@ Après le 17 novembre 2027, le mode indique que de nouveaux feuillets sont en pr
 `GAME_TEST_URL=http://localhost:8126/ node --import tsx scripts/vitrail-rendering-smoke.ts` contrôle les halos avant et après la victoire, la conservation de la couleur attendue sous une mauvaise lumière, les ornements aux bords et le libellé complet du calendrier sur quatre formats. Il reproduit aussi le dernier geste d’une victoire pour vérifier que le cadre de sélection disparaît.
 
 `tests/vitrail-layout.test.ts` passe les 1 095 grilles sur 19 formats et deux tailles de texte, avec contrôle des limites et des emplacements des commandes. `GAME_TEST_URL=http://localhost:8126/ node --import tsx scripts/vitrail-fit-smoke.ts` vérifie aussi l’écran réel sur les trois difficultés au début, au milieu et à la fin de la réserve, en jeu avec un indice puis après victoire : aucun défilement de page, aucune commande hors écran, aucun libellé tronqué et prise en compte d’une réduction de hauteur pour les zones système.
+
+Ce parcours vérifie également les marges réelles du papier, l’écart entre la grille, son message et les commandes, le centrage du groupe et le retrait des boutons du calendrier par rapport aux bords de leur bandeau.
