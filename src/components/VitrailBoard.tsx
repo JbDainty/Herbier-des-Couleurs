@@ -44,7 +44,8 @@ export function VitrailBoard({
   const portPoint = (port: GlassPort) => {
     const [x, y] = center(port.cell),
       [dx, dy] = delta[port.side];
-    return [x + dx * 75, y + dy * 75];
+    // Keep the flower, its halo and its success mark inside the SVG on every edge.
+    return [x + dx * 70, y + dy * 70];
   };
   const beam = (x1: number, y1: number, x2: number, y2: number, color: number, key: string) => (
     <G key={key}>
@@ -177,6 +178,7 @@ export function VitrailBoard({
               {selected === i && (
                 <>
                   <Rect
+                    id="vitrail-selected-piece"
                     x={-46}
                     y={-46}
                     width={92}
@@ -241,7 +243,7 @@ export function VitrailBoard({
             lit = trace.lit[i];
           const received = trace.exits[`${port.cell}:${port.side}`];
           return (
-            <G key={`target-${i}`}>
+            <G key={`target-${i}`} id={`vitrail-target-${i}`}>
               {received ? (
                 beam(
                   cx + delta[port.side][0] * 50,
@@ -264,19 +266,38 @@ export function VitrailBoard({
               <Circle
                 cx={x}
                 cy={y}
+                r={26}
+                fill="none"
+                stroke={color.hex}
+                strokeWidth={7}
+                opacity={lit ? 0.25 : 0.18}
+              />
+              <Circle
+                id={`vitrail-target-halo-${i}`}
+                cx={x}
+                cy={y}
                 r={24}
                 fill="#f8efd6"
-                stroke={lit ? color.hex : '#b5a77f'}
-                strokeWidth={1.5}
+                stroke={color.hex}
+                strokeWidth={lit ? 3.5 : 3}
               />
-              <G transform={`translate(${x} ${y})`} opacity={lit ? 1 : 0.55}>
+              <Circle
+                cx={x}
+                cy={y}
+                r={22}
+                fill="none"
+                stroke="#fff9e5"
+                strokeWidth={1.4}
+                opacity={0.9}
+              />
+              <G transform={`translate(${x} ${y})`} opacity={lit ? 1 : 0.9}>
                 {[0, 1, 2, 3, 4].map((p) => (
                   <Path
                     key={p}
                     d="M0 0C-17-8-10-27 0-21C10-27 17-8 0 0Z"
                     transform={`rotate(${p * 72})`}
                     fill={color.hex}
-                    fillOpacity={lit ? 0.75 : 0.4}
+                    fillOpacity={lit ? 0.85 : 0.6}
                     stroke={color.hex}
                     strokeWidth={1}
                   />
@@ -297,10 +318,13 @@ export function VitrailBoard({
               )}
               {lit && (
                 <Path
-                  d={`M${x + 12} ${y + 20}l5 5 9-12`}
+                  id={`vitrail-target-check-${i}`}
+                  d={`M${x + 10} ${y + 14}l4 4 7-9`}
                   fill="none"
                   stroke={C.green}
                   strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               )}
             </G>

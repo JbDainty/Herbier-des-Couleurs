@@ -14,7 +14,7 @@ export const opticalLessons: Record<OpticalMechanic, { name: string; summary: st
   mirror: {
     name: 'Les miroirs du vitrail',
     summary:
-      'Touchez un miroir pour le faire pivoter. Il dévie la lumière à angle droit : éclairez chaque fleur avec la couleur indiquée. Chaque geste peut être annulé.',
+      'Touchez un miroir pour le faire pivoter. Il dévie la lumière à angle droit : le halo de chaque fleur indique la couleur à lui envoyer. Chaque geste peut être annulé.',
   },
   splitter: {
     name: 'Le séparateur de lumière',
