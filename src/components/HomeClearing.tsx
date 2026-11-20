@@ -42,7 +42,7 @@ const Leaves = memo(function Leaves() {
 });
 
 /** One native clock moves three small cached drawings; the background and SVG paths stay static. */
-export function HomeClearing({ width, height }: { width: number; height: number }) {
+function HomeClearingScene({ width, height }: { width: number; height: number }) {
   const { clock, running } = useHomeMagic();
   return (
     <View
@@ -128,3 +128,6 @@ export function HomeClearing({ width, height }: { width: number; height: number 
     </View>
   );
 }
+
+/** Finishing the parent entrance must not rebuild the live native animation graph. */
+export const HomeClearing = memo(HomeClearingScene);
