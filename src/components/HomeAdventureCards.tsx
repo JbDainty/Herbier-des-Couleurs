@@ -100,11 +100,18 @@ export function RestorationCard({
 }) {
   const { fontScale } = useWindowDimensions();
   const brief = height < 190;
-  const padding = brief ? 12 : 14;
-  const vertical = brief ? 10 : 12;
+  const padding = brief ? 16 : width >= 500 ? 28 : 24;
+  const vertical = brief ? 10 : 16;
   const gap = brief ? 2 : 4;
   const showProgress = height >= 136;
-  const titleSize = height < 150 ? 24 : brief ? 26 : width >= 500 ? 42 : 36;
+  const titleSize =
+    height < 150
+      ? 24
+      : brief
+        ? 26
+        : width >= 500
+          ? 42
+          : Math.min(36, Math.floor((width - padding * 2) / 7.6));
   const titleLine = height < 150 ? 30 : brief ? 32 : width >= 500 ? 50 : 44;
   const titleScale = height < 128 ? 1 : brief ? 1.1 : 1.2;
   const bodyHeight = Math.max(
@@ -251,8 +258,8 @@ export function DailyModeCard({
   const { fontScale } = useWindowDimensions();
   const mini = height < 132 || (width < 260 && height < 160);
   const compact = height < 190;
-  const padding = compact ? 12 : 14;
-  const vertical = mini ? 8 : compact ? 10 : 12;
+  const padding = mini ? 12 : compact ? 16 : width >= 500 ? 28 : 24;
+  const vertical = mini ? 8 : compact ? 10 : 16;
   const gap = 4;
   const titleSize = mini
     ? width < 250
@@ -264,7 +271,7 @@ export function DailyModeCard({
         ? 24
         : width >= 500
           ? 42
-          : 36;
+          : Math.min(36, Math.floor((width - padding * 2) / 7.6));
   const titleLine = mini
     ? width < 260
       ? 21
@@ -452,7 +459,7 @@ export function MysteryModeCard({ width, height }: { width: number; height: numb
           flexDirection: 'row',
           alignItems: 'center',
           gap: brief ? 5 : 8,
-          paddingHorizontal: brief ? 12 : 16,
+          paddingHorizontal: brief ? 14 : 20,
         }}
       >
         <ModeFrame angular lavender />
