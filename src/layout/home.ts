@@ -19,11 +19,11 @@ export function homeLayout(width: number, height: number, fontScale = 1) {
   const modeSpace = Math.max(0, bodyHeight - headingHeight - gap * (headingHeight ? 1 : 0));
   const available = horizontal ? modeSpace : modeSpace - mysteryHeight - gap * 2;
   const mainHeight = horizontal
-    ? Math.min(380, modeSpace)
-    : Math.max(100, Math.min(320, Math.floor(available * 0.6)));
+    ? Math.min(310, modeSpace)
+    : Math.max(100, Math.min(280, Math.floor(available * 0.53)));
   const dailyHeight = horizontal
     ? Math.min(260, mainHeight - mysteryHeight - gap)
-    : Math.min(240, available - mainHeight);
+    : Math.min(248, available - mainHeight);
   return {
     horizontal,
     short,
