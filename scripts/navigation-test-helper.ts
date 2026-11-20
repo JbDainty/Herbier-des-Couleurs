@@ -14,7 +14,7 @@ export async function openScreen(page: Page, name: string) {
   const label =
     name === 'Le Grand Herbier' ? 'Herbier' : name === 'La Boutique' ? 'Boutique' : name;
   await page.getByRole('link', { name: label, exact: true }).click();
-  await expect(page.getByTestId('home-screen')).toHaveCount(0);
+  await expect(page.getByTestId('home-screen')).toBeHidden();
 }
 
 /** Enter from the cabinet, signing a new carnet and reading its first guide when needed. */
@@ -26,7 +26,9 @@ export async function openCarnet(page: Page, nickname = 'Camille') {
   const signature = page
     .getByTestId('book-signature-page')
     .getByRole('textbox', { name: 'Votre pseudo', exact: true });
-  await expect(home.or(playing).or(guide).or(skip).or(signature)).toBeVisible();
+  await expect(
+    home.or(playing).or(guide).or(skip).or(signature).filter({ visible: true }),
+  ).toBeVisible();
   if (!(await home.isVisible()) && !(await playing.isVisible()) && !(await guide.isVisible())) {
     if (await skip.isVisible()) await skip.click();
     await signature.fill(nickname);

@@ -187,13 +187,13 @@ async function main() {
     delete legacy.economyVersion;
     await page.evaluate((s) => localStorage.setItem('color-world.save', JSON.stringify(s)), legacy);
     await page.goto(url);
-    await expect(page.getByTestId('seed-count')).toHaveText('157');
+    await expect(page.getByTestId('seed-count').filter({ visible: true })).toHaveText('157');
     await page.getByRole('link', { name: 'Boutique', exact: true }).click();
     await button('Acquérir ce décor · 20 graines').click();
     await button('Confirmer pour 20 graines').click();
     expect((await stored()).seeds).toBe(137);
     await page.reload();
-    await expect(page.getByTestId('seed-count')).toHaveText('137');
+    await expect(page.getByTestId('seed-count').filter({ visible: true })).toHaveText('137');
     expect(errors).toEqual([]);
     console.log(
       'Collection flow passed: wallpaper preview/cancel/purchase/activation/reload, free hints, garden and species purchases without double debit, all five orchid pages, interrupted-puzzle resume, main campaign preserved, three viewports and one-time legacy credit.',

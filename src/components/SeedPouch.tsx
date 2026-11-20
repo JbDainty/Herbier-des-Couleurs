@@ -10,13 +10,18 @@ export function SeedPouch({
   count,
   motion,
   compact = false,
+  active = true,
 }: {
   count: number;
   motion: boolean;
   compact?: boolean;
+  active?: boolean;
 }) {
   const animate = useAmbientMotion(motion);
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!active) setOpen(false);
+  }, [active]);
   const value = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     value.setValue(0);
@@ -131,7 +136,7 @@ export function SeedPouch({
         </T>
       </Pressable>
       <Modal
-        visible={open}
+        visible={open && active}
         transparent
         animationType={motion ? 'fade' : 'none'}
         onRequestClose={() => setOpen(false)}

@@ -13,10 +13,10 @@ export function useNativeProgress(
   const value = useRef(new Animated.Value(motion ? 0 : 1)).current;
   const done = useRef(onDone);
   done.current = onDone;
-  const [settled, setSettled] = useState(!motion);
+  const [status, setStatus] = useState({ motion, settled: !motion });
   useEffect(() => {
     value.setValue(motion ? 0 : 1);
-    setSettled(!motion);
+    setStatus({ motion, settled: !motion });
     if (!motion) {
       if (!staticDuration) return;
       const timer = setTimeout(() => done.current?.(), staticDuration);
@@ -47,7 +47,7 @@ export function useNativeProgress(
         },
       ],
       () => {
-        setSettled(true);
+        setStatus({ motion, settled: true });
         done.current?.();
       },
     );
@@ -62,5 +62,6 @@ export function useNativeProgress(
       sequence.dispose();
     };
   }, [duration, motion, staticDuration, value]);
-  return { value, settled };
+  // A reactivated timeline is not settled while its new effect is being installed.
+  return { value, settled: status.motion === motion ? status.settled : !motion };
 }
