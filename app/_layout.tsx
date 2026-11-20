@@ -28,6 +28,7 @@ import { HintSlot, hintLayoutKey } from '../src/components/HintSlot';
 import { workshopLayout } from '../src/layout/workshop';
 import { useMeasuredSize } from '../src/components/useMeasuredSize';
 import { BookActionsContext } from '../src/components/BookActions';
+import { HomeRouteCache } from '../src/components/HomeRouteCache';
 function Shell() {
   const insets = useSafeAreaInsets();
   const { width, height, fontScale } = useWindowDimensions(),
@@ -262,7 +263,10 @@ function Shell() {
                     enteringWorkshop: !!workshopRequest,
                   }}
                 >
-                  <Slot />
+                  {save.started && !replayOpen && <HomeRouteCache active={home} />}
+                  <View style={{ flex: 1, display: home ? 'none' : 'flex' }}>
+                    <Slot />
+                  </View>
                 </BookActionsContext.Provider>
               </BookChromeContext.Provider>
             </PageTurnContext.Provider>

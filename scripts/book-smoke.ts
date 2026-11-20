@@ -62,7 +62,9 @@ async function main() {
     await page.getByRole('button', { name: 'Estampiller la planche' }).click();
     await expect.poll(async () => (await cues()).length).toBe(2);
     expect((await cues()).sort()).toEqual([2.8, 5.6]);
-    await expect(page.getByTestId('victory-action-primary')).toBeVisible();
+    await expect(
+      page.getByTestId('victory-action-primary').filter({ visible: true }),
+    ).toBeVisible();
     expect(
       await page
         .getByRole('button', { name: 'Découvrir l’espèce suivante' })

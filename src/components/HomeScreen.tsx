@@ -1,6 +1,14 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Animated, Pressable, View, useWindowDimensions } from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
+import { router } from 'expo-router';
 import { useGame } from '../state/store';
 import { homeProgress } from '../state/home';
 import { homeLayout } from '../layout/home';
@@ -19,28 +27,26 @@ import { unlockAmbience } from '../services/ambience';
 import { useVitrailDate } from './useVitrailDate';
 
 /** Soft watercolor clearing with two clearly playable adventures and a quiet future teaser. */
-export function HomeScreen() {
+export function HomeScreen({ active }: { active: boolean }) {
   const { save } = useGame();
-  const today = useVitrailDate();
+  const today = useVitrailDate(active);
   const { fontScale } = useWindowDimensions();
   const measured = useMeasuredSize();
   const frame = measured.size;
   const layout = homeLayout(frame.width, frame.height, fontScale);
   const { short, tight, gap } = layout;
-  const progress = homeProgress(save);
-  const [focused, setFocused] = useState(true);
+  const progress = useMemo(() => homeProgress(save), [save]);
+  const [focusReady, setFocused] = useState(active);
+  const focused = active && focusReady;
   const entering = useRef(false);
   const [departure, setDeparture] = useState<(() => void) | null>(null);
   const performed = useRef<(() => void) | null>(null);
-  useFocusEffect(
-    useCallback(() => {
-      setFocused(true);
-      entering.current = false;
-      setDeparture(null);
-      performed.current = null;
-      return () => setFocused(false);
-    }, []),
-  );
+  useLayoutEffect(() => {
+    setFocused(active);
+    entering.current = false;
+    setDeparture(null);
+    performed.current = null;
+  }, [active]);
   const { replayPrologue, replaying, openWorkshop, enteringWorkshop } =
     useContext(BookActionsContext);
   const { value, settled } = useNativeProgress(
@@ -48,7 +54,7 @@ export function HomeScreen() {
     save.settings.motion && focused && !replaying && !departure,
   );
   usePrimaryAnimation(!settled && focused && !replaying && !departure);
-  const leave = (go: () => void) => setDeparture(() => go);
+  const leave = useCallback((go: () => void) => setDeparture(() => go), []);
   useEffect(() => {
     if (!departure || !settled || !focused || replaying || performed.current === departure) return;
     const frame = requestAnimationFrame(() => {
@@ -72,22 +78,34 @@ export function HomeScreen() {
       else openWorkshop();
     });
   };
-  const part = (from: number, to: number) => ({
-    opacity: value.interpolate({
-      inputRange: [from, to],
-      outputRange: [0, 1],
-      extrapolate: 'clamp' as const,
-    }),
-    transform: [
-      {
-        translateY: value.interpolate({
-          inputRange: [from, to],
-          outputRange: [10, 0],
-          extrapolate: 'clamp' as const,
-        }),
-      },
-    ],
-  });
+  const enterAction = useRef(enter);
+  enterAction.current = enter;
+  const onPlay = useCallback(() => enterAction.current(), []);
+  const onDaily = useCallback(() => leave(() => router.push('/vitrail')), [leave]);
+  const stages = useMemo(() => {
+    const part = (from: number, to: number) => ({
+      opacity: value.interpolate({
+        inputRange: [from, to],
+        outputRange: [0, 1],
+        extrapolate: 'clamp' as const,
+      }),
+      transform: [
+        {
+          translateY: value.interpolate({
+            inputRange: [from, to],
+            outputRange: [10, 0],
+            extrapolate: 'clamp' as const,
+          }),
+        },
+      ],
+    });
+    return {
+      main: part(0, 0.32),
+      daily: part(0.12, 0.43),
+      mystery: part(0.18, 0.46),
+      footer: part(0.2, 0.5),
+    };
+  }, [value]);
   const links: {
     title: string;
     emblem: CarnetEmblem;
@@ -170,32 +188,30 @@ export function HomeScreen() {
           ? 'Rejouer'
           : 'Continuer';
   const main = (
-    <Animated.View style={[{ width: layout.mainWidth, height: layout.mainHeight }, part(0, 0.32)]}>
+    <Animated.View style={[{ width: layout.mainWidth, height: layout.mainHeight }, stages.main]}>
       <RestorationCard
         width={layout.mainWidth}
         height={layout.mainHeight}
         progress={progress}
-        onPlay={enter}
+        onPlay={onPlay}
         disabled={enteringWorkshop || (!!departure && entering.current)}
         label={label}
       />
     </Animated.View>
   );
   const daily = (
-    <Animated.View
-      style={[{ width: layout.sideWidth, height: layout.dailyHeight }, part(0.12, 0.43)]}
-    >
+    <Animated.View style={[{ width: layout.sideWidth, height: layout.dailyHeight }, stages.daily]}>
       <DailyModeCard
         width={layout.sideWidth}
         height={layout.dailyHeight}
         availability={save.vitrail?.days[today]?.rewarded ? 'Terminé' : '3 vitraux'}
-        onPlay={() => leave(() => router.push('/vitrail'))}
+        onPlay={onDaily}
       />
     </Animated.View>
   );
   const mystery = (
     <Animated.View
-      style={[{ width: layout.sideWidth, height: layout.mysteryHeight }, part(0.18, 0.46)]}
+      style={[{ width: layout.sideWidth, height: layout.mysteryHeight }, stages.mystery]}
     >
       <MysteryModeCard width={layout.sideWidth} height={layout.mysteryHeight} />
     </Animated.View>
@@ -289,6 +305,7 @@ export function HomeScreen() {
                 >
                   <SeedPouch
                     count={save.seeds}
+                    active={focused}
                     motion={save.settings.motion && focused && !replaying && !departure && settled}
                     compact
                   />
@@ -359,7 +376,7 @@ export function HomeScreen() {
                     alignItems: 'center',
                     justifyContent: 'center',
                   },
-                  part(0.2, 0.5),
+                  stages.footer,
                 ]}
               >
                 <View

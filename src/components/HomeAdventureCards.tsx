@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Image, Pressable, View, useWindowDimensions } from 'react-native';
 import { Path } from 'react-native-svg';
 import { Paper } from './Paper';
@@ -83,7 +83,7 @@ function Ribbon({ label, width }: { label: string; width: number }) {
   );
 }
 
-export function RestorationCard({
+function RestorationCardDrawing({
   width,
   height,
   progress,
@@ -244,7 +244,7 @@ export function RestorationCard({
   );
 }
 
-export function DailyModeCard({
+function DailyModeCardDrawing({
   width,
   height,
   availability,
@@ -440,7 +440,7 @@ export function DailyModeCard({
   );
 }
 
-export function MysteryModeCard({ width, height }: { width: number; height: number }) {
+function MysteryModeCardDrawing({ width, height }: { width: number; height: number }) {
   const brief = width < 290;
   return (
     <View
@@ -500,3 +500,7 @@ export function MysteryModeCard({ width, height }: { width: number; height: numb
     </View>
   );
 }
+
+export const RestorationCard = memo(RestorationCardDrawing);
+export const DailyModeCard = memo(DailyModeCardDrawing);
+export const MysteryModeCard = memo(MysteryModeCardDrawing);

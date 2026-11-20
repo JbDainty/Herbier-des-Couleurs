@@ -237,7 +237,7 @@ async function resetting(page: Page, url: string) {
   expect(await stored()).toEqual({ ...initial(), settings: save.settings });
   await openCarnet(page);
   await expect(page.getByTestId('page-folio')).toHaveText('PAGE 01');
-  await expect(page.getByTestId('seed-count')).toHaveText('0');
+  await expect(page.getByTestId('seed-count').filter({ visible: true })).toHaveText('0');
 }
 
 async function main() {
