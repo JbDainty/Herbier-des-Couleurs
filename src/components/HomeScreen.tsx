@@ -301,12 +301,7 @@ export function HomeScreen({ active }: { active: boolean }) {
                     borderRadius: 24,
                   }}
                 >
-                  <SeedPouch
-                    count={save.seeds}
-                    active={focused}
-                    motion={ambientEnabled}
-                    compact
-                  />
+                  <SeedPouch count={save.seeds} active={focused} motion={ambientEnabled} compact />
                 </View>
                 {short && auxiliary(true)}
               </View>
