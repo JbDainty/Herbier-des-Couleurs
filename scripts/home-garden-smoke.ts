@@ -50,6 +50,27 @@ async function main() {
     await expect
       .poll(() => pollen.evaluate((n) => getComputedStyle(n).transform))
       .not.toBe(pollenTransform);
+    // Motion should be visible within a short glance, including near a turning point.
+    const motionSamples: { illustration: number; pollen: number }[] = [];
+    for (let i = 0; i < 6; i++) {
+      if (i) await page.waitForTimeout(400);
+      motionSamples.push(
+        await page.evaluate(() => {
+          const y = (id: string) =>
+            new DOMMatrix(
+              getComputedStyle(document.querySelector(`[data-testid="${id}"]`)!).transform,
+            ).m42;
+          return {
+            illustration: y('home-restoration-illustration'),
+            pollen: y('home-restoration-enchantment'),
+          };
+        }),
+      );
+    }
+    const span = (key: keyof (typeof motionSamples)[number]) =>
+      Math.max(...motionSamples.map((s) => s[key])) - Math.min(...motionSamples.map((s) => s[key]));
+    expect(span('illustration')).toBeGreaterThan(1.8);
+    expect(span('pollen')).toBeGreaterThan(2.5);
     expect(await page.evaluate(() => (window as any).gardenSvgChanges)).toBe(0);
     // Exercise the same AppState visibility event used by the Web adapter.
     await page.evaluate(() => {

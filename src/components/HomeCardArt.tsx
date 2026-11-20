@@ -89,6 +89,8 @@ const Pollen = memo(function Pollen({ daily }: { daily: boolean }) {
 export function HomeCardArt({ size, daily = false }: { size: number; daily?: boolean }) {
   const { clock, running } = useHomeMagic();
   const prefix = daily ? 'home-vitrail' : 'home-restoration';
+  const lift = Math.min(7, size * 0.055);
+  const drift = Math.min(3, size * 0.025);
   return (
     <View
       pointerEvents="none"
@@ -108,14 +110,24 @@ export function HomeCardArt({ size, daily = false }: { size: number; daily?: boo
             transform: [
               {
                 translateY: clock.interpolate({
+                  inputRange: [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1],
+                  outputRange: daily
+                    ? [0, lift, 0, -lift, 0, lift, 0, -lift, 0]
+                    : [0, -lift, 0, lift, 0, -lift, 0, lift, 0],
+                }),
+              },
+              {
+                translateX: clock.interpolate({
                   inputRange: [0, 0.25, 0.5, 0.75, 1],
-                  outputRange: daily ? [1, -3, 1, -3, 1] : [0, -4, 0, -4, 0],
+                  outputRange: [-drift, drift, -drift, drift, -drift],
                 }),
               },
               {
                 rotate: clock.interpolate({
-                  inputRange: [0, 0.5, 1],
-                  outputRange: daily ? ['-2deg', '2deg', '-2deg'] : ['-1deg', '1deg', '-1deg'],
+                  inputRange: [0, 0.25, 0.5, 0.75, 1],
+                  outputRange: daily
+                    ? ['-4deg', '4deg', '-4deg', '4deg', '-4deg']
+                    : ['-3deg', '3deg', '-3deg', '3deg', '-3deg'],
                 }),
               },
             ],
@@ -150,14 +162,20 @@ export function HomeCardArt({ size, daily = false }: { size: number; daily?: boo
               transform: [
                 {
                   translateY: clock.interpolate({
-                    inputRange: [0, 0.5, 1],
-                    outputRange: daily ? [3, -9, 3] : [0, -12, 0],
+                    inputRange: [0, 0.25, 0.5, 0.75, 1],
+                    outputRange: daily ? [5, -15, 5, -15, 5] : [0, -20, 0, -20, 0],
+                  }),
+                },
+                {
+                  translateX: clock.interpolate({
+                    inputRange: [0, 0.25, 0.5, 0.75, 1],
+                    outputRange: [-5, 6, -5, 6, -5],
                   }),
                 },
                 {
                   rotate: clock.interpolate({
-                    inputRange: [0, 0.5, 1],
-                    outputRange: ['-4deg', '4deg', '-4deg'],
+                    inputRange: [0, 0.25, 0.5, 0.75, 1],
+                    outputRange: ['-8deg', '8deg', '-8deg', '8deg', '-8deg'],
                   }),
                 },
               ],
