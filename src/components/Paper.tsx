@@ -8,11 +8,13 @@ export function PaperTexture({
   framed = false,
   vitality,
   compactFrame = false,
+  textureOpacity,
 }: {
   background?: boolean;
   framed?: boolean;
   vitality?: number;
   compactFrame?: boolean;
+  textureOpacity?: number;
 }) {
   return (
     <View
@@ -27,7 +29,7 @@ export function PaperTexture({
         resizeMode="cover"
         style={[
           StyleSheet.absoluteFill,
-          { width: '100%', height: '100%', opacity: background ? 0.5 : 0.68 },
+          { width: '100%', height: '100%', opacity: textureOpacity ?? (background ? 0.5 : 0.68) },
         ]}
       />
       {framed && <FoliageFrame vitality={vitality} compact={compactFrame} />}
@@ -40,11 +42,22 @@ export function Paper({
   vitality,
   frame = true,
   compactFrame = false,
+  textureOpacity,
   ...props
-}: ViewProps & { vitality?: number; frame?: boolean; compactFrame?: boolean }) {
+}: ViewProps & {
+  vitality?: number;
+  frame?: boolean;
+  compactFrame?: boolean;
+  textureOpacity?: number;
+}) {
   return (
     <View {...props} style={[{ overflow: 'hidden', zIndex: 0 }, style]}>
-      <PaperTexture framed={frame} vitality={vitality} compactFrame={compactFrame} />
+      <PaperTexture
+        framed={frame}
+        vitality={vitality}
+        compactFrame={compactFrame}
+        textureOpacity={textureOpacity}
+      />
       {children}
     </View>
   );

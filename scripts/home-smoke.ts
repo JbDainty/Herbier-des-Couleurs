@@ -38,7 +38,9 @@ async function main() {
     await expect(page.getByRole('link', { name: 'Herbier', exact: true })).toHaveCount(1);
     await expect(page.getByText('Le cabinet de Dainty', { exact: true })).toHaveCount(0);
     await expect(page.getByTestId('seed-count')).toHaveText('0');
-    await expect(page.getByRole('heading', { name: 'Modes de jeu', exact: true })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Choisir une aventure', exact: true }),
+    ).toBeVisible();
     await expect(page.getByTestId('home-current-page')).toHaveText('Page 01');
     expect((await stored()).guideSeen).toBe(false);
     expect((await stored()).seeds).toBe(0);
@@ -58,25 +60,9 @@ async function main() {
     await expect(page.getByTestId('home-stage-settled')).toBeAttached();
     expect(await page.evaluate(() => (window as any).homeSvgChanges)).toBe(0);
     await expect(page.getByTestId('home-butterfly')).toHaveCount(0);
-    // Inspect the drawn shapes: every pigment must remain inside its own glass,
-    // including the taller central tube on the Android menu.
-    const spills = await page.getByTestId('home-restoration-card').evaluate((node) => {
-      const pigments = node.querySelectorAll<SVGPathElement>(
-        'path[fill="#b66d86"], path[fill="#c3a251"], path[fill="#6b9c87"]',
-      );
-      return Array.from(pigments, (pigment) => {
-        const glass = pigment.parentElement!.querySelector('path')!;
-        const bounds = pigment.getBBox();
-        let outside = 0;
-        for (let y = bounds.y; y <= bounds.y + bounds.height; y += 0.5)
-          for (let x = bounds.x; x <= bounds.x + bounds.width; x += 0.5) {
-            const point = new DOMPoint(x, y);
-            if (pigment.isPointInFill(point) && !glass.isPointInFill(point)) outside++;
-          }
-        return outside;
-      });
-    });
-    expect(spills).toEqual([0, 0, 0]);
+    // The approved watercolor book and rosette are independent decorative assets.
+    await expect(page.getByTestId('home-restoration-art')).toBeVisible();
+    await expect(page.getByTestId('home-vitrail-art')).toBeVisible();
     await page.screenshot({ path: 'test-results/home-first-390.png' });
     await expect(page.getByTestId('home-future-day')).toHaveAttribute('role', 'button');
     await expect(page.getByTestId('home-future-day')).toContainText('Le Vitrail du jour');
@@ -182,6 +168,27 @@ async function main() {
       expect(
         await home.evaluate((node) => node.scrollHeight - node.clientHeight),
       ).toBeLessThanOrEqual(1);
+      const readability = await home.evaluate((root) => {
+        const issues: string[] = [];
+        for (const node of Array.from(root.querySelectorAll<HTMLElement>('div,span'))) {
+          if (
+            !node.clientWidth ||
+            !node.clientHeight ||
+            !Array.from(node.childNodes).some((n) => n.nodeType === 3 && n.textContent?.trim())
+          )
+            continue;
+          const style = getComputedStyle(node);
+          if (style.fontFamily.includes('Scientific') || style.fontFamily.includes('Handwriting'))
+            issues.push('inconsistent typography: ' + node.textContent);
+          if (
+            (style.overflowX === 'hidden' || style.textOverflow === 'ellipsis') &&
+            (node.scrollWidth > node.clientWidth + 1 || node.scrollHeight > node.clientHeight + 1)
+          )
+            issues.push('clipped: ' + node.textContent);
+        }
+        return issues;
+      });
+      expect(readability).toEqual([]);
       const action = (await play().boundingBox())!;
       const card = (await page.getByTestId('home-restoration-card').boundingBox())!;
       expect(action.height).toBeGreaterThanOrEqual(48);

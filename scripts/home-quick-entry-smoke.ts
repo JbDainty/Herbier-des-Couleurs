@@ -14,6 +14,7 @@ async function main() {
       { target: 'play', motion: true, guide: true, destination: 'page-folio' },
       { target: 'herbarium', motion: true, guide: true, destination: 'herbarium-collection-title' },
       { target: 'ecosystem', motion: true, guide: true, destination: 'ecosystems-screen' },
+      { target: 'day', motion: true, guide: true, destination: 'daily-vitrail-screen' },
       { target: 'play', motion: true, guide: false, destination: 'botanical-guide' },
       { target: 'play', motion: false, guide: true, destination: 'page-folio' },
     ]) {
@@ -44,9 +45,11 @@ async function main() {
         const selector =
           scenario.target === 'play'
             ? '[data-testid=home-restore-action] button'
-            : scenario.target === 'herbarium'
-              ? '[aria-label="Herbier"][role=link]'
-              : '[aria-label="Écosystèmes"][role=link]';
+            : scenario.target === 'day'
+              ? '[data-testid=home-future-day]'
+              : scenario.target === 'herbarium'
+                ? '[aria-label="Herbier"][role=link]'
+                : '[aria-label="Écosystèmes"][role=link]';
         await page.waitForFunction((selector) => !!document.querySelector(selector), selector);
         const historyBefore = await page.evaluate(() => history.length);
         const clickedDuringIntro = await page.evaluate(
@@ -93,9 +96,13 @@ async function main() {
         expect(events.some((e) => e.event === 'destination-during-intro')).toBe(false);
         expect(events.some((e) => e.event === 'destination-after-settle')).toBe(true);
         expect(events.filter((e) => e.event.startsWith('destination-'))).toHaveLength(1);
-        expect(
-          await page.evaluate(() => JSON.parse(localStorage.getItem('color-world.save')!)),
-        ).toEqual(save);
+        const after = await page.evaluate(() =>
+          JSON.parse(localStorage.getItem('color-world.save')!),
+        );
+        if (scenario.target === 'day') {
+          expect({ ...after, vitrail: undefined }).toEqual({ ...save, vitrail: undefined });
+          expect(after.vitrail.session.level).toBe(0);
+        } else expect(after).toEqual(save);
         expect(errors).toEqual([]);
         writeFileSync(
           `test-results/quick-entry-${scenario.target}-${scenario.motion}-${scenario.guide}.json`,
