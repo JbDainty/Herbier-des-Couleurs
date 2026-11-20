@@ -69,7 +69,10 @@ async function main() {
         await page.evaluate(() => {
           const events: { event: string; time: number }[] = [];
           let visibleAt = 0,
-            earlyAmbient = false;
+            overlapping = false;
+          let entranceStarted = false;
+          let firstAmbient: Element | null = null;
+          let ambientReplaced = false;
           const watch = new MutationObserver(() => {
             const root = document.querySelector('[data-testid="home-route-cache"]');
             if (!root || root.getAttribute('aria-hidden') === 'true') return;
@@ -79,9 +82,18 @@ async function main() {
             }
             const unfolding = root.querySelector('[data-testid="home-stage-unfolding"]');
             const ambient = root.querySelector('[data-testid="home-restoration-enchantment"]');
-            if (unfolding && ambient) earlyAmbient = true;
+            if (unfolding) entranceStarted = true;
+            if (unfolding && ambient) overlapping = true;
+            if (firstAmbient && ambient !== firstAmbient) ambientReplaced = true;
+            if (ambient && !firstAmbient) firstAmbient = ambient;
             if (ambient && !events.some((e) => e.event === 'ambient'))
               events.push({ event: 'ambient', time: performance.now() });
+            if (
+              entranceStarted &&
+              root.querySelector('[data-testid="home-stage-settled"]') &&
+              !events.some((e) => e.event === 'settled')
+            )
+              events.push({ event: 'settled', time: performance.now() });
           });
           watch.observe(document, {
             subtree: true,
@@ -92,7 +104,7 @@ async function main() {
           (window as any).returnCheck = {
             finish() {
               watch.disconnect();
-              return { events, earlyAmbient };
+              return { events, overlapping, ambientReplaced };
             },
           };
         });
@@ -110,11 +122,14 @@ async function main() {
         }));
         expect(identity).toEqual({ card: true, drawing: true });
         const result = await page.evaluate(() => (window as any).returnCheck.finish());
-        expect(result.earlyAmbient).toBe(false);
-        if (motion)
-          expect(
-            result.events.find((e: any) => e.event === 'ambient').time - result.events[0].time,
-          ).toBeGreaterThan(2300);
+        expect(result.overlapping).toBe(motion);
+        expect(result.ambientReplaced).toBe(false);
+        if (motion) {
+          const settled = result.events.find((e: any) => e.event === 'settled').time;
+          const ambient = result.events.find((e: any) => e.event === 'ambient').time;
+          expect(settled - result.events[0].time).toBeGreaterThan(2300);
+          expect(ambient).toBeLessThan(settled);
+        }
         timings.push({ destination, ...result });
         expect(await page.evaluate(() => localStorage.getItem('color-world.save'))).toBe(before);
       }
@@ -128,7 +143,7 @@ async function main() {
       await page.close();
     }
     console.log(
-      'Home return passed: same card and SVG nodes across repeated campaign/daily returns, inaccessible inactive menu, stopped effects, unchanged entrance timing, no premature ambient layers, unchanged save and 4× CPU.',
+      'Home return passed: same card and SVG nodes across repeated campaign/daily returns, inaccessible inactive menu, stopped effects, unchanged entrance duration, overlapping ambient motion without replacement at entry completion, unchanged save and 4× CPU.',
     );
   } finally {
     await browser.close();

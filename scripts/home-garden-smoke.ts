@@ -28,6 +28,7 @@ async function main() {
     await page.goto(url);
     const active = page.getByTestId('home-garden-animating');
     await expect(active).toBeVisible();
+    await expect(page.getByTestId('home-stage-unfolding')).toBeAttached();
     await expect(page.getByTestId('home-living-book')).toHaveCount(0);
     await page.evaluate(() => {
       (window as any).gardenSvgChanges = 0;
@@ -42,6 +43,8 @@ async function main() {
     const enchantments = ['home-restoration-enchantment', 'home-vitrail-enchantment'];
     for (const id of enchantments) await expect(page.getByTestId(id)).toBeVisible();
     const pollen = page.getByTestId(enchantments[0]);
+    const initialPollen = await pollen.elementHandle();
+    await expect(page.getByTestId('home-stage-unfolding')).toBeAttached();
     const pollenTransform = await pollen.evaluate((n) => getComputedStyle(n).transform);
     const transform = await fireflies.evaluate((n) => getComputedStyle(n).transform);
     await expect
@@ -71,6 +74,11 @@ async function main() {
       Math.max(...motionSamples.map((s) => s[key])) - Math.min(...motionSamples.map((s) => s[key]));
     expect(span('illustration')).toBeGreaterThan(1.8);
     expect(span('pollen')).toBeGreaterThan(2.5);
+    await expect(page.getByTestId('home-stage-settled')).toBeAttached();
+    expect(await pollen.evaluate((node, initial) => node === initial, initialPollen)).toBe(true);
+    expect(
+      await pollen.evaluate((node) => new DOMMatrix(getComputedStyle(node).transform).m42),
+    ).toBeLessThan(-2);
     expect(await page.evaluate(() => (window as any).gardenSvgChanges)).toBe(0);
     // Exercise the same AppState visibility event used by the Web adapter.
     await page.evaluate(() => {

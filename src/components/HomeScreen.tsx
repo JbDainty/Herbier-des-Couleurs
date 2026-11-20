@@ -22,7 +22,6 @@ import { useMeasuredSize } from './useMeasuredSize';
 import { F } from './fonts';
 import { T, Icon } from './ui';
 import { useNativeProgress } from './useNativeProgress';
-import { usePrimaryAnimation } from './usePrimaryAnimation';
 import { unlockAmbience } from '../services/ambience';
 import { useVitrailDate } from './useVitrailDate';
 
@@ -53,7 +52,6 @@ export function HomeScreen({ active }: { active: boolean }) {
     2600,
     save.settings.motion && focused && !replaying && !departure,
   );
-  usePrimaryAnimation(!settled && focused && !replaying && !departure);
   const leave = useCallback((go: () => void) => setDeparture(() => go), []);
   useEffect(() => {
     if (!departure || !settled || !focused || replaying || performed.current === departure) return;
@@ -106,6 +104,8 @@ export function HomeScreen({ active }: { active: boolean }) {
       footer: part(0.2, 0.5),
     };
   }, [value]);
+  const ambientEnabled =
+    save.settings.motion && focused && !replaying && !departure && frame.height > 0;
   const links: {
     title: string;
     emblem: CarnetEmblem;
@@ -218,9 +218,7 @@ export function HomeScreen({ active }: { active: boolean }) {
   );
   const navHeight = short ? 54 : tight ? 48 : 64;
   return (
-    <HomeMagicMotion
-      enabled={save.settings.motion && focused && !replaying && !departure && settled}
-    >
+    <HomeMagicMotion enabled={ambientEnabled}>
       <View testID="home-screen" style={{ flex: 1, minHeight: 0 }}>
         <HomeClearing width={frame.width} height={frame.height} />
         <View
@@ -303,12 +301,7 @@ export function HomeScreen({ active }: { active: boolean }) {
                     borderRadius: 24,
                   }}
                 >
-                  <SeedPouch
-                    count={save.seeds}
-                    active={focused}
-                    motion={save.settings.motion && focused && !replaying && !departure && settled}
-                    compact
-                  />
+                  <SeedPouch count={save.seeds} active={focused} motion={ambientEnabled} compact />
                 </View>
                 {short && auxiliary(true)}
               </View>
