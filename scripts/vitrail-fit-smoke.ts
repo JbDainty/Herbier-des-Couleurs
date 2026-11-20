@@ -48,11 +48,12 @@ async function main() {
         page.getByTestId('vitrail-viewport').evaluate((root) => {
           const box = root.getBoundingClientRect(),
             problems: string[] = [];
+          const won = !!root.querySelector('[data-testid="vitrail-victory"]');
           for (const id of [
             'vitrail-header',
             'vitrail-stages',
             'vitrail-board',
-            'vitrail-caption',
+            ...(!won ? ['vitrail-caption'] : []),
             'vitrail-actions',
             'vitrail-footer',
           ]) {
@@ -87,12 +88,13 @@ async function main() {
               y = parseFloat(style.paddingTop);
             const b = root.querySelector('[data-testid="vitrail-board"]')!.getBoundingClientRect();
             const c = root
-              .querySelector('[data-testid="vitrail-caption"]')!
-              .getBoundingClientRect();
+              .querySelector('[data-testid="vitrail-caption"]')
+              ?.getBoundingClientRect();
             const a = root
               .querySelector('[data-testid="vitrail-actions"]')!
               .getBoundingClientRect();
-            for (const r of [b, c, a])
+            const group = c ? [b, c, a] : [b, a];
+            for (const r of group)
               if (
                 r.left < p.left + x - 1 ||
                 r.right > p.right - x + 1 ||
@@ -100,13 +102,9 @@ async function main() {
                 r.bottom > p.bottom - y + 1
               )
                 problems.push('content overlaps reserved paper border');
-            if (
-              c.top - b.bottom < -1 ||
-              c.top - b.bottom > 7 ||
-              a.top - c.bottom < -1 ||
-              a.top - c.bottom > 7
-            )
-              problems.push('board, message and controls are separated');
+            for (let i = 1; i < group.length; i++)
+              if (group[i].top - group[i - 1].bottom < -1 || group[i].top - group[i - 1].bottom > 7)
+                problems.push('board and controls are separated');
             if (Math.abs(b.top - p.top - (p.bottom - a.bottom)) > 1)
               problems.push('play group not centered in paper');
           }
