@@ -42,15 +42,15 @@ export function VitrailScene({
     measured = useMeasuredSize();
   const width = measured.size.width || chrome.availableWidth || window.width,
     height = measured.size.height || chrome.availableHeight || window.height;
-  const layout = vitrailLayout(width, height, puzzle.size, window.fontScale);
+  const trace = traceVitrail(puzzle, session.rotations);
+  const layout = vitrailLayout(width, height, puzzle.size, window.fontScale, trace.solved);
   const [selected, setSelected] = useState<number | null>(null),
     [hint, setHint] = useState<number | null>(null);
   useEffect(() => {
     setSelected(null);
     setHint(null);
   }, [day, session.level]);
-  const trace = traceVitrail(puzzle, session.rotations),
-    completed = save.vitrail?.days[day]?.completed ?? 0,
+  const completed = save.vitrail?.days[day]?.completed ?? 0,
     rewarded = !!save.vitrail?.days[day]?.rewarded,
     archived = day !== today;
   const prepareMelody = useVitrailMelody(day, session.level, trace.solved, save.settings.sound);
@@ -550,6 +550,7 @@ export function VitrailScene({
           padding: layout.padding,
           gap: layout.gap,
           flexDirection: layout.landscape ? 'row' : 'column',
+          alignItems: layout.landscape ? 'center' : undefined,
         }}
       >
         {layout.landscape ? (
@@ -559,7 +560,7 @@ export function VitrailScene({
               frame={false}
               style={{
                 width: layout.boardSize,
-                height: layout.contentHeight,
+                height: layout.panelHeight,
                 borderRadius: 18,
                 backgroundColor: '#f4ead6ef',
                 alignItems: 'center',
@@ -587,31 +588,43 @@ export function VitrailScene({
           <>
             {header}
             {stages}
-            <Paper
-              testID="vitrail-play-card"
-              frame={layout.framed}
+            <View
+              testID="vitrail-play-area"
               style={{
-                height: layout.panelHeight,
-                paddingHorizontal: layout.panelPadding,
-                paddingVertical: layout.panelVerticalPadding,
+                width: '100%',
+                height: layout.playAreaHeight,
+                alignItems: 'center',
                 justifyContent: 'center',
-                borderRadius: 22,
-                backgroundColor: '#f4ead6ef',
-                gap: layout.gap,
               }}
             >
-              <View
+              <Paper
+                testID="vitrail-play-card"
+                frame={layout.framed}
+                compactFrame={layout.framed}
                 style={{
-                  height: layout.boardSize,
-                  alignItems: 'center',
+                  width: layout.panelWidth,
+                  height: layout.panelHeight,
+                  paddingHorizontal: layout.panelPadding,
+                  paddingVertical: layout.panelVerticalPadding,
                   justifyContent: 'center',
+                  borderRadius: 22,
+                  backgroundColor: '#f4ead6ef',
+                  gap: layout.gap,
                 }}
               >
-                {board}
-              </View>
-              {caption}
-              {actions}
-            </Paper>
+                <View
+                  style={{
+                    height: layout.boardSize,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {board}
+                </View>
+                {caption}
+                {actions}
+              </Paper>
+            </View>
             {footer}
           </>
         )}

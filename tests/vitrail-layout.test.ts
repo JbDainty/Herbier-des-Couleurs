@@ -27,58 +27,65 @@ it('reserves space for the board and every control on all 1095 puzzles and 19 fo
   for (const [width, height] of formats)
     for (const fontScale of [1, 1.3])
       for (const day of vitrailDays)
-        for (const puzzle of day.puzzles) {
-          const l = vitrailLayout(width, height, puzzle.size, fontScale);
-          expect(l.boardSize).toBeGreaterThan(150);
-          expect(l.cellSize).toBeGreaterThan(25);
-          expect(l.actionsHeight).toBeGreaterThanOrEqual(44);
-          expect(l.stagesHeight).toBeGreaterThanOrEqual(44);
-          expect(l.footerHeight).toBeGreaterThanOrEqual(44);
-          expect(l.boardSize).toBeLessThanOrEqual(l.boardAreaHeight);
-          if (l.landscape) {
-            expect(l.boardSize + l.controlsWidth + l.gap + l.padding * 2).toBeLessThanOrEqual(
-              width + 0.01,
-            );
-            expect(
-              l.headerHeight +
-                l.stagesHeight +
-                l.captionHeight +
-                l.actionsHeight +
-                l.footerHeight +
-                l.gap * 4,
-            ).toBeLessThanOrEqual(l.contentHeight);
-          } else {
-            expect(
-              l.headerHeight +
-                l.stagesHeight +
-                l.panelHeight +
-                l.footerHeight +
-                l.gap * 3 +
-                l.padding * 2,
-            ).toBeLessThanOrEqual(height + 0.01);
-            expect(
-              l.boardAreaHeight +
-                l.captionHeight +
-                l.actionsHeight +
-                l.gap * 2 +
-                l.panelVerticalPadding * 2,
-            ).toBeLessThanOrEqual(l.panelHeight + 0.01);
-            expect(l.boardSize + l.panelPadding * 2).toBeLessThanOrEqual(l.contentWidth);
-            const stack = l.boardSize + l.captionHeight + l.actionsHeight + l.gap * 2;
-            expect(stack + l.panelVerticalPadding * 2).toBeLessThanOrEqual(l.panelHeight + 0.01);
-            expect(l.actionWidth + l.panelPadding * 2).toBeLessThanOrEqual(l.contentWidth);
-            if (l.framed) {
-              expect(l.panelPadding).toBeGreaterThanOrEqual(32);
-              expect((l.panelHeight - stack) / 2).toBeGreaterThanOrEqual(48);
+        for (const puzzle of day.puzzles)
+          for (const won of [false, true]) {
+            const l = vitrailLayout(width, height, puzzle.size, fontScale, won);
+            expect(l.boardSize).toBeGreaterThan(150);
+            expect(l.cellSize).toBeGreaterThan(25);
+            expect(l.actionsHeight).toBeGreaterThanOrEqual(44);
+            expect(l.stagesHeight).toBeGreaterThanOrEqual(44);
+            expect(l.footerHeight).toBeGreaterThanOrEqual(44);
+            expect(l.boardSize).toBeLessThanOrEqual(l.boardAreaHeight);
+            expect(l.panelWidth).toBeLessThanOrEqual(l.contentWidth);
+            expect(l.panelHeight).toBeLessThanOrEqual(l.playAreaHeight);
+            if (won)
+              expect(l.boardSize).toBe(
+                vitrailLayout(width, height, puzzle.size, fontScale).boardSize,
+              );
+            if (l.landscape) {
+              expect(l.boardSize + l.controlsWidth + l.gap + l.padding * 2).toBeLessThanOrEqual(
+                width + 0.01,
+              );
+              expect(
+                l.headerHeight +
+                  l.stagesHeight +
+                  l.captionHeight +
+                  l.actionsHeight +
+                  l.footerHeight +
+                  l.gap * 4,
+              ).toBeLessThanOrEqual(l.contentHeight);
+            } else {
+              expect(
+                l.headerHeight +
+                  l.stagesHeight +
+                  l.playAreaHeight +
+                  l.footerHeight +
+                  l.gap * 3 +
+                  l.padding * 2,
+              ).toBeLessThanOrEqual(height + 0.01);
+              expect(
+                l.boardAreaHeight +
+                  l.captionHeight +
+                  l.actionsHeight +
+                  l.gap * (won ? 1 : 2) +
+                  l.panelVerticalPadding * 2,
+              ).toBeLessThanOrEqual(l.panelHeight + 0.01);
+              expect(l.boardSize + l.panelPadding * 2).toBeLessThanOrEqual(l.contentWidth);
+              const stack = l.boardSize + l.captionHeight + l.actionsHeight + l.gap * (won ? 1 : 2);
+              expect(stack + l.panelVerticalPadding * 2).toBeCloseTo(l.panelHeight, 5);
+              expect(l.actionWidth + l.panelPadding * 2).toBeLessThanOrEqual(l.panelWidth);
+              if (l.framed) {
+                expect(l.panelPadding).toBeGreaterThanOrEqual(16);
+                expect((l.panelHeight - stack) / 2).toBeGreaterThanOrEqual(20);
+              }
             }
+            expect(l.footerHeight).toBeGreaterThanOrEqual(l.actionsHeight + l.footerInset * 2);
+            if (
+              (width >= 320 && height >= 520 && !l.landscape) ||
+              (l.landscape && width >= 568 && height >= 272)
+            )
+              expect(l.cellSize).toBeGreaterThanOrEqual(44);
           }
-          expect(l.footerHeight).toBeGreaterThanOrEqual(l.actionsHeight + l.footerInset * 2);
-          if (
-            (width >= 320 && height >= 520 && !l.landscape) ||
-            (l.landscape && width >= 568 && height >= 272)
-          )
-            expect(l.cellSize).toBeGreaterThanOrEqual(44);
-        }
 });
 it('uses a measured viewport after safe-area insets and gives landscape the full board height', () => {
   for (const [width, height] of [
@@ -92,4 +99,7 @@ it('uses a measured viewport after safe-area insets and gives landscape the full
   }
   expect(vitrailLayout(568, 272, 5).landscape).toBe(true);
   expect(vitrailLayout(393, 804, 5).landscape).toBe(false);
+  const phone = vitrailLayout(393, 852, 5);
+  expect(phone.boardSize).toBeGreaterThanOrEqual(phone.contentWidth * 0.9);
+  expect(phone.panelHeight).toBeLessThan(phone.playAreaHeight - 100);
 });

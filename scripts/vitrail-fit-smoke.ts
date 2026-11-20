@@ -107,6 +107,8 @@ async function main() {
                 problems.push('board and controls are separated');
             if (Math.abs(b.top - p.top - (p.bottom - a.bottom)) > 1)
               problems.push('play group not centered in paper');
+            if (Math.abs(b.top - p.top - y) > 1 || Math.abs(p.bottom - a.bottom - y) > 1)
+              problems.push('unused paper height around the play group');
           }
           const footer = root.querySelector<HTMLElement>('[data-testid="vitrail-footer"]')!;
           const f = footer.getBoundingClientRect(),
