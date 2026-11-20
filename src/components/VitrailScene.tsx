@@ -301,14 +301,14 @@ export function VitrailScene({
       })}
     </View>
   );
-  const caption = (
+  const caption = !trace.solved && (
     <View
       testID="vitrail-caption"
       style={{
         height: layout.captionHeight,
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: trace.solved ? 'center' : 'space-between',
+        justifyContent: 'space-between',
         gap: 6,
         paddingHorizontal: 4,
         width: '100%',
@@ -316,63 +316,43 @@ export function VitrailScene({
         alignSelf: 'center',
       }}
     >
-      {trace.solved ? (
-        <T
-          testID="vitrail-victory"
-          serif
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.8}
-          maxFontSizeMultiplier={1.15}
-          style={{
-            fontSize: layout.tight ? 18 : 21,
-            lineHeight: layout.tight ? 22 : 26,
-            textAlign: 'center',
-          }}
-        >
-          {session.level === 2 ? 'Les trois vitraux rayonnent' : 'Votre vitrail s’illumine'}
-        </T>
-      ) : (
-        <>
-          <T
-            testID="vitrail-target-status"
-            maxFontSizeMultiplier={1.15}
-            accessibilityLiveRegion="polite"
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            style={{
-              fontFamily: F.scientific,
-              fontSize: 13,
-              lineHeight: layout.tight ? 22 : 26,
-              flexShrink: 1,
-            }}
-          >
-            {trace.lit.filter(Boolean).length} / {puzzle.targets.length} fleurs éclairées
-          </T>
-          <T
-            testID={hint === null ? 'vitrail-instruction' : 'vitrail-hint'}
-            accessibilityLiveRegion="polite"
-            accessibilityLabel={
-              hint === null
-                ? undefined
-                : `Faites pivoter le fragment de la ligne ${Math.floor(hint / puzzle.size) + 1}, colonne ${(hint % puzzle.size) + 1}.`
-            }
-            maxFontSizeMultiplier={1.15}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            style={{
-              fontSize: 12,
-              lineHeight: layout.tight ? 22 : 26,
-              color: hint === null ? C.muted : C.green,
-              flexShrink: 1,
-            }}
-          >
-            {hint === null
-              ? 'Touchez pour pivoter'
-              : `Faites pivoter L${Math.floor(hint / puzzle.size) + 1} · C${(hint % puzzle.size) + 1}`}
-          </T>
-        </>
-      )}
+      <T
+        testID="vitrail-target-status"
+        maxFontSizeMultiplier={1.15}
+        accessibilityLiveRegion="polite"
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        style={{
+          fontFamily: F.scientific,
+          fontSize: 13,
+          lineHeight: layout.tight ? 22 : 26,
+          flexShrink: 1,
+        }}
+      >
+        {trace.lit.filter(Boolean).length} / {puzzle.targets.length} fleurs éclairées
+      </T>
+      <T
+        testID={hint === null ? 'vitrail-instruction' : 'vitrail-hint'}
+        accessibilityLiveRegion="polite"
+        accessibilityLabel={
+          hint === null
+            ? undefined
+            : `Faites pivoter le fragment de la ligne ${Math.floor(hint / puzzle.size) + 1}, colonne ${(hint % puzzle.size) + 1}.`
+        }
+        maxFontSizeMultiplier={1.15}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        style={{
+          fontSize: 12,
+          lineHeight: layout.tight ? 22 : 26,
+          color: hint === null ? C.muted : C.green,
+          flexShrink: 1,
+        }}
+      >
+        {hint === null
+          ? 'Touchez pour pivoter'
+          : `Faites pivoter L${Math.floor(hint / puzzle.size) + 1} · C${(hint % puzzle.size) + 1}`}
+      </T>
     </View>
   );
   const actions = (
@@ -388,7 +368,7 @@ export function VitrailScene({
     >
       {trace.solved ? (
         <>
-          <View style={{ flex: 1, minWidth: 0, alignItems: 'center' }}>
+          <View testID="vitrail-victory" style={{ flex: 1, minWidth: 0, alignItems: 'center' }}>
             <VictoryAction
               compact
               narrow

@@ -158,6 +158,10 @@ async function main() {
       ).toBeLessThanOrEqual(1);
     }
     await page.setViewportSize({ width: 393, height: 852 });
+    // Wait for the portrait branch to commit before capturing its new paper element.
+    await expect(
+      page.getByTestId('vitrail-play-card').getByTestId('vitrail-actions'),
+    ).toBeVisible();
     await page
       .getByTestId('vitrail-play-card')
       .screenshot({ path: 'test-results/vitrail-halos-victory.png' });
