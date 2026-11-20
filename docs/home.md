@@ -6,6 +6,8 @@ La maquette « Clairière des lucioles » choisie le 20 novembre 2026 devient un
 
 La grande carte parchemin « La Restauration » porte la vraie espèce, la page courante et l’action Commencer / Continuer / Rejouer. Une carte céladon distincte propose « Le Vitrail du jour » avec son action Jouer et son état 3 vitraux / Terminé. Le petit encart lavande « Les Encres oubliées · À venir » reste sans interaction jouable. Les illustrations sont décoratives ; le livre ne constitue pas un deuxième accès à l’Herbier. La réserve de graines accompagne le titre dans un badge clair.
 
+Les deux aventures partagent la même composition : titre, ligne centrale regroupant description et progression à gauche de l’illustration, puis ruban d’action centré de même largeur et de 48 points de haut. Les illustrations participent à la mise en page et leur taille suit l’espace disponible, y compris avec du texte agrandi. Les hauteurs plus proches limitent les espaces vides ; les variantes compactes gardent la priorité aux commandes et à l’état du défi.
+
 Quatre raccourcis forment le pied du menu : Herbier, Écosystèmes, Boutique et Paramètres. Aide et Revoir le prologue sont des liens secondaires ; sur le paysage très court, leurs icônes se placent dans le bandeau. Les commandes conservent leurs noms d’accessibilité et des zones tactiles d’au moins 44 points ; le bouton principal garde 48 points. Le Vitrail entier est un seul bouton accessible, sans boutons imbriqués ; son état terminé est aussi annoncé aux lecteurs d’écran.
 
 ## Adaptation aux écrans

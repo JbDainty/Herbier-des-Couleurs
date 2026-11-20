@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, Pressable, View } from 'react-native';
+import { Image, Pressable, View, useWindowDimensions } from 'react-native';
 import { Path } from 'react-native-svg';
 import { Paper } from './Paper';
 import { SvgBackdrop } from './SvgBackdrop';
@@ -52,25 +52,25 @@ function Ribbon({ label, width }: { label: string; width: number }) {
   return (
     <View
       pointerEvents="none"
-      style={{ width, height: 44, alignItems: 'center', justifyContent: 'center' }}
+      style={{ width, height: 48, alignItems: 'center', justifyContent: 'center' }}
     >
-      <SvgBackdrop viewBox="0 0 220 44" preserveAspectRatio="none">
+      <SvgBackdrop viewBox="0 0 350 64" preserveAspectRatio="none">
         <Path
-          d="M14 4Q60 6 110 3Q165 6 206 4L216 22L206 40Q161 37 110 41Q57 38 14 40L4 22Z"
+          d="M20 5Q80 8 175 3Q270 8 330 5C337 14 337 23 347 32C337 40 337 51 330 59Q250 55 175 61Q100 55 20 59C13 50 13 41 3 32C13 24 13 14 20 5Z"
           fill="#365c49"
           stroke="#b69b62"
           strokeWidth={0.8}
         />
         <Path
-          d="M17 8Q60 10 110 7Q164 10 202 8M17 36Q62 33 110 37Q161 34 202 36"
+          d="M26 10Q95 13 175 8Q255 13 324 10M26 54Q100 50 175 56Q250 50 324 54"
           fill="none"
           stroke="#d1ba7b"
           strokeWidth={0.5}
           opacity={0.6}
         />
       </SvgBackdrop>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-        <Icon name="leaf-outline" size={17} color="#f7edcd" />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
+        <Icon name="leaf-outline" size={23} color="#f7edcd" />
         <T
           maxFontSizeMultiplier={1.15}
           style={{ fontFamily: F.display, fontSize: 19, lineHeight: 24, color: '#fff3d9' }}
@@ -97,11 +97,27 @@ export function RestorationCard({
   disabled: boolean;
   label: string;
 }) {
-  const brief = height < 155;
+  const { fontScale } = useWindowDimensions();
+  const brief = height < 190;
   const padding = brief ? 12 : 18;
-  const art = height >= 180 && width >= 300 ? Math.min(158, Math.round(height * 0.52)) : 0;
+  const vertical = brief ? 10 : 16;
+  const gap = brief ? 2 : 8;
   const showProgress = height >= 136;
-  const description = height >= 205;
+  const titleSize = height < 150 ? 24 : brief ? 26 : width >= 500 ? 34 : 30;
+  const titleLine = height < 150 ? 30 : brief ? 32 : width >= 500 ? 42 : 38;
+  const titleScale = height < 128 ? 1 : brief ? 1.1 : 1.2;
+  const bodyHeight = Math.max(
+    0,
+    height -
+      vertical * 2 -
+      titleLine * Math.min(titleScale, Math.max(1, fontScale)) -
+      48 -
+      gap * (showProgress ? 2 : 1),
+  );
+  const art = !brief && width >= 300 ? Math.min(116, Math.round(width * 0.3), bodyHeight) : 0;
+  const description = bodyHeight >= 82;
+  const infoSize = brief ? 12 : 14;
+  const infoLine = brief ? 17 : 20;
   return (
     <Paper
       testID="home-restoration-card"
@@ -112,92 +128,101 @@ export function RestorationCard({
         height,
         borderRadius: 24,
         paddingHorizontal: padding,
-        paddingVertical: brief ? 10 : 16,
+        paddingVertical: vertical,
         backgroundColor: '#fbefd8',
-        justifyContent: 'space-between',
+        gap,
         boxShadow: '0 3px 10px #3e594219',
       }}
     >
       <ModeFrame />
-      {!!art && (
-        <Image
-          testID="home-restoration-art"
-          source={require('../../assets/home/herbarium.png')}
-          accessible={false}
-          fadeDuration={0}
-          resizeMode="contain"
-          style={{ position: 'absolute', width: art, height: art, right: 14, bottom: 70 }}
-        />
-      )}
-      <View style={{ gap: 2 }}>
-        <T
-          accessibilityRole="header"
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.8}
-          maxFontSizeMultiplier={brief ? 1.1 : 1.2}
-          style={{
-            fontFamily: F.displayBold,
-            fontSize: brief ? 26 : width >= 500 ? 38 : 32,
-            lineHeight: brief ? 30 : width >= 500 ? 43 : 38,
-            color: ink,
-          }}
-        >
-          La Restauration
-        </T>
-        {description && (
-          <T
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            maxFontSizeMultiplier={1.15}
-            style={{
-              fontFamily: F.medium,
-              fontSize: 14,
-              lineHeight: 20,
-              color: muted,
-              paddingRight: art ? art - 18 : 0,
-            }}
-          >
-            Faites refleurir l’herbier.
-          </T>
-        )}
-      </View>
+      <T
+        accessibilityRole="header"
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.8}
+        maxFontSizeMultiplier={titleScale}
+        style={{
+          fontFamily: F.displayBold,
+          fontSize: titleSize,
+          lineHeight: titleLine,
+          color: ink,
+        }}
+      >
+        La Restauration
+      </T>
       {showProgress && (
-        <View style={{ flex: 1, justifyContent: 'center', paddingRight: art ? art + 2 : 0 }}>
-          <T
-            maxFontSizeMultiplier={1.15}
-            numberOfLines={2}
-            style={{
-              fontFamily: F.medium,
-              fontSize: brief ? 12 : 14,
-              lineHeight: brief ? 17 : 20,
-              color: '#4e674c',
-            }}
-          >
-            <T
-              testID="home-current-species"
+        <View
+          testID="home-restoration-content"
+          style={{ flex: 1, minHeight: 0, flexDirection: 'row', alignItems: 'center', gap: 12 }}
+        >
+          <View style={{ flex: 1, minWidth: 0, gap: 6 }}>
+            {description && (
+              <T
+                maxFontSizeMultiplier={1.15}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                style={{ fontFamily: F.medium, fontSize: 14, lineHeight: 20, color: muted }}
+              >
+                Faites refleurir l’herbier.
+              </T>
+            )}
+            <View
+              testID="home-restoration-progress"
               style={{
-                fontFamily: F.medium,
-                fontSize: brief ? 12 : 14,
-                lineHeight: brief ? 17 : 20,
-                color: '#4e674c',
+                alignSelf: 'flex-start',
+                maxWidth: '100%',
+                paddingHorizontal: brief ? 0 : 6,
+                paddingVertical: brief ? 0 : 2,
+                borderRadius: 7,
+                backgroundColor: brief ? 'transparent' : '#eee2c9',
               }}
             >
-              {species[progress.plant].name}
-            </T>
-            {' · '}
-            <T
-              testID="home-current-page"
-              style={{
-                fontFamily: F.medium,
-                fontSize: brief ? 12 : 14,
-                lineHeight: brief ? 17 : 20,
-                color: '#4e674c',
-              }}
-            >
-              {'Page ' + String(progress.page).padStart(2, '0')}
-            </T>
-          </T>
+              <T
+                maxFontSizeMultiplier={1.15}
+                numberOfLines={2}
+                style={{
+                  fontFamily: F.medium,
+                  fontSize: infoSize,
+                  lineHeight: infoLine,
+                  color: '#4e674c',
+                }}
+              >
+                <T
+                  testID="home-current-species"
+                  style={{
+                    fontFamily: F.medium,
+                    fontSize: infoSize,
+                    lineHeight: infoLine,
+                    color: '#4e674c',
+                  }}
+                >
+                  {species[progress.plant].name}
+                </T>
+                {' · '}
+                <T
+                  testID="home-current-page"
+                  style={{
+                    fontFamily: F.medium,
+                    fontSize: infoSize,
+                    lineHeight: infoLine,
+                    color: '#4e674c',
+                  }}
+                >
+                  {'Page ' + String(progress.page).padStart(2, '0')}
+                </T>
+              </T>
+            </View>
+          </View>
+          {art > 0 && (
+            <Image
+              testID="home-restoration-art"
+              source={require('../../assets/home/herbarium.png')}
+              accessible={false}
+              fadeDuration={0}
+              resizeMode="contain"
+              style={{ width: art, height: art }}
+            />
+          )}
         </View>
       )}
       <View testID="home-restore-action" style={{ width: '100%', alignItems: 'center' }}>
@@ -226,19 +251,47 @@ export function DailyModeCard({
   availability: string;
   onPlay: () => void;
 }) {
-  const brief = height < 160;
-  const padding = brief ? 12 : 18;
-  const art = brief ? (height < 95 ? 40 : 62) : Math.min(126, Math.round(height * 0.57));
-  const titleSize = brief
+  const { fontScale } = useWindowDimensions();
+  const mini = height < 132 || (width < 260 && height < 160);
+  const compact = height < 190;
+  const padding = compact ? 12 : 18;
+  const vertical = mini ? 8 : compact ? 10 : 16;
+  const gap = compact ? 4 : 8;
+  const titleSize = mini
     ? width < 250
       ? 17
-      : width < 280 || height < 95
-        ? 18
-        : 23
-    : width >= 500
-      ? 33
-      : 27;
-  const labelWidth = Math.max(0, width - padding * 2 - (brief ? art + 7 : 0));
+      : 21
+    : width < 260
+      ? 18
+      : compact
+        ? 24
+        : width >= 500
+          ? 34
+          : 30;
+  const titleLine = mini
+    ? width < 260
+      ? 21
+      : 26
+    : width < 260
+      ? 23
+      : compact
+        ? 30
+        : width >= 500
+          ? 42
+          : 38;
+  const twoLines = width < 260;
+  const titleScale = compact ? 1.1 : 1.15;
+  const bodyHeight = Math.max(
+    0,
+    height -
+      vertical * 2 -
+      titleLine * (twoLines ? 2 : 1) * Math.min(titleScale, Math.max(1, fontScale)) -
+      48 -
+      gap * 2,
+  );
+  const art = mini ? (height < 95 ? 40 : 56) : Math.min(width >= 500 ? 96 : 80, bodyHeight);
+  const description = !mini && bodyHeight >= 52;
+  const miniWidth = Math.max(0, width - padding * 2 - art - 7);
   return (
     <Pressable
       testID="home-future-day"
@@ -253,95 +306,130 @@ export function DailyModeCard({
       style={({ pressed }) => ({ width, height, opacity: pressed ? 0.83 : 1 })}
     >
       <Paper
+        testID="home-daily-card"
         frame={false}
         textureOpacity={0.22}
-        testID="home-daily-card"
         style={{
           width: '100%',
           height: '100%',
           backgroundColor: '#e7ede0',
           borderRadius: 13,
           paddingHorizontal: padding,
-          paddingVertical: brief ? 8 : 16,
-          justifyContent: 'space-between',
+          paddingVertical: vertical,
+          gap: mini ? 0 : gap,
+          justifyContent: mini ? 'space-between' : undefined,
         }}
       >
         <ModeFrame angular />
-        <Image
-          testID="home-vitrail-art"
-          source={require('../../assets/home/rosette.png')}
-          accessible={false}
-          fadeDuration={0}
-          resizeMode="contain"
+        <T
+          accessibilityRole="header"
+          maxFontSizeMultiplier={titleScale}
+          numberOfLines={twoLines ? 2 : 1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.85}
           style={{
-            position: 'absolute',
-            right: padding - 3,
-            bottom: brief ? (height - art) / 2 : 10,
-            width: art,
-            height: art,
-          }}
-        />
-        <View style={{ width: labelWidth }}>
-          <T
-            accessibilityRole="header"
-            maxFontSizeMultiplier={brief ? 1.1 : 1.15}
-            numberOfLines={brief && width < 260 ? 2 : 1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.85}
-            style={{
-              fontFamily: F.displayBold,
-              fontSize: titleSize,
-              lineHeight: brief && width < 260 ? 21 : titleSize + 5,
-              color: ink,
-            }}
-          >
-            Le Vitrail du jour
-          </T>
-          {!brief && (
-            <T
-              maxFontSizeMultiplier={1.15}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              style={{
-                fontFamily: F.medium,
-                fontSize: 14,
-                lineHeight: 20,
-                color: '#526b53',
-                marginTop: 3,
-              }}
-            >
-              Trois vitraux, une graine.
-            </T>
-          )}
-        </View>
-        <View
-          style={{
-            width: brief ? labelWidth : Math.min(178, width - padding * 2 - art - 6),
-            gap: 3,
-            flexDirection: brief ? 'row' : 'column',
-            alignItems: brief ? 'center' : undefined,
-            justifyContent: brief ? 'space-between' : undefined,
+            width: mini ? miniWidth : '100%',
+            fontFamily: F.displayBold,
+            fontSize: titleSize,
+            lineHeight: titleLine,
+            color: ink,
           }}
         >
-          <T
-            testID="home-future-day-availability"
-            maxFontSizeMultiplier={1.1}
-            numberOfLines={1}
-            style={{ fontFamily: F.medium, fontSize: 11, lineHeight: 14, color: '#586e52' }}
-          >
-            {availability}
-          </T>
-          {brief ? (
-            <T
-              maxFontSizeMultiplier={1.1}
-              style={{ fontFamily: F.bold, fontSize: 13, lineHeight: 16, color: '#365c49' }}
+          Le Vitrail du jour
+        </T>
+        {mini ? (
+          <>
+            <Image
+              testID="home-vitrail-art"
+              source={require('../../assets/home/rosette.png')}
+              accessible={false}
+              fadeDuration={0}
+              resizeMode="contain"
+              style={{
+                position: 'absolute',
+                right: padding - 3,
+                bottom: (height - art) / 2,
+                width: art,
+                height: art,
+              }}
+            />
+            <View
+              style={{
+                width: miniWidth,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 3,
+              }}
             >
-              Jouer →
-            </T>
-          ) : (
-            <Ribbon label="Jouer" width={Math.min(178, width - padding * 2 - art - 6)} />
-          )}
-        </View>
+              <T
+                testID="home-future-day-availability"
+                maxFontSizeMultiplier={1.1}
+                numberOfLines={1}
+                style={{ fontFamily: F.medium, fontSize: 11, lineHeight: 14, color: '#586e52' }}
+              >
+                {availability}
+              </T>
+              <T
+                maxFontSizeMultiplier={1.1}
+                style={{ fontFamily: F.bold, fontSize: 13, lineHeight: 16, color: '#365c49' }}
+              >
+                Jouer →
+              </T>
+            </View>
+          </>
+        ) : (
+          <>
+            <View
+              testID="home-daily-content"
+              style={{ flex: 1, minHeight: 0, flexDirection: 'row', alignItems: 'center', gap: 12 }}
+            >
+              <View style={{ flex: 1, minWidth: 0, gap: 6 }}>
+                {description && (
+                  <T
+                    maxFontSizeMultiplier={1.15}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    style={{ fontFamily: F.medium, fontSize: 14, lineHeight: 20, color: '#526b53' }}
+                  >
+                    Trois vitraux, une graine.
+                  </T>
+                )}
+                <View
+                  style={{
+                    alignSelf: 'flex-start',
+                    paddingHorizontal: 6,
+                    paddingVertical: 2,
+                    borderRadius: 7,
+                    backgroundColor: '#d9e4d1',
+                  }}
+                >
+                  <T
+                    testID="home-future-day-availability"
+                    maxFontSizeMultiplier={1.1}
+                    numberOfLines={1}
+                    style={{ fontFamily: F.medium, fontSize: 13, lineHeight: 18, color: '#4b6447' }}
+                  >
+                    {availability}
+                  </T>
+                </View>
+              </View>
+              {art >= 36 && (
+                <Image
+                  testID="home-vitrail-art"
+                  source={require('../../assets/home/rosette.png')}
+                  accessible={false}
+                  fadeDuration={0}
+                  resizeMode="contain"
+                  style={{ width: art, height: art }}
+                />
+              )}
+            </View>
+            <View testID="home-daily-action" style={{ width: '100%', alignItems: 'center' }}>
+              <Ribbon label="Jouer" width={Math.min(350, width - padding * 2)} />
+            </View>
+          </>
+        )}
       </Paper>
     </Pressable>
   );
