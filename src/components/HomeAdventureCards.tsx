@@ -5,6 +5,7 @@ import { Paper } from './Paper';
 import { SvgBackdrop } from './SvgBackdrop';
 import { VictoryAction } from './VictoryAction';
 import { HomeEmblem } from './HomeArtwork';
+import { HomeCardArt } from './HomeCardArt';
 import { T, Icon } from './ui';
 import { F } from './fonts';
 import { species } from '../data/botany';
@@ -99,12 +100,12 @@ export function RestorationCard({
 }) {
   const { fontScale } = useWindowDimensions();
   const brief = height < 190;
-  const padding = brief ? 12 : 18;
-  const vertical = brief ? 10 : 16;
-  const gap = brief ? 2 : 8;
+  const padding = brief ? 12 : 14;
+  const vertical = brief ? 10 : 12;
+  const gap = brief ? 2 : 4;
   const showProgress = height >= 136;
-  const titleSize = height < 150 ? 24 : brief ? 26 : width >= 500 ? 34 : 30;
-  const titleLine = height < 150 ? 30 : brief ? 32 : width >= 500 ? 42 : 38;
+  const titleSize = height < 150 ? 24 : brief ? 26 : width >= 500 ? 42 : 36;
+  const titleLine = height < 150 ? 30 : brief ? 32 : width >= 500 ? 50 : 44;
   const titleScale = height < 128 ? 1 : brief ? 1.1 : 1.2;
   const bodyHeight = Math.max(
     0,
@@ -114,10 +115,10 @@ export function RestorationCard({
       48 -
       gap * (showProgress ? 2 : 1),
   );
-  const art = !brief && width >= 300 ? Math.min(116, Math.round(width * 0.3), bodyHeight) : 0;
-  const description = bodyHeight >= 82;
-  const infoSize = brief ? 12 : 14;
-  const infoLine = brief ? 17 : 20;
+  const art = !brief && width >= 300 ? Math.min(180, Math.round(width * 0.43), bodyHeight) : 0;
+  const description = bodyHeight >= 76;
+  const infoSize = brief ? 12 : width >= 500 ? 20 : 17;
+  const infoLine = brief ? 17 : width >= 500 ? 26 : 23;
   return (
     <Paper
       testID="home-restoration-card"
@@ -153,15 +154,20 @@ export function RestorationCard({
       {showProgress && (
         <View
           testID="home-restoration-content"
-          style={{ flex: 1, minHeight: 0, flexDirection: 'row', alignItems: 'center', gap: 12 }}
+          style={{ flex: 1, minHeight: 0, flexDirection: 'row', alignItems: 'center', gap: 8 }}
         >
-          <View style={{ flex: 1, minWidth: 0, gap: 6 }}>
+          <View style={{ flex: 1, minWidth: 0, gap: 8 }}>
             {description && (
               <T
                 maxFontSizeMultiplier={1.15}
-                numberOfLines={1}
+                numberOfLines={2}
                 adjustsFontSizeToFit
-                style={{ fontFamily: F.medium, fontSize: 14, lineHeight: 20, color: muted }}
+                style={{
+                  fontFamily: F.medium,
+                  fontSize: width >= 500 ? 22 : 18,
+                  lineHeight: width >= 500 ? 28 : 23,
+                  color: muted,
+                }}
               >
                 Faites refleurir l’herbier.
               </T>
@@ -213,16 +219,7 @@ export function RestorationCard({
               </T>
             </View>
           </View>
-          {art > 0 && (
-            <Image
-              testID="home-restoration-art"
-              source={require('../../assets/home/herbarium.png')}
-              accessible={false}
-              fadeDuration={0}
-              resizeMode="contain"
-              style={{ width: art, height: art }}
-            />
-          )}
+          {art > 0 && <HomeCardArt size={art} />}
         </View>
       )}
       <View testID="home-restore-action" style={{ width: '100%', alignItems: 'center' }}>
@@ -254,9 +251,9 @@ export function DailyModeCard({
   const { fontScale } = useWindowDimensions();
   const mini = height < 132 || (width < 260 && height < 160);
   const compact = height < 190;
-  const padding = compact ? 12 : 18;
-  const vertical = mini ? 8 : compact ? 10 : 16;
-  const gap = compact ? 4 : 8;
+  const padding = compact ? 12 : 14;
+  const vertical = mini ? 8 : compact ? 10 : 12;
+  const gap = 4;
   const titleSize = mini
     ? width < 250
       ? 17
@@ -266,8 +263,8 @@ export function DailyModeCard({
       : compact
         ? 24
         : width >= 500
-          ? 34
-          : 30;
+          ? 42
+          : 36;
   const titleLine = mini
     ? width < 260
       ? 21
@@ -277,8 +274,8 @@ export function DailyModeCard({
       : compact
         ? 30
         : width >= 500
-          ? 42
-          : 38;
+          ? 50
+          : 44;
   const twoLines = width < 260;
   const titleScale = compact ? 1.1 : 1.15;
   const bodyHeight = Math.max(
@@ -289,8 +286,8 @@ export function DailyModeCard({
       48 -
       gap * 2,
   );
-  const art = mini ? (height < 95 ? 40 : 56) : Math.min(width >= 500 ? 96 : 80, bodyHeight);
-  const description = !mini && bodyHeight >= 52;
+  const art = mini ? (height < 95 ? 40 : 56) : Math.min(180, Math.round(width * 0.43), bodyHeight);
+  const description = !mini && bodyHeight >= 76;
   const miniWidth = Math.max(0, width - padding * 2 - art - 7);
   return (
     <Pressable
@@ -382,15 +379,20 @@ export function DailyModeCard({
           <>
             <View
               testID="home-daily-content"
-              style={{ flex: 1, minHeight: 0, flexDirection: 'row', alignItems: 'center', gap: 12 }}
+              style={{ flex: 1, minHeight: 0, flexDirection: 'row', alignItems: 'center', gap: 8 }}
             >
-              <View style={{ flex: 1, minWidth: 0, gap: 6 }}>
+              <View style={{ flex: 1, minWidth: 0, gap: 8 }}>
                 {description && (
                   <T
                     maxFontSizeMultiplier={1.15}
-                    numberOfLines={1}
+                    numberOfLines={2}
                     adjustsFontSizeToFit
-                    style={{ fontFamily: F.medium, fontSize: 14, lineHeight: 20, color: '#526b53' }}
+                    style={{
+                      fontFamily: F.medium,
+                      fontSize: width >= 500 ? 22 : 18,
+                      lineHeight: width >= 500 ? 28 : 23,
+                      color: '#526b53',
+                    }}
                   >
                     Trois vitraux, une graine.
                   </T>
@@ -408,22 +410,18 @@ export function DailyModeCard({
                     testID="home-future-day-availability"
                     maxFontSizeMultiplier={1.1}
                     numberOfLines={1}
-                    style={{ fontFamily: F.medium, fontSize: 13, lineHeight: 18, color: '#4b6447' }}
+                    style={{
+                      fontFamily: F.medium,
+                      fontSize: compact ? 13 : width >= 500 ? 20 : 17,
+                      lineHeight: compact ? 18 : width >= 500 ? 26 : 23,
+                      color: '#4b6447',
+                    }}
                   >
                     {availability}
                   </T>
                 </View>
               </View>
-              {art >= 36 && (
-                <Image
-                  testID="home-vitrail-art"
-                  source={require('../../assets/home/rosette.png')}
-                  accessible={false}
-                  fadeDuration={0}
-                  resizeMode="contain"
-                  style={{ width: art, height: art }}
-                />
-              )}
+              {art >= 36 && <HomeCardArt size={art} daily />}
             </View>
             <View testID="home-daily-action" style={{ width: '100%', alignItems: 'center' }}>
               <Ribbon label="Jouer" width={Math.min(350, width - padding * 2)} />

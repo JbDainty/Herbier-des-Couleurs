@@ -9,6 +9,7 @@ import { SeedPouch } from './SeedPouch';
 import { CarnetIllustration, type CarnetEmblem } from './CarnetIllustration';
 import { RestorationCard, DailyModeCard, MysteryModeCard } from './HomeAdventureCards';
 import { HomeClearing } from './HomeClearing';
+import { HomeMagicMotion } from './HomeMagicMotion';
 import { useMeasuredSize } from './useMeasuredSize';
 import { F } from './fonts';
 import { T, Icon } from './ui';
@@ -201,227 +202,227 @@ export function HomeScreen() {
   );
   const navHeight = short ? 54 : tight ? 48 : 64;
   return (
-    <View testID="home-screen" style={{ flex: 1, minHeight: 0 }}>
-      <HomeClearing
-        width={frame.width}
-        height={frame.height}
-        motion={save.settings.motion && focused && !replaying && !departure && settled}
-      />
-      <View
-        ref={measured.ref}
-        collapsable={false}
-        onLayout={measured.onLayout}
-        testID="home-viewport"
-        style={{ flex: 1, minHeight: 0, alignItems: 'center' }}
-      >
-        {frame.height > 0 && (
-          <View
-            testID="home-layout"
-            style={{
-              width: layout.pageWidth + layout.padding * 2,
-              height: '100%',
-              padding: layout.padding,
-              gap,
-              alignItems: 'center',
-            }}
-          >
+    <HomeMagicMotion
+      enabled={save.settings.motion && focused && !replaying && !departure && settled}
+    >
+      <View testID="home-screen" style={{ flex: 1, minHeight: 0 }}>
+        <HomeClearing width={frame.width} height={frame.height} />
+        <View
+          ref={measured.ref}
+          collapsable={false}
+          onLayout={measured.onLayout}
+          testID="home-viewport"
+          style={{ flex: 1, minHeight: 0, alignItems: 'center' }}
+        >
+          {frame.height > 0 && (
             <View
-              testID="home-masthead"
+              testID="home-layout"
               style={{
-                height: layout.headerHeight,
-                width: '100%',
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 8,
-                paddingHorizontal: short ? 0 : 6,
-              }}
-            >
-              <View
-                accessibilityRole="header"
-                accessibilityLabel="Herbier des couleurs"
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  alignItems: short ? 'flex-start' : 'center',
-                  paddingLeft: short ? 0 : 76,
-                }}
-              >
-                <T
-                  maxFontSizeMultiplier={tight ? 1.1 : 1.2}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  style={{
-                    fontFamily: F.displayBold,
-                    fontSize: short ? 23 : tight ? 30 : 42,
-                    lineHeight: short ? 30 : tight ? 37 : 52,
-                    color: '#304e38',
-                    textAlign: 'center',
-                  }}
-                >
-                  {short ? 'Herbier des couleurs' : 'Herbier'}
-                </T>
-                {!short && (
-                  <T
-                    maxFontSizeMultiplier={1}
-                    style={{
-                      fontFamily: F.medium,
-                      fontSize: tight ? 9 : 11,
-                      lineHeight: tight ? 12 : 16,
-                      letterSpacing: tight ? 2 : 3,
-                      color: '#6e7655',
-                    }}
-                  >
-                    DES COULEURS
-                  </T>
-                )}
-              </View>
-              <View
-                style={{
-                  width: 76,
-                  height: 44,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: '#fff5dfe8',
-                  borderColor: '#bca371',
-                  borderWidth: 0.8,
-                  borderRadius: 24,
-                }}
-              >
-                <SeedPouch
-                  count={save.seeds}
-                  motion={save.settings.motion && focused && !replaying && !departure && settled}
-                  compact
-                />
-              </View>
-              {short && auxiliary(true)}
-            </View>
-            <View
-              style={{
-                height: layout.bodyHeight,
-                width: '100%',
-                alignItems: 'center',
-                justifyContent: 'center',
+                width: layout.pageWidth + layout.padding * 2,
+                height: '100%',
+                padding: layout.padding,
                 gap,
+                alignItems: 'center',
               }}
             >
-              {!!layout.headingHeight && (
+              <View
+                testID="home-masthead"
+                style={{
+                  height: layout.headerHeight,
+                  width: '100%',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                  paddingHorizontal: short ? 0 : 6,
+                }}
+              >
                 <View
+                  accessibilityRole="header"
+                  accessibilityLabel="Herbier des couleurs"
                   style={{
-                    height: layout.headingHeight,
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    flex: 1,
+                    minWidth: 0,
+                    alignItems: short ? 'flex-start' : 'center',
+                    paddingLeft: short ? 0 : 76,
                   }}
                 >
                   <T
-                    testID="home-modes-title"
-                    accessibilityRole="header"
-                    maxFontSizeMultiplier={1.2}
+                    maxFontSizeMultiplier={tight ? 1.1 : 1.2}
                     numberOfLines={1}
+                    adjustsFontSizeToFit
                     style={{
                       fontFamily: F.displayBold,
-                      fontSize: short ? 18 : tight ? 21 : 25,
-                      lineHeight: short ? 22 : tight ? 25 : 30,
-                      color: '#3e5c42',
+                      fontSize: short ? 23 : tight ? 30 : 42,
+                      lineHeight: short ? 30 : tight ? 37 : 52,
+                      color: '#304e38',
+                      textAlign: 'center',
                     }}
                   >
-                    Choisir une aventure
+                    {short ? 'Herbier des couleurs' : 'Herbier'}
                   </T>
+                  {!short && (
+                    <T
+                      maxFontSizeMultiplier={1}
+                      style={{
+                        fontFamily: F.medium,
+                        fontSize: tight ? 9 : 11,
+                        lineHeight: tight ? 12 : 16,
+                        letterSpacing: tight ? 2 : 3,
+                        color: '#6e7655',
+                      }}
+                    >
+                      DES COULEURS
+                    </T>
+                  )}
                 </View>
-              )}
+                <View
+                  style={{
+                    width: 76,
+                    height: 44,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: '#fff5dfe8',
+                    borderColor: '#bca371',
+                    borderWidth: 0.8,
+                    borderRadius: 24,
+                  }}
+                >
+                  <SeedPouch
+                    count={save.seeds}
+                    motion={save.settings.motion && focused && !replaying && !departure && settled}
+                    compact
+                  />
+                </View>
+                {short && auxiliary(true)}
+              </View>
               <View
-                testID="home-modes"
                 style={{
-                  flexDirection: layout.horizontal ? 'row' : 'column',
+                  height: layout.bodyHeight,
+                  width: '100%',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   gap,
                 }}
               >
-                {main}
-                {layout.horizontal ? (
-                  <View style={{ width: layout.sideWidth, gap }}>
-                    {daily}
-                    {mystery}
-                  </View>
-                ) : (
-                  <>
-                    {daily}
-                    {mystery}
-                  </>
-                )}
-              </View>
-            </View>
-            <Animated.View
-              testID="home-footer"
-              style={[
-                {
-                  height: layout.footerHeight,
-                  width: '100%',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                },
-                part(0.2, 0.5),
-              ]}
-            >
-              <View
-                style={{
-                  height: navHeight,
-                  width: '100%',
-                  maxWidth: 620,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingHorizontal: 3,
-                  borderRadius: 23,
-                  backgroundColor: '#fbefd8',
-                  borderWidth: 0.8,
-                  borderColor: '#baa779',
-                }}
-              >
-                {links.map((link) => (
-                  <Pressable
-                    key={link.path}
-                    accessibilityRole="link"
-                    accessibilityLabel={link.title}
-                    onPress={() => leave(() => router.push(link.path))}
-                    style={({ pressed }) => ({
-                      width: '25%',
-                      height: navHeight - 2,
-                      minHeight: 44,
-                      minWidth: 0,
-                      paddingVertical: 2,
+                {!!layout.headingHeight && (
+                  <View
+                    style={{
+                      height: layout.headingHeight,
                       alignItems: 'center',
                       justifyContent: 'center',
-                      opacity: pressed ? 0.65 : 1,
-                      transform: [{ scale: pressed ? 0.97 : 1 }],
-                    })}
+                    }}
                   >
-                    <CarnetIllustration name={link.emblem} size={short || tight ? 24 : 32} />
                     <T
-                      maxFontSizeMultiplier={1.15}
+                      testID="home-modes-title"
+                      accessibilityRole="header"
+                      maxFontSizeMultiplier={1.2}
                       numberOfLines={1}
-                      adjustsFontSizeToFit
                       style={{
-                        fontFamily: F.medium,
-                        fontSize: short || tight ? 12 : 13,
-                        lineHeight: short || tight ? 15 : 17,
-                        color: '#3d5a42',
-                        width: '100%',
-                        textAlign: 'center',
+                        fontFamily: F.displayBold,
+                        fontSize: short ? 18 : tight ? 21 : 25,
+                        lineHeight: short ? 22 : tight ? 25 : 30,
+                        color: '#3e5c42',
                       }}
                     >
-                      {link.title}
+                      Choisir une aventure
                     </T>
-                  </Pressable>
-                ))}
+                  </View>
+                )}
+                <View
+                  testID="home-modes"
+                  style={{
+                    flexDirection: layout.horizontal ? 'row' : 'column',
+                    alignItems: 'center',
+                    gap,
+                  }}
+                >
+                  {main}
+                  {layout.horizontal ? (
+                    <View style={{ width: layout.sideWidth, gap }}>
+                      {daily}
+                      {mystery}
+                    </View>
+                  ) : (
+                    <>
+                      {daily}
+                      {mystery}
+                    </>
+                  )}
+                </View>
               </View>
-              {!short && auxiliary(false)}
-            </Animated.View>
-          </View>
-        )}
-        <View
-          testID={settled ? 'home-stage-settled' : 'home-stage-unfolding'}
-          pointerEvents="none"
-        />
+              <Animated.View
+                testID="home-footer"
+                style={[
+                  {
+                    height: layout.footerHeight,
+                    width: '100%',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  },
+                  part(0.2, 0.5),
+                ]}
+              >
+                <View
+                  style={{
+                    height: navHeight,
+                    width: '100%',
+                    maxWidth: 620,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: 3,
+                    borderRadius: 23,
+                    backgroundColor: '#fbefd8',
+                    borderWidth: 0.8,
+                    borderColor: '#baa779',
+                  }}
+                >
+                  {links.map((link) => (
+                    <Pressable
+                      key={link.path}
+                      accessibilityRole="link"
+                      accessibilityLabel={link.title}
+                      onPress={() => leave(() => router.push(link.path))}
+                      style={({ pressed }) => ({
+                        width: '25%',
+                        height: navHeight - 2,
+                        minHeight: 44,
+                        minWidth: 0,
+                        paddingVertical: 2,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        opacity: pressed ? 0.65 : 1,
+                        transform: [{ scale: pressed ? 0.97 : 1 }],
+                      })}
+                    >
+                      <CarnetIllustration name={link.emblem} size={short || tight ? 24 : 32} />
+                      <T
+                        maxFontSizeMultiplier={1.15}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        style={{
+                          fontFamily: F.medium,
+                          fontSize: short || tight ? 12 : 13,
+                          lineHeight: short || tight ? 15 : 17,
+                          color: '#3d5a42',
+                          width: '100%',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {link.title}
+                      </T>
+                    </Pressable>
+                  ))}
+                </View>
+                {!short && auxiliary(false)}
+              </Animated.View>
+            </View>
+          )}
+          <View
+            testID={settled ? 'home-stage-settled' : 'home-stage-unfolding'}
+            pointerEvents="none"
+          />
+        </View>
       </View>
-    </View>
+    </HomeMagicMotion>
   );
 }

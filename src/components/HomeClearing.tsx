@@ -1,7 +1,7 @@
-import React, { memo, useEffect, useRef, useState } from 'react';
-import { Animated, AppState, Easing, Image, Platform, StyleSheet, View } from 'react-native';
+import React, { memo } from 'react';
+import { Animated, Image, StyleSheet, View } from 'react-native';
 import Svg, { Circle, G, Path } from 'react-native-svg';
-import { useAmbientMotion } from './usePrimaryAnimation';
+import { useHomeMagic } from './HomeMagicMotion';
 
 const Fireflies = memo(function Fireflies() {
   return (
@@ -42,44 +42,8 @@ const Leaves = memo(function Leaves() {
 });
 
 /** One native clock moves three small cached drawings; the background and SVG paths stay static. */
-export function HomeClearing({
-  width,
-  height,
-  motion,
-}: {
-  width: number;
-  height: number;
-  motion: boolean;
-}) {
-  const enabled = useAmbientMotion(motion);
-  const clock = useRef(new Animated.Value(0)).current;
-  const [running, setRunning] = useState(false);
-  useEffect(() => {
-    let animation: Animated.CompositeAnimation | undefined;
-    const sync = (active: boolean) => {
-      animation?.stop();
-      clock.setValue(0);
-      setRunning(enabled && active);
-      if (!enabled || !active) return;
-      animation = Animated.loop(
-        Animated.timing(clock, {
-          toValue: 1,
-          duration: 22000,
-          easing: Easing.linear,
-          useNativeDriver: Platform.OS !== 'web',
-          isInteraction: false,
-        }),
-      );
-      animation.start();
-    };
-    sync(AppState.currentState !== 'background' && AppState.currentState !== 'inactive');
-    const subscription = AppState.addEventListener('change', (s) => sync(s === 'active'));
-    return () => {
-      subscription.remove();
-      animation?.stop();
-      clock.stopAnimation();
-    };
-  }, [clock, enabled]);
+export function HomeClearing({ width, height }: { width: number; height: number }) {
+  const { clock, running } = useHomeMagic();
   return (
     <View
       testID={running ? 'home-garden-animating' : 'home-garden-still'}
