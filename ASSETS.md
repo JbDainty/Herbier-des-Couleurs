@@ -82,7 +82,11 @@ Les licences des dépendances JavaScript sont également disponibles dans leurs 
 
 ## Décor du menu principal
 
-`assets/home/garden.png` : illustration originale générée pour le jeu avec `image_gen`, préparée par `scripts/prepare-home-garden.mjs`. Source et provenance dans `art/home/`. Serre et végétation aux bords, centre calme pour les modes. Le pollen, la fougère et le papillon sont des dessins SVG originaux dans `HomeGarden.tsx`, animés par transformations de vues. `RestorationEmblem.tsx` dessine trois fioles de pigments. L’ancien `cabinet-book.png` n’est plus chargé par le menu.
+`assets/home/clearing.jpg`, `herbarium.png` et `rosette.png` : illustrations originales générées avec l’outil OpenAI le 20 novembre 2026 pour la maquette « Clairière des lucioles » choisie par le joueur. Aquarelle numérique sauge et lavande, livre botanique et rosace florale ; aucun texte ni bouton n’est intégré aux images. Les trois sources originales sont conservées dans `art/home/*-source.png`. `scripts/prepare-menu-clearing.mjs` ne fait que préparer leur taille et leur format : JPEG de 910 × 1728, PNG transparents de 384 pixels au plus, environ 310 ko au total dans le jeu. Les grandes sources ne sont pas embarquées.
+
+`HomeClearing.tsx` dessine six lucioles et un petit rameau originaux en SVG immuable, répartis sur trois vues natives en cache. Une horloge déplace leurs vues et module leur opacité ; le décor et les cadres restent fixes. `HomeAdventureCards.tsx` compose séparément les textes accessibles, rubans et bordures fines. Le menu emploie uniquement les familles Almendra et Alegreya Sans déjà embarquées.
+
+`assets/home/garden.png` et `HomeGarden.tsx` conservent la serre et le jardin utilisés par le Vitrail et les fonds sélectionnés en boutique ; ils sont distincts du nouveau menu. L’ancien `cabinet-book.png` n’est pas chargé par le menu.
 
 ## Extension à 200 espèces — 10 novembre 2026
 

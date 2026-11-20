@@ -38,10 +38,10 @@ async function main() {
         attributes: true,
       });
     });
-    const butterfly = page.getByTestId('home-garden-butterfly');
-    const transform = await butterfly.evaluate((n) => getComputedStyle(n).transform);
+    const fireflies = page.getByTestId('home-clearing-fireflies');
+    const transform = await fireflies.evaluate((n) => getComputedStyle(n).transform);
     await expect
-      .poll(() => butterfly.evaluate((n) => getComputedStyle(n).transform))
+      .poll(() => fireflies.evaluate((n) => getComputedStyle(n).transform))
       .not.toBe(transform);
     expect(await page.evaluate(() => (window as any).gardenSvgChanges)).toBe(0);
     // Exercise the same AppState visibility event used by the Web adapter.
@@ -79,7 +79,7 @@ async function main() {
     await still.goto(url);
     await expect(still.getByTestId('home-stage-settled')).toBeAttached();
     await expect(still.getByTestId('home-garden-still')).toBeVisible();
-    await expect(still.getByTestId('home-garden-butterfly')).toHaveCount(0);
+    await expect(still.getByTestId('home-clearing-fireflies')).toHaveCount(0);
     await expect(still.getByTestId('home-garden-fern')).toHaveCount(0);
     expect(errors).toEqual([]);
     await still.close();
