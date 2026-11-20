@@ -143,7 +143,7 @@ npm run build:web
 npm run test:browser
 ```
 
-Les 175 tests automatisés couvrent les 1 000 solutions et leurs minima exacts avec les huit mécaniques, les mélanges, étoiles, graines, sauvegardes et migrations. Ils vérifient aussi les capacités et la physique des fioles, les séquences d’animation, le cycle audio natif et la taille des surfaces graphiques des bordures, ainsi que les 1 095 vitraux journaliers, leur récompense unique, leur composition sur 19 formats d’écran et les tampons du calendrier.
+Les 176 tests automatisés couvrent les 1 000 solutions et leurs minima exacts avec les huit mécaniques, les mélanges, étoiles, graines, sauvegardes et migrations. Ils vérifient aussi les capacités et la physique des fioles, les séquences d’animation, le cycle audio natif et la taille des surfaces graphiques des bordures, ainsi que les 1 095 vitraux journaliers, leur récompense unique, leur composition sur 19 formats d’écran, les tampons du calendrier et les félicitations orchestrales discrètes.
 
 Les parcours Playwright sont détaillés dans [la revue complète](docs/application-review.md). Ils couvrent le prologue, l’aide, les menus, les sept écrans, les confirmations, la reprise de sauvegarde, les animations simultanées, les vingt musiques, les carnets et les dernières pages. Le navigateur et les exports Hermes ne remplacent pas une mesure de fluidité et de mémoire sur appareil Android/iOS. Les captures sont générées dans `test-results/`.
 
