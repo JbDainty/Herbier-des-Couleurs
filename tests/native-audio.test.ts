@@ -87,6 +87,7 @@ let ambience: typeof import('../src/services/ambience');
 let intro: typeof import('../src/services/introMusic');
 let pours: typeof import('../src/services/pourSound');
 let pages: typeof import('../src/services/pageSounds');
+let vitrail: typeof import('../src/services/vitrailMelody');
 const nativeRequire = createRequire(import.meta.url);
 const originalMP3 = nativeRequire.extensions['.mp3'];
 const originalWAV = nativeRequire.extensions['.wav'];
@@ -100,6 +101,7 @@ beforeAll(async () => {
   intro = await import('../src/services/introMusic');
   pours = await import('../src/services/pourSound');
   pages = await import('../src/services/pageSounds');
+  vitrail = await import('../src/services/vitrailMelody');
 });
 afterAll(() => {
   if (originalMP3) nativeRequire.extensions['.mp3'] = originalMP3;
@@ -124,6 +126,29 @@ afterEach(async () => {
 });
 const flush = () => vi.advanceTimersByTimeAsync(0);
 const live = () => backend.state.players.filter((player) => !player.released);
+
+it('plays quiet native orchestral vitrail cues with gentle ducking and releases every decoder', async () => {
+  for (const level of [0, 1, 2]) {
+    vitrail.playVitrailMelody(level, false);
+    expect(live()).toHaveLength(0);
+    const stop = vitrail.playVitrailMelody(level, true);
+    await flush();
+    const player = live()[0];
+    expect(live()).toHaveLength(1);
+    expect(player.source).toContain(
+      level === 2 ? 'plant-celebration.wav' : 'reveal-celebration.wav',
+    );
+    expect(player.volume).toBe(0.14);
+    expect(player.loop).toBe(false);
+    expect(musicAttenuation()).toBe(0.55);
+    if (level === 0) player.emit({ playing: false, didJustFinish: true });
+    else stop();
+    expect(live()).toHaveLength(0);
+    expect(player.listenerCount).toBe(0);
+    expect(player.releases).toBe(1);
+    expect(musicAttenuation()).toBe(1);
+  }
+});
 
 it('releases native decoders promptly across hundreds of cues, with music still playing', async () => {
   ambience.unlockAmbience();

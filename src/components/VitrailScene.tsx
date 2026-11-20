@@ -3,6 +3,7 @@ import { Pressable, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { BookChromeContext } from './BookScrollView';
 import { useMeasuredSize } from './useMeasuredSize';
+import { useVitrailMelody } from './useVitrailMelody';
 import { VitrailBoard } from './VitrailBoard';
 import { Paper } from './Paper';
 import { HerbariumTitle } from './HerbariumTitle';
@@ -52,6 +53,7 @@ export function VitrailScene({
     completed = save.vitrail?.days[day]?.completed ?? 0,
     rewarded = !!save.vitrail?.days[day]?.rewarded,
     archived = day !== today;
+  const prepareMelody = useVitrailMelody(day, session.level, trace.solved, save.settings.sound);
   const restart = () => {
     setSave((s) => openVitrail(s, day, session.level, true));
     setSelected(null);
@@ -545,6 +547,7 @@ export function VitrailScene({
       patterns={save.settings.patterns}
       disabled={blocked || trace.solved}
       onRotate={(cell) => {
+        prepareMelody();
         setSelected(cell);
         setHint(null);
         setSave((s) => rotateVitrail(s, cell));

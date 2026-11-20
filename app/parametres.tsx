@@ -21,7 +21,8 @@ export default function Parametres() {
     {
       key: 'sound',
       name: 'Sons de l’atelier',
-      detail: 'Eau du ruisseau, tintement des fioles, pages, vent et félicitations.',
+      detail:
+        'Eau du ruisseau, tintement des fioles, pages, vent et félicitations de l’atelier et des vitraux.',
     },
     {
       key: 'music',

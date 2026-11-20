@@ -32,6 +32,14 @@ Chaque nouveau type de pièce ouvre une explication concise avant le premier ges
 
 Tous les gestes sont réversibles. Annuler, recommencer et demander un indice sont gratuits. Un indice indique une rotation vers le certificat enregistré ; suivre ces indices mène toujours à une victoire, y compris depuis des choix arbitraires. Le joueur peut aussi réussir avec une autre disposition acceptée par le moteur. La dernière tentative et ses 200 dernières rotations sont conservées lors d’une fermeture.
 
+## Des félicitations orchestrales discrètes
+
+Une phrase acoustique de harpe, bois et cordes accompagne la réussite des deux premiers vitraux (3,2 secondes) ; le troisième reçoit la conclusion plus ample de 5,6 secondes. Les deux enregistrements originaux déjà embarqués dans le jeu sont réutilisés avec un gain de 0,14, inférieur aux félicitations de la campagne. Leur crête maximale après gain reste sous 0,06. La musique d’ambiance descend doucement à 55 % de son niveau habituel pendant la phrase, puis retrouve son volume.
+
+Le son accompagne uniquement le passage d’une partie en cours à une réussite. Ouvrir ou recharger un vitrail déjà terminé, consulter son calendrier et changer la taille de l’écran ne le relancent pas. Une nouvelle réussite en rejeu ou en archive peut être félicitée, avec les mêmes règles de graines qu’auparavant. Les sons respectent « Sons de l’atelier » et restent indépendants du réglage des animations. Ils s’arrêtent au changement de vitrail, au rejeu, à la sortie de la page ou au passage en arrière-plan ; une phrase interrompue ne reprend pas au retour.
+
+`useVitrailMelody` suit la transition de réussite et le focus de la page. La préparation Web s’effectue depuis le geste réel de rotation. `vitrailMelody` utilise le lecteur commun `createBotanicalCue` : les mêmes fichiers fonctionnent hors ligne sur le Web, Android et iOS, avec libération du lecteur natif et restitution du volume de l’ambiance. Aucune dépendance ni ressource sonore supplémentaire n’est nécessaire. La provenance des compositions et des instruments figure dans `scripts/audio-sources.json` et les notices CC0/MIT existantes.
+
 ## Récompense et archives
 
 Les trois défis se débloquent dans l’ordre. Finir le premier ou le deuxième donne **zéro graine**. Finir les trois donne **une graine**, une fois pour la date courante. Le crédit et le drapeau `rewarded` sont écrits ensemble dans la sauvegarde habituelle. Rejouer, annuler après une victoire, recommencer, changer de jour ou recharger la sauvegarde ne réattribue pas une graine déjà gagnée.
@@ -53,6 +61,8 @@ Après le 17 novembre 2027, le mode indique que de nouveaux feuillets sont en pr
 ## Vérification
 
 `tests/vitrail.test.ts` contrôle les 1 095 certificats et leur unicité, les trois paliers, les mélanges et croisements, les boucles, les indices depuis d’autres dispositions, le gain unique après trois défis, les rechargements, le changement de date, les archives et la compatibilité des sauvegardes.
+
+`GAME_TEST_URL=http://localhost:8126/ node --import tsx scripts/vitrail-audio-smoke.ts` vérifie le véritable décodage stéréo des trois réussites, le faible gain, l’atténuation et le retour de la musique, l’absence de répétition lors des reprises, les animations indépendantes, le mode muet, le rejeu, les archives et l’arrêt en quittant la page ou en arrière-plan. `tests/native-audio.test.ts` contrôle aussi le mixage des deux phrases et la libération de leurs lecteurs Android à la fin ou à l’annulation.
 
 `tests/vitrail-calendar.test.ts` vérifie les jours de semaine, les mois de quatre à six rangées, les tampons des anciennes archives, la distinction des journées partielles et futures, les limites de navigation, le tracé végétal et le budget de hauteur sur onze formats. `GAME_TEST_URL=http://localhost:8126/ node --import tsx scripts/vitrail-calendar-smoke.ts` contrôle aussi le calendrier réel sur ces formats, un mois entièrement estampillé, la sélection d’une archive, le retour à aujourd’hui, les animations et l’absence d’écriture dans le portefeuille ou la progression.
 
