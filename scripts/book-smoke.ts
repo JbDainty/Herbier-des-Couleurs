@@ -101,7 +101,7 @@ async function main() {
     await expect(page.getByTestId('page-folio')).toHaveText('PAGE 02');
     await seed(true, false);
     await finish();
-    await expect(page.getByTestId('victory-vines-settled')).toBeAttached();
+    await expect(page.getByTestId('victory-paper-settled')).toBeAttached();
     expect(await cues()).toEqual([]);
     await seed(false, true, true);
     await finish();

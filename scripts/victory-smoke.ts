@@ -1,11 +1,17 @@
 import { openCarnet } from './navigation-test-helper';
 import { chromium, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
+import { mechanicIds } from '../src/engine/mechanics';
 import { initial, loadLevel, move, type Save } from '../src/state/model';
-import levels from '../src/data/levels.json';
+import levels from '../src/data/campaign';
 
 function floralDetails(): Save {
-  let save = { ...initial(), started: true };
+  let save: Save = {
+    ...initial(),
+    started: true,
+    guideSeen: true,
+    seenMechanics: [...mechanicIds],
+  };
   for (const level of levels.slice(0, 3)) {
     save = loadLevel(save, level.id);
     for (const m of level.solution) save = move(save, m.from, m.to);
@@ -28,6 +34,7 @@ async function main() {
   // Observe real decoded Web Audio playback without replacing or muting it.
   await page.addInitScript({
     content: `
+    window.__name = value => value;
     window.leafWindStarts = []; window.leafWindStops = 0;
     const connect = AudioNode.prototype.connect;
     AudioNode.prototype.connect = function(target, ...args) {
@@ -64,25 +71,17 @@ async function main() {
     await expect(page.getByTestId('chapter-landscape-caption')).toHaveText(
       'Les prairies fleuries, chapitre 1',
     );
-    const prompt = page.getByTestId('stamp-observation-prompt');
+    const prompt = page.getByTestId('current-botanical-stamp');
     expect((await prompt.boundingBox())!.width).toBeLessThan(150);
-    expect(
-      await prompt
-        .getByText('Voir la planche')
-        .evaluate((node) => getComputedStyle(node).fontFamily),
-    ).toContain('HerbariumScientific');
     await prompt.click();
     await expect(page.getByTestId('current-plate-dialog')).toBeVisible();
     await page.getByRole('button', { name: 'Revenir au jeu' }).click();
     await finish();
-    await expect(page.getByTestId('victory-vines-growing')).toBeAttached();
-    const stem = page
-      .getByTestId('victory-living-paper')
-      .getByTestId('victory-vine-growth')
-      .first();
-    const first = await stem.evaluate((node) => getComputedStyle(node).transform);
+    await expect(page.getByTestId('victory-paper-entering')).toBeAttached();
+    const card = page.getByTestId('botanical-collection-card');
+    const first = await card.evaluate((node) => getComputedStyle(node).transform);
     await expect
-      .poll(() => stem.evaluate((node) => getComputedStyle(node).transform))
+      .poll(() => card.evaluate((node) => getComputedStyle(node).transform))
       .not.toBe(first);
     await expect
       .poll(() =>
@@ -98,7 +97,7 @@ async function main() {
     );
     expect(sound.duration).toBeCloseTo(2.8, 2);
     expect(sound.gain).toBeCloseTo(0.22, 2);
-    await page.screenshot({ path: 'test-results/victory-vines-growing.png', fullPage: true });
+    await page.screenshot({ path: 'test-results/victory-paper-entering.png', fullPage: true });
     await page.getByRole('button', { name: 'Passer l’animation' }).click();
     expect(
       await page.evaluate(
@@ -112,9 +111,9 @@ async function main() {
     ).toBeGreaterThan(0);
     await seed(true, false);
     await finish();
-    await expect(page.getByTestId('victory-vines-settled')).toBeAttached();
+    await expect(page.getByTestId('victory-paper-settled')).toBeAttached();
     expect(
-      await stem.evaluate((node) => new DOMMatrix(getComputedStyle(node).transform).m22),
+      await card.evaluate((node) => new DOMMatrix(getComputedStyle(node).transform).m22),
     ).toBeCloseTo(1);
     expect(
       await page.evaluate(
@@ -124,8 +123,8 @@ async function main() {
     await page.screenshot({ path: 'test-results/victory-living-paper.png', fullPage: true });
     await seed(false, false);
     await finish();
-    await expect(page.getByTestId('victory-vines-settled')).toBeAttached();
-    await expect(page.getByTestId('victory-vines-growing')).toHaveCount(0);
+    await expect(page.getByTestId('victory-paper-settled')).toBeAttached();
+    await expect(page.getByTestId('victory-paper-entering')).toHaveCount(0);
     expect(
       await page.evaluate(
         () => (window as unknown as { leafWindStarts: unknown[] }).leafWindStarts.length,
@@ -133,7 +132,7 @@ async function main() {
     ).toBe(0);
     expect(errors).toEqual([]);
     console.log(
-      'Victory: floral-details paper grows vines, real 2.8s low-volume leaf audio plays once and stops on exit, mute and reduced motion respected, compact italic prompt opens the plate, inline chapter caption passed.',
+      'Victory: botanical collection card settles gently, real 2.8s low-volume leaf audio plays once and stops on exit, mute and reduced motion respected, botanical stamp opens the plate, inline chapter caption passed.',
     );
   } finally {
     await browser.close();

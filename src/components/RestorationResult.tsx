@@ -14,7 +14,8 @@ import { RewardStars } from './RewardStars';
 import { Botanical } from './Botanical';
 import { ColorReveal } from './ColorReveal';
 import { SealCeremony } from './SealCeremony';
-import { T, C } from './ui';
+import { T, C, Icon } from './ui';
+import { BotanicalCollectionCard } from './BotanicalCollectionCard';
 import { F } from './fonts';
 
 type Props = {
@@ -73,19 +74,20 @@ function ResultFolio({
   const horizontal = viewport.width >= 420 && viewport.width > viewport.height * 1.1;
   const compact = viewport.height < 740 || (horizontal && viewport.height < 580);
   const tight = viewport.height < 570;
-  const padding = compact ? 12 : 22;
+  const padding = compact ? 12 : 18;
+  const horizontalPadding = compact ? 14 : 22;
   const frame = {
     width: Math.min(viewport.width, horizontal ? 860 : 500),
     height: Math.min(viewport.height, horizontal ? 580 : 920),
   };
-  const bodyWidth = frame.width - 48;
+  const bodyWidth = frame.width - horizontalPadding * 2;
   const artMeasure = useMeasuredSize(
     undefined,
     false,
     `${frame.width}/${frame.height}/${horizontal}`,
   );
   const art = artMeasure.size;
-  const plateSize = Math.max(0, Math.min(290, art.width, art.height / 1.36));
+  const plateSize = Math.max(0, Math.min(300, art.width, art.height / 1.36));
   const plant = Math.floor((save.current - 1) / 5);
   const stage = restoration(save, plant);
   const s = species[plant];
@@ -122,13 +124,15 @@ function ResultFolio({
         style={{
           width: '100%',
           textAlign: 'center',
-          fontSize: compact ? 25 : 31,
-          lineHeight: compact ? 30 : 37,
+          fontFamily: F.displayBold,
+          paddingHorizontal: 6,
+          fontSize: compact ? 24 : 29,
+          lineHeight: compact ? 29 : 35,
         }}
       >
         {title}
       </T>
-      <RewardStars count={stars} motion={motion} scale={tight ? 0.55 : compact ? 0.72 : 1} />
+      <RewardStars count={stars} motion={motion} scale={tight ? 0.5 : compact ? 0.65 : 0.78} />
       <View
         style={{
           flexDirection: 'row',
@@ -146,34 +150,52 @@ function ResultFolio({
           adjustsFontSizeToFit
           accessibilityLabel={`Page achevée en ${save.moves} mouvements. Minimum possible : ${minimum}. Objectif trois étoiles : ${target}.`}
           style={{
-            fontFamily: F.handwriting,
-            fontSize: compact ? 21 : 23,
-            lineHeight: compact ? 26 : 29,
-            color: C.muted,
+            fontFamily: F.medium,
+            fontSize: compact ? 16 : 18,
+            lineHeight: compact ? 22 : 24,
+            color: C.green,
             flexShrink: 1,
           }}
         >
           {save.moves} {save.moves === 1 ? 'mouvement' : 'mouvements'}
         </T>
-        <T
-          testID="page-seed-reward"
-          accessibilityLabel={`${save.lastSeedReward ?? 0} graines ont rejoint votre réserve.`}
-          maxFontSizeMultiplier={1.3}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.85}
+        <View
+          testID="page-seed-reward-pill"
           style={{
-            fontFamily: F.scientific,
-            fontSize: compact ? 13 : 14,
-            lineHeight: 20,
-            color: C.green,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
             flexShrink: 1,
+            maxWidth: '58%',
+            paddingHorizontal: 8,
+            paddingVertical: 2,
+            borderRadius: 15,
+            backgroundColor: '#f5e5bd',
+            borderWidth: 0.6,
+            borderColor: '#c5a565',
           }}
         >
-          {save.testSession
-            ? 'Essai : aucun gain enregistré'
-            : `+${save.lastSeedReward ?? 0} ${(save.lastSeedReward ?? 0) === 1 ? 'graine' : 'graines'}`}
-        </T>
+          {!save.testSession && <Icon name="seed-outline" size={15} color="#ac8643" />}
+          <T
+            testID="page-seed-reward"
+            accessibilityLabel={`${save.lastSeedReward ?? 0} graines ont rejoint votre réserve.`}
+            maxFontSizeMultiplier={1.2}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}
+            style={{
+              fontFamily: F.medium,
+              fontSize: compact ? 12 : 13,
+              lineHeight: 20,
+              color: C.green,
+              flexShrink: 1,
+            }}
+          >
+            {save.testSession
+              ? 'Essai : aucun gain enregistré'
+              : `+${save.lastSeedReward ?? 0} ${(save.lastSeedReward ?? 0) === 1 ? 'graine' : 'graines'}`}
+          </T>
+        </View>
       </View>
       {showDetails && (
         <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'center', gap: 8 }}>
@@ -203,65 +225,74 @@ function ResultFolio({
     </View>
   );
   const illustration = (
-    <View
-      testID="victory-art-space"
-      ref={artMeasure.ref}
-      collapsable={false}
-      onLayout={artMeasure.onLayout}
-      style={{
-        flex: 1,
-        minHeight: 0,
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '100%',
-      }}
-    >
-      {plateSize > 0 &&
-        (!reveal ? (
-          <Botanical
-            index={plant}
-            stage={sealPage ? 4 : replay ? stage : Math.max(0, stage - 1)}
-            size={plateSize}
-            labels={false}
-          />
-        ) : sealPage ? (
-          <View
-            testID="finished-plate-ceremony"
-            style={{ width: plateSize, height: plateSize * 1.36 }}
-          >
-            <Botanical index={plant} stage={sealFinished ? 5 : 4} size={plateSize} labels={false} />
-          </View>
-        ) : (
-          <ColorReveal
-            index={plant}
-            from={replay ? stage : Math.max(0, stage - 1)}
-            to={stage}
-            size={plateSize}
-            motion={revealAnimated}
-            labels={false}
-          />
-        ))}
-    </View>
+    <BotanicalCollectionCard name={s.name} latin={s.latin} compact={compact} motion={motion}>
+      <View
+        testID="victory-art-space"
+        ref={artMeasure.ref}
+        collapsable={false}
+        onLayout={artMeasure.onLayout}
+        style={{
+          flex: 1,
+          minHeight: 0,
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
+        }}
+      >
+        {plateSize > 0 &&
+          (!reveal ? (
+            <Botanical
+              index={plant}
+              stage={sealPage ? 4 : replay ? stage : Math.max(0, stage - 1)}
+              size={plateSize}
+              labels={false}
+            />
+          ) : sealPage ? (
+            <View
+              testID="finished-plate-ceremony"
+              style={{ width: plateSize, height: plateSize * 1.36 }}
+            >
+              <Botanical
+                index={plant}
+                stage={sealFinished ? 5 : 4}
+                size={plateSize}
+                labels={false}
+              />
+            </View>
+          ) : (
+            <ColorReveal
+              index={plant}
+              from={replay ? stage : Math.max(0, stage - 1)}
+              to={stage}
+              size={plateSize}
+              motion={revealAnimated}
+              labels={false}
+            />
+          ))}
+      </View>
+    </BotanicalCollectionCard>
   );
   const caption = showFact && (
     <View
-      style={{ width: '100%', height: compact ? 34 : 42, justifyContent: 'center', flexShrink: 0 }}
+      style={{ width: '100%', height: compact ? 28 : 34, justifyContent: 'center', flexShrink: 0 }}
     >
-      <T
-        testID={reveal ? 'restoration-botanical-fact' : 'result-plant-name'}
-        maxFontSizeMultiplier={1.3}
-        numberOfLines={2}
-        adjustsFontSizeToFit
-        style={{
-          textAlign: 'center',
-          fontFamily: F.scientific,
-          color: C.muted,
-          fontSize: compact ? 12 : 14,
-          lineHeight: compact ? 16 : 20,
-        }}
-      >
-        {reveal ? botanicalFact(save.current, 'reveal') : s.name}
-      </T>
+      {reveal && (
+        <T
+          testID="restoration-botanical-fact"
+          maxFontSizeMultiplier={1.3}
+          numberOfLines={2}
+          adjustsFontSizeToFit
+          style={{
+            textAlign: 'center',
+            fontFamily: F.scientific,
+            color: C.muted,
+            fontSize: compact ? 12 : 13,
+            lineHeight: compact ? 14 : 17,
+          }}
+        >
+          {botanicalFact(save.current, 'reveal')}
+        </T>
+      )}
     </View>
   );
   const actions = (
@@ -295,6 +326,7 @@ function ResultFolio({
           <VictoryAction
             icon="refresh-outline"
             secondary
+            rounded
             compact
             narrow
             maxFontSizeMultiplier={1.3}
@@ -309,6 +341,7 @@ function ResultFolio({
             <VictoryAction
               icon="book-outline"
               secondary
+              rounded
               compact
               narrow
               maxFontSizeMultiplier={1.3}
@@ -321,6 +354,7 @@ function ResultFolio({
             <VictoryAction
               icon="arrow-forward-outline"
               secondary
+              rounded
               compact
               narrow
               maxFontSizeMultiplier={1.3}
@@ -350,7 +384,7 @@ function ResultFolio({
           style={{
             width: frame.width,
             height: frame.height,
-            paddingHorizontal: 24,
+            paddingHorizontal: horizontalPadding,
             paddingVertical: padding,
           }}
         >
