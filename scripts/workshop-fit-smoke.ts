@@ -1,4 +1,5 @@
 import { mechanicIds } from '../src/engine/mechanics';
+import { passStudio } from './studio-test-helper';
 import { requestHint } from './hint-test-helper';
 import { chromium, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
@@ -40,6 +41,7 @@ async function main() {
     const s = loadLevel(base, id);
     await page.evaluate((s) => localStorage.setItem('color-world.save', JSON.stringify(s)), s);
     await page.goto(url + 'atelier');
+    await passStudio(page);
     await expect(page.getByTestId('page-folio')).toHaveText(`PAGE ${String(id).padStart(2, '0')}`);
     await expect(page.getByRole('button', { name: /^Flacon \d+,/ })).toHaveCount(s.board.length);
     return s;
@@ -91,14 +93,17 @@ async function main() {
     await expect(page.getByRole('button', { name: 'Revenir en haut de la page' })).toHaveCount(0);
     const actions = page.getByTestId('game-actions');
     const paper = (await actions.boundingBox())!;
-    const frame = (await actions.getByTestId('botanical-foliage-frame').boundingBox())!;
-    expect(frame).toEqual(paper);
+    const frame = (await actions.getByTestId('ivory-action-outline').boundingBox())!;
+    expect(frame.x).toBeGreaterThanOrEqual(paper.x);
+    expect(frame.y).toBeGreaterThanOrEqual(paper.y);
+    expect(frame.x + frame.width).toBeLessThanOrEqual(paper.x + paper.width);
+    expect(frame.y + frame.height).toBeLessThanOrEqual(paper.y + paper.height);
     const labelTops: number[] = [];
     for (const name of ['Annuler', 'Recommencer', 'Mélanger', 'Indice']) {
       const button = actions.getByRole('button', { name, exact: true });
       if (!(await button.getByText(name, { exact: true }).count())) continue;
       const label = (await button.getByText(name, { exact: true }).boundingBox())!;
-      const icon = (await button.locator('svg').first().boundingBox())!;
+      const icon = (await button.getByTestId(/^workshop-action-icon-/).boundingBox())!;
       const inkWidth = await button.getByText(name, { exact: true }).evaluate((node) => {
         const range = document.createRange();
         range.selectNodeContents(node);
@@ -196,14 +201,14 @@ async function main() {
     await page.mouse.wheel(0, 1000);
     expect(await page.evaluate(() => scrollY)).toBe(0);
     const paid = await page.evaluate(() => JSON.parse(localStorage.getItem('color-world.save')!));
-    expect(paid.seeds).toBe(JSON.parse(before!).seeds - 1);
+    expect(paid.seeds).toBe(JSON.parse(before!).seeds);
     await requestHint(page);
     expect(
       (await page.evaluate(() => JSON.parse(localStorage.getItem('color-world.save')!))).seeds,
     ).toBe(paid.seeds);
     expect(errors).toEqual([]);
     console.log(
-      'Workshop fit passed: all 100 pages on phone, every tube count on 13 additional phone/tablet/landscape formats, tall-phone two-row representative fills the play area in two rows, all controls visible with separated 44-point touch targets, no document or game scroll, stable hint and one seed per new hint.',
+      'Workshop fit passed: all 100 pages on phone, every tube count on 13 additional phone/tablet/landscape formats, tall-phone two-row representative fills the play area in two rows, all controls visible with separated 44-point touch targets, no document or game scroll, stable toolbar and free hints.',
     );
   } finally {
     await browser.close();

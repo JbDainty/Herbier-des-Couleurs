@@ -19,19 +19,21 @@ export function workshopLayout(
   const captionHeight = tiny || landscape ? 0 : compact ? 80 : 92;
   const hintWidth = landscape ? Math.max(180, boardWidth * 0.44 - 4) : Math.min(580, boardWidth);
   const actionsWidth = Math.min(480, landscape ? boardWidth - hintWidth - 4 : boardWidth);
-  const actionHorizontalPadding = 24;
+  const actionHorizontalPadding = 6;
+  const actionVerticalPadding = 12;
+  const actionContentGap = 4;
   const showActionLabels = !landscape || actionsWidth >= 320;
-  const actionIconSize = compact ? 20 : 24;
-  const cellWidth = (actionsWidth - actionHorizontalPadding * 2 - 12) / 4;
-  const actionLabelSize = Math.min(compact ? 16 : 18, Math.floor(((cellWidth - 4) / 4.7) * 2) / 2);
+  const actionIconSize = compact ? 32 : 40;
+  const cellWidth = (actionsWidth - actionHorizontalPadding * 2 - 12 - 2) / 4;
+  const actionLabelSize = Math.min(compact ? 14 : 15, Math.floor((cellWidth / 5.7) * 2) / 2);
   const actionLabelLine = compact ? 18 : 20;
   const actionLabelHeight = Math.ceil(actionLabelLine * Math.min(options?.fontScale || 1, 1.15));
   const actionContentHeight = Math.max(
     44,
-    actionIconSize + (showActionLabels ? 2 + actionLabelHeight : 0),
+    actionIconSize + (showActionLabels ? actionContentGap + actionLabelHeight : 0),
   );
-  // Original page foliage needs breathing room above and below the four controls.
-  const actionsHeight = actionContentHeight + 52;
+  // Preserve the toolbar footprint while giving the illustrated icons more room.
+  const actionsHeight = Math.max(96, actionContentHeight + actionVerticalPadding * 2);
   const hintHeight = options?.hintHeight || 56;
   const footerHeight = landscape
     ? Math.max(actionsHeight, hintHeight)
@@ -58,6 +60,8 @@ export function workshopLayout(
     actionLabelLine,
     actionLabelHeight,
     actionHorizontalPadding,
+    actionVerticalPadding,
+    actionContentGap,
     showActionLabels,
     actionsWidth,
     hintWidth,
