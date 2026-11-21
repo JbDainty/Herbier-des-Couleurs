@@ -275,6 +275,7 @@ async function main() {
     await expect(page.getByTestId('page-folio')).toHaveText('PAGE 06');
     expect(await stored()).toEqual(advanced);
     await openScreen(page, 'Paramètres');
+    await page.getByRole('tab', { name: 'Carnet', exact: true }).click();
     await page.getByRole('button', { name: 'Remettre ma progression à zéro', exact: true }).click();
     await page.getByRole('button', { name: 'Continuer vers la confirmation', exact: true }).click();
     await page.getByRole('button', { name: 'Oui, effacer ma progression', exact: true }).click();

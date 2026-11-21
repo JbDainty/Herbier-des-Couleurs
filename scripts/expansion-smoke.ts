@@ -29,6 +29,7 @@ async function main() {
   fs.mkdirSync('test-results', { recursive: true });
   try {
     await seed(real, 'parametres');
+    await page.getByRole('tab', { name: 'Carnet', exact: true }).click();
     await page.getByRole('textbox', { name: 'Numéro de la page à tester' }).fill('11');
     await page.getByRole('button', { name: 'Tester cette page', exact: true }).click();
     await expect(page.getByTestId('mechanic-introduction')).toBeVisible();
@@ -62,6 +63,7 @@ async function main() {
     // Preview-only navigation restores the real attempt, retaining only lessons acknowledged.
     const returned = (await state()).testSession!.returnSave;
     await page.goto(url + 'parametres');
+    await page.getByRole('tab', { name: 'Carnet', exact: true }).click();
     await page
       .getByRole('button', { name: 'Quitter l’essai et retrouver ma partie', exact: true })
       .click();

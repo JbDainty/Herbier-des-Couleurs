@@ -120,6 +120,7 @@ async function main() {
     await expect(page.getByTestId('botanical-guide')).toHaveCount(0);
     // Reset keeps accessibility preferences, replays the film, then opens a fresh guide.
     await openScreen(page, 'Paramètres');
+    await page.getByRole('tab', { name: 'Carnet', exact: true }).click();
     await page.getByRole('button', { name: 'Remettre ma progression à zéro', exact: true }).click();
     await page.getByRole('button', { name: 'Continuer vers la confirmation', exact: true }).click();
     await page.getByRole('button', { name: 'Oui, effacer ma progression', exact: true }).click();

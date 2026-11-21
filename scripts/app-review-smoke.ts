@@ -117,6 +117,7 @@ async function main() {
     await page.reload();
     expect((await stored()).owned).toContain('sauge');
     await page.goto(base + 'parametres');
+    await page.getByRole('tab', { name: 'Carnet', exact: true }).click();
     await page
       .getByRole('textbox', { name: 'Votre pseudo', exact: true })
       .fill('Camille du jardin');
@@ -124,8 +125,9 @@ async function main() {
     expect((await stored()).nickname).toBe('Camille du jardin');
     await page.getByRole('button', { name: 'Connexion Google, bientôt disponible' }).click();
     await expect(page.getByTestId('account-connection-status')).toContainText(
-      'ne crée pas de compte en ligne',
+      'n’est pas encore activée',
     );
+    await page.getByRole('tab', { name: 'Jeu', exact: true }).click();
     await page.getByRole('switch', { name: 'Musique du livre', exact: true }).click();
     const real = await stored();
     const loops = () =>
@@ -137,6 +139,7 @@ async function main() {
       );
     for (let eco = 0; eco < 20; eco++) {
       if (eco) await openScreen(page, 'Paramètres');
+      await page.getByRole('tab', { name: 'Carnet', exact: true }).click();
       const id = eco < 5 ? eco * 20 + 1 : 251 + (eco - 5) * 50;
       const startedBefore = await page.evaluate(
         () => (window as any).reviewAudio.filter((r: any) => r.loop).length,
