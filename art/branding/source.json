@@ -1,0 +1,7 @@
+{
+  "source": "art/branding/fiole-enchantee-source.png",
+  "sha256": "d0b291abc0fce4da1ba7c240af16664acdf7aad715e7b65b00d8b7b426562c82",
+  "choice": "La fiole enchantée, version dessinée approuvée le 20 novembre 2026.",
+  "backgroundColor": "#254f39",
+  "preparation": "scripts/prepare-app-identity.mjs : formats natifs opaques, premier plan adaptatif dans sa zone sûre et pictogramme transparent de démarrage."
+}

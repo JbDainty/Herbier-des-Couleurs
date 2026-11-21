@@ -1,3 +1,4 @@
+import { passStudio } from './studio-test-helper';
 import { chromium, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { initial, loadLevel, move } from '../src/state/model';
@@ -23,6 +24,7 @@ async function main() {
   mkdirSync('test-results', { recursive: true });
   try {
     await page.goto(url);
+    await passStudio(page);
     await page.getByRole('button', { name: 'Passer le prologue', exact: true }).click();
     await page.getByRole('textbox', { name: 'Votre pseudo', exact: true }).fill('Dainty');
     await page.getByRole('button', { name: 'Créer mon carnet', exact: true }).click();
@@ -100,6 +102,7 @@ async function main() {
     expect(await stored()).toEqual(progressed);
     // A cold launch returns directly to the cabinet, with no extra returning/signature gate.
     await page.goto(url);
+    await passStudio(page);
     await expect(home).toBeVisible();
     await expect(page.getByTestId('book-signature-page')).toHaveCount(0);
     await expect(page.getByTestId('book-opening-film')).toHaveCount(0);
@@ -256,6 +259,7 @@ async function main() {
     );
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(url);
+    await passStudio(page);
     await expect(home).toBeVisible();
     await expect(page.getByTestId('home-current-page')).toHaveText('Page 06');
     await expect(page.getByTestId('home-current-species')).toHaveText('Bleuet');

@@ -20,7 +20,7 @@ let html = readFileSync('dist/index.html', 'utf8');
 html = html.replace(/<link[^>]+rel="manifest"[^>]*>/g, '');
 html = html.replace(
   '</head>',
-  `<link rel="manifest" href="${scope}manifest.json"><link rel="icon" type="image/svg+xml" href="${scope}icon.svg"></head>`,
+  `<link rel="manifest" href="${scope}manifest.json"><link rel="icon" type="image/png" href="${scope}icons/herbier-64.png"></head>`,
 );
 writeFileSync('dist/index.html', html);
 // GitHub Pages serves these routes without a catch-all server or an HTTP 404.

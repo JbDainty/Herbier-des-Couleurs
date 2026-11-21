@@ -3,7 +3,7 @@
     "name": "Herbier des couleurs",
     "slug": "color-world-herbier",
     "owner": "jbame",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "scheme": "colorworld",
     "userInterfaceStyle": "light",
@@ -13,8 +13,12 @@
     },
     "android": {
       "package": "com.colorworld.herbier",
-      "versionCode": 3,
-      "blockedPermissions": ["android.permission.RECORD_AUDIO"]
+      "versionCode": 4,
+      "blockedPermissions": ["android.permission.RECORD_AUDIO"],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/branding/adaptive-foreground.png",
+        "backgroundColor": "#254f39"
+      }
     },
     "web": {
       "bundler": "metro",
@@ -22,7 +26,8 @@
       "name": "Herbier des couleurs",
       "shortName": "Herbier",
       "themeColor": "#315649",
-      "backgroundColor": "#f4f0e5"
+      "backgroundColor": "#f4f0e5",
+      "favicon": "./public/icons/herbier-64.png"
     },
     "plugins": [
       "expo-router",
@@ -41,6 +46,15 @@
           "supportsBackgroundPlayback": false,
           "supportsPictureInPicture": false
         }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/branding/splash-mark.png",
+          "imageWidth": 240,
+          "resizeMode": "contain",
+          "backgroundColor": "#f4f0e5"
+        }
       ]
     ],
     "experiments": {
@@ -57,6 +71,7 @@
       "eas": {
         "projectId": "b069af5c-3794-4f7d-b64b-5d45d4f0b1c0"
       }
-    }
+    },
+    "icon": "./assets/branding/app-icon-opaque.png"
   }
 }

@@ -1,6 +1,6 @@
 # Le menu principal — Clairière des lucioles
 
-`/` est le menu du jeu ; la restauration continue sur `/atelier` et le défi de lumière sur `/vitrail`. La signature d’un carnet ouvre ce menu. Un carnet signé y arrive au lancement, avec sa progression, sans relire automatiquement le prologue.
+`/` est le menu du jeu ; la restauration continue sur `/atelier` et le défi de lumière sur `/vitrail`. La signature d’un carnet ouvre ce menu. Après le logo du studio au démarrage, un carnet signé y arrive avec sa progression, sans relire automatiquement le prologue. Le logo ne se rejoue pas au retour d’une autre page ; voir `docs/studio-launch.md`.
 
 La maquette « Clairière des lucioles » choisie le 20 novembre 2026 devient une interface native : les textes et commandes restent de vrais éléments accessibles. Le décor aquarellé sauge et lavande, le livre botanique et la rosace sont des illustrations indépendantes. Almendra sert à la marque et aux titres ; Alegreya Sans sert aux informations et à la navigation. Aucun nom scientifique en italique ni police manuscrite ne s’ajoute au menu.
 

@@ -1,3 +1,4 @@
+import { passStudio } from './studio-test-helper';
 import { chromium, expect } from '@playwright/test';
 import { initial } from '../src/state/model';
 
@@ -26,6 +27,7 @@ async function main() {
   await page.addInitScript({ content: 'window.__name=value=>value;' });
   try {
     await page.goto(url);
+    await passStudio(page);
     const active = page.getByTestId('home-garden-animating');
     await expect(active).toBeVisible();
     await expect(page.getByTestId('home-stage-unfolding')).toBeAttached();
@@ -115,6 +117,7 @@ async function main() {
       settings: { ...save.settings, motion: false },
     });
     await still.goto(url);
+    await passStudio(still);
     await expect(still.getByTestId('home-stage-settled')).toBeAttached();
     await expect(still.getByTestId('home-garden-still')).toBeVisible();
     await expect(still.getByTestId('home-clearing-fireflies')).toHaveCount(0);
