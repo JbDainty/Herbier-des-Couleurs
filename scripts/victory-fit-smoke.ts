@@ -46,6 +46,7 @@ async function main() {
   };
   const fits = async (view: Page, names: string[], width: number, height: number) => {
     const paper = view.getByTestId('victory-living-paper');
+    await expect(view.getByTestId('victory-summary').getByRole('heading')).toHaveCount(0);
     for (const target of [
       paper,
       view.getByTestId('page-earned-stars'),

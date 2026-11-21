@@ -6,7 +6,6 @@ import { pageStars, starLimits } from '../state/stars';
 import { attemptPuzzle } from '../engine/remix';
 import { species } from '../data/botany';
 import { botanicalFact } from '../data/botanicalFacts';
-import { restorationTitles } from '../animation/restoration';
 import { useMeasuredSize } from './useMeasuredSize';
 import { VictoryPaper } from './VictoryPaper';
 import { VictoryAction } from './VictoryAction';
@@ -100,12 +99,6 @@ function ResultFolio({
   const best = save.completed[save.current]?.stars ?? 0;
   const showDetails = !tight;
   const showFact = viewport.height >= (horizontal ? 420 : 620);
-  const title =
-    save.current === 1000
-      ? 'Votre collection est complète.'
-      : sealPage
-        ? s.name
-        : restorationTitles[(save.current - 1) % 5];
   const continueLabel =
     save.current === 1000
       ? 'Contempler mon herbier'
@@ -114,24 +107,6 @@ function ResultFolio({
         : 'Poursuivre la restauration';
   const header = (
     <View testID="victory-summary" style={{ width: '100%', alignItems: 'center', flexShrink: 0 }}>
-      <T
-        serif
-        accessibilityRole="header"
-        maxFontSizeMultiplier={1.3}
-        numberOfLines={horizontal ? 1 : 2}
-        adjustsFontSizeToFit
-        minimumFontScale={0.8}
-        style={{
-          width: '100%',
-          textAlign: 'center',
-          fontFamily: F.displayBold,
-          paddingHorizontal: 6,
-          fontSize: compact ? 24 : 29,
-          lineHeight: compact ? 29 : 35,
-        }}
-      >
-        {title}
-      </T>
       <RewardStars count={stars} motion={motion} scale={tight ? 0.5 : compact ? 0.65 : 0.78} />
       <View
         style={{

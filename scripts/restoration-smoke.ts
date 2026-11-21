@@ -65,7 +65,7 @@ async function main() {
     await page.goto(url);
     await openCarnet(page);
     await seed(4);
-    await expect(result.getByText('Les couleurs retrouvées', { exact: true })).toBeVisible();
+    await expect(result.getByTestId('botanical-collection-card')).toBeVisible();
     await result.getByRole('button', { name: 'Révéler la couleur', exact: true }).click();
     const target = result.getByTestId('watercolor-target');
     await expect(target.locator('image')).not.toHaveAttribute('filter');

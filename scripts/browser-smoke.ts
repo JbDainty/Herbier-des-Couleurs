@@ -92,7 +92,7 @@ async function main() {
       await page.getByRole('button', { name: new RegExp(`^Flacon ${m.to + 1},`) }).click();
       await page.waitForTimeout(30);
     }
-    await expect(page.getByText('Votre collection est complète.')).toBeVisible();
+    await expect(page.getByTestId('botanical-collection-card')).toBeVisible();
     await page.getByRole('button', { name: 'Passer l’animation' }).click();
     await page.getByRole('button', { name: 'Contempler mon herbier' }).click();
     await expect(page.getByText('20 / 20 PLANCHES ESTAMPILLÉES')).toBeVisible();
