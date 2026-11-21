@@ -44,7 +44,7 @@ import {
   blockedPathHint,
   compactHint,
 } from '../src/components/HintSlot';
-import { MistakeLeaves } from '../src/components/MistakeLeaves';
+import { MistakeSeal } from '../src/components/MistakeSeal';
 import { SceneSizeContext } from '../src/components/SceneSize';
 import { BookChromeContext } from '../src/components/BookScrollView';
 import { WorkshopHud, WorkshopCaption } from '../src/components/WorkshopChrome';
@@ -538,7 +538,7 @@ function Workshop() {
             style={{ flex: 1, minHeight: 0, justifyContent: 'center' }}
           >
             {note.kind === 'info' && !!note.text && (
-              <MistakeLeaves
+              <MistakeSeal
                 key={note.request}
                 text={note.text}
                 motion={save.settings.motion}
