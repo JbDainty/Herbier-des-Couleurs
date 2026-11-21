@@ -1,12 +1,18 @@
 import { chromium, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
+import { mechanicIds } from '../src/engine/mechanics';
 import { initial, loadLevel, move } from '../src/state/model';
-import levels from '../src/data/levels.json';
+import levels from '../src/data/campaign';
 import { species } from '../src/data/botany';
 import { openCarnet, openScreen } from './navigation-test-helper';
 
 function beforeWin(id: number, motion: boolean, sound: boolean) {
-  let save = { ...initial(), started: true };
+  let save: ReturnType<typeof initial> = {
+    ...initial(),
+    started: true,
+    guideSeen: true,
+    seenMechanics: [...mechanicIds],
+  };
   for (const level of levels.slice(0, id - 1)) {
     save = loadLevel(save, level.id);
     for (const m of level.solution) save = move(save, m.from, m.to);
@@ -30,6 +36,7 @@ async function main() {
   mkdirSync('test-results', { recursive: true });
   await page.addInitScript({
     content: `
+    window.__name = value => value;
     window.pageCues = [];
     window.pageGeometryChanges = 0;
     new MutationObserver(records => {
@@ -74,7 +81,7 @@ async function main() {
     expect(await cues()).toEqual([]);
     await page.getByRole('button', { name: 'Passer l’animation' }).click();
   };
-  const scenario = async (id: number, motion: boolean, sound: boolean) => {
+  const scenario = async (id: number, motion: boolean, sound: boolean, lifecycle = false) => {
     await seed(id, motion, sound);
     await finish(id);
     const before = await page.evaluate(() => JSON.parse(localStorage.getItem('color-world.save')!));
@@ -83,32 +90,58 @@ async function main() {
       .getByRole('button', {
         name: multiple ? 'Découvrir l’espèce suivante' : 'Poursuivre la restauration',
       })
-      .click();
+      .evaluate((node) => {
+        // Repeated taps must still request a single transition and a single cue.
+        (node as HTMLElement).click();
+        (node as HTMLElement).click();
+        (node as HTMLElement).click();
+      });
     if (motion) {
       await expect(
         page.getByTestId(multiple ? 'book-species-riffle' : 'book-single-turn'),
       ).toBeVisible();
-      await expect(page.getByTestId('book-turning-sheet')).toHaveCount(multiple ? 5 : 1);
+      await expect(page.getByTestId('book-turning-sheet')).toHaveCount(multiple ? 3 : 1);
+      if (lifecycle) {
+        await page.evaluate(() => {
+          Object.defineProperty(document, 'visibilityState', {
+            configurable: true,
+            get: () => 'hidden',
+          });
+          document.dispatchEvent(new Event('visibilitychange'));
+        });
+        await page.waitForTimeout(60);
+        const sheet = page.getByTestId('book-turning-sheet').first();
+        const paused = await sheet.evaluate((n) => getComputedStyle(n).transform);
+        const state = await page.evaluate(() => localStorage.getItem('color-world.save'));
+        await page.waitForTimeout(450);
+        expect(await sheet.evaluate((n) => getComputedStyle(n).transform)).toBe(paused);
+        expect(await page.evaluate(() => localStorage.getItem('color-world.save'))).toBe(state);
+        await page.evaluate(() => {
+          Object.defineProperty(document, 'visibilityState', {
+            configurable: true,
+            get: () => 'visible',
+          });
+          document.dispatchEvent(new Event('visibilitychange'));
+        });
+        await expect
+          .poll(() => sheet.evaluate((n) => getComputedStyle(n).transform))
+          .not.toBe(paused);
+      }
       if (multiple) {
         const target = species[Math.floor(id / 5)];
         await expect(page.getByTestId('book-destination-species')).toHaveText(target.name);
         await expect
           .poll(() =>
             page
-              .getByTestId('book-page-curl')
+              .getByTestId('book-turning-sheet')
               .evaluateAll(
-                (nodes) =>
-                  new Set(
-                    nodes.map(
-                      (n) =>
-                        getComputedStyle(n.closest('[data-testid="book-turning-sheet"]')!)
-                          .transform,
-                    ),
-                  ).size,
+                (nodes) => new Set(nodes.map((n) => getComputedStyle(n).transform)).size,
               ),
           )
           .toBeGreaterThan(2);
+        await page.waitForTimeout(500);
         await page.screenshot({ path: `test-results/riffle-page-${id}-in-flight.png` });
+        // A slow screenshot can finish after the transition; both states clear the outgoing leaves.
         await expect
           .poll(
             () =>
@@ -116,7 +149,8 @@ async function main() {
                 .getByTestId('book-turning-sheet')
                 .evaluateAll(
                   (nodes) =>
-                    nodes.length === 5 && nodes.every((n) => getComputedStyle(n).opacity === '0'),
+                    nodes.length === 0 ||
+                    (nodes.length === 3 && nodes.every((n) => getComputedStyle(n).opacity === '0')),
                 ),
             { intervals: [40], timeout: 3000 },
           )
@@ -128,6 +162,7 @@ async function main() {
         await expect(page.getByTestId('book-source-species')).toHaveText(
           species[Math.floor((id - 1) / 5)].name,
         );
+        await page.waitForTimeout(600);
         await page.screenshot({ path: 'test-results/single-page-paper.png' });
       }
       await expect(page.getByTestId('book-page-turn')).toHaveCount(0);
@@ -160,6 +195,7 @@ async function main() {
     await scenario(5, true, true); // Coquelicot -> Bleuet, uncoloured destination.
     await page.setViewportSize({ width: 320, height: 740 });
     await scenario(20, true, true); // Chapter boundary: a different atlas and specimen.
+    await scenario(4, true, false, true); // Pause/resume without consuming the transition in background.
     await scenario(5, true, false); // Visual riffle is independent of mute.
     await scenario(5, false, true); // Instant transition still uses the multi-page sound.
     await scenario(4, false, true); // Instant transition still uses the single-page sound.
@@ -174,10 +210,16 @@ async function main() {
     await expect(page.getByTestId('page-folio')).toHaveText('PAGE 02');
     await expect.poll(async () => (await cues()).length).toBe(1);
     expect((await cues())[0].duration).toBeCloseTo(1.85, 2);
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await scenario(5, true, false);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+    await expect(page.getByTestId(/book-(paper|strip)-cache/)).toHaveCount(0);
     expect(errors).toEqual([]);
     expect(await page.evaluate(() => (window as any).pageGeometryChanges)).toBe(0);
     console.log(
-      'Page turns passed: one sheet within a plant, five staggered sheets on new species/chapter and restored map jumps; correct destination name/plate, one atomic level load, original 1.15s/1.85s quiet WebAudio cues, mute and independent reduced motion, 320px layout and unchanged rewards.',
+      'Page turns passed: one sheet within a plant, three curved staggered sheets on new species/chapter and restored map jumps; correct destination name/plate, one atomic level load, original 1.15s/1.85s quiet WebAudio cues, mute and independent reduced motion, 320px and tablet layouts, background pause/resume, triple taps, 4× CPU, disposed page caches and unchanged rewards.',
     );
   } finally {
     await browser.close();
