@@ -1,0 +1,7 @@
+{
+  "choice": "Sceau enchanté, troisième proposition approuvée le 21 novembre 2026.",
+  "source": "enchanted-seal-source.png",
+  "sha256": "83b5a18e5190deabfa097d72da5db5b1a1e297606b4d86f99a53b160cc82db87",
+  "asset": "assets/feedback/enchanted-seal.webp",
+  "preparation": "Redimensionnement à 1440 px de large et compression WebP, canal alpha conservé. Texte, contour doré et lucioles ajoutés séparément dans le jeu."
+}
