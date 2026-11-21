@@ -36,7 +36,7 @@ import { ecosystemForPage } from '../src/data/ecology';
 import { species } from '../src/data/botany';
 import { LiquidBoard } from '../src/components/LiquidBoard';
 import { Botanical } from '../src/components/Botanical';
-import { SpellIcon } from '../src/components/SpellIcon';
+import { WorkshopActionBar } from '../src/components/WorkshopActionBar';
 import { HintScroll } from '../src/components/HintScroll';
 import {
   HintSlot,
@@ -414,23 +414,10 @@ function Workshop() {
     onOpen: () => setPlateOpen(true),
   };
   const actions = (
-    <Paper
-      testID="game-actions"
-      style={{
-        flexDirection: 'row',
-        justifyContent: 'center',
-        gap: 4,
-        paddingVertical: 26,
-        paddingHorizontal: layout.actionHorizontalPadding,
-        borderRadius: 30,
-        backgroundColor: '#f4ead6ee',
-        width: '100%',
-        height: layout.actionsHeight,
-        maxWidth: 480,
-        alignSelf: 'center',
-      }}
-    >
-      {[
+    <WorkshopActionBar
+      layout={layout}
+      disabled={busy || introductions.length > 0}
+      actions={[
         {
           name: 'Annuler',
           icon: 'undo' as const,
@@ -469,50 +456,8 @@ function Workshop() {
           disabled: victory,
         },
         { name: 'Indice', icon: 'hint' as const, action: requestHint, disabled: victory },
-      ].map((a) => (
-        <Pressable
-          key={a.name}
-          accessibilityLabel={a.name}
-          accessibilityRole="button"
-          accessibilityHint={
-            a.name === 'Indice' ? 'Conseil gratuit, sans dépenser de graines' : undefined
-          }
-          onPress={a.action}
-          disabled={busy || a.disabled || introductions.length > 0}
-          style={{
-            alignItems: 'center',
-            gap: 2,
-            flex: 1,
-            minWidth: 0,
-            minHeight: 44,
-            justifyContent: 'center',
-            paddingVertical: 0,
-            paddingHorizontal: 2,
-            opacity: a.disabled ? 0.35 : 1,
-          }}
-        >
-          <SpellIcon size={layout.actionIconSize} name={a.icon} />
-          {layout.showActionLabels && (
-            <T
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              maxFontSizeMultiplier={1.15}
-              style={{
-                fontFamily: F.handwritingMedium,
-                fontSize: layout.actionLabelSize,
-                lineHeight: layout.actionLabelLine,
-                height: layout.actionLabelHeight,
-                color: C.green,
-                textAlign: 'center',
-                maxWidth: '100%',
-              }}
-            >
-              {a.name}
-            </T>
-          )}
-        </Pressable>
-      ))}
-    </Paper>
+      ]}
+    />
   );
   return (
     <View
