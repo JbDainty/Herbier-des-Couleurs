@@ -1,9 +1,10 @@
-import React, { createContext, memo, useEffect, useMemo, useRef } from 'react';
+import React, { createContext, memo, useEffect, useId, useMemo, useRef } from 'react';
 import {
   Animated,
   AppState,
   Easing,
   Image,
+  PixelRatio,
   Platform,
   StyleSheet,
   View,
@@ -15,41 +16,44 @@ import { PrintedPage } from './PrintedBookPage';
 import { nativeSequence } from '../animation/nativeSequence';
 import { usePrimaryAnimation } from './usePrimaryAnimation';
 import { singleTurnDuration, speciesTurnDuration, type TurningPage } from '../animation/book';
+import { pageCurlSamples, pageTextureSurface, speciesSheetCount } from '../animation/pageCurl';
 export type { TurningPage } from '../animation/book';
 
 export const PageTurnContext = createContext<(page: number, commit: () => void) => void>(
   (_page, commit) => commit(),
 );
 const native = Platform.OS !== 'web';
-const ease = (p: number) => p * p * (3 - 2 * p);
 
 const SheetArt = memo(function SheetArt({
   width,
   height,
   children,
   neutral,
+  backwards,
 }: {
   width: number;
   height: number;
   children?: React.ReactNode;
   neutral: boolean;
+  backwards: boolean;
 }) {
   return (
-    <View style={{ width, height, backgroundColor: '#ecddba', overflow: 'hidden' }}>
+    <View style={{ width, height, backgroundColor: '#f0e3c7', overflow: 'hidden' }}>
       <Image
         source={require('../../assets/illustrations/papier.png')}
         resizeMode="cover"
+        fadeDuration={0}
         style={[StyleSheet.absoluteFill, { width, height, opacity: 0.8 }]}
       />
       <View
         style={{
           position: 'absolute',
-          left: width * 0.08,
+          ...(backwards ? { right: width * 0.06 } : { left: width * 0.06 }),
           top: 0,
           bottom: 0,
           borderLeftWidth: 0.6,
           borderRightWidth: 0.6,
-          borderColor: '#aa8e584d',
+          borderColor: '#aa8e5833',
           width: width * 0.012,
         }}
       />
@@ -66,28 +70,127 @@ const SheetArt = memo(function SheetArt({
               fill="none"
               stroke="#6f805a"
               strokeWidth="0.7"
-              opacity="0.18"
+              opacity="0.16"
             />
           </Svg>
         </View>
       )}
       {children}
+    </View>
+  );
+});
+
+/** Cache only this bounded surface; its printed content retains normal layout dimensions. */
+const CachedTexture = memo(function CachedTexture({
+  width,
+  height,
+  children,
+  testID,
+}: {
+  width: number;
+  height: number;
+  children?: React.ReactNode;
+  testID: string;
+}) {
+  const surface = pageTextureSurface(width, height, PixelRatio.get());
+  return (
+    <View
+      style={{
+        width: surface.width,
+        height: surface.height,
+        transformOrigin: 'top left',
+        transform: [{ scale: 1 / surface.ratio }],
+      }}
+    >
       <View
-        testID="book-page-curl"
-        pointerEvents="none"
-        style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 22 }}
+        testID={testID}
+        renderToHardwareTextureAndroid
+        shouldRasterizeIOS
+        style={{ width: surface.width, height: surface.height, overflow: 'hidden' }}
       >
-        <Svg width={22} height={height} accessible={false}>
-          <Defs>
-            <LinearGradient id="paper-rim" x1="0" x2="1">
-              <Stop stopColor="#f4e6c2" stopOpacity="0" />
-              <Stop offset="0.72" stopColor="#fff3d5" stopOpacity="0.65" />
-              <Stop offset="1" stopColor="#9a8054" stopOpacity="0.4" />
-            </LinearGradient>
-          </Defs>
-          <Rect width={22} height={height} fill="url(#paper-rim)" />
-        </Svg>
+        <View
+          style={{
+            width,
+            height,
+            transformOrigin: 'top left',
+            transform: [{ scale: surface.ratio }],
+          }}
+        >
+          {children}
+        </View>
       </View>
+    </View>
+  );
+});
+
+const PaperCurl = memo(function PaperCurl({
+  width,
+  height,
+  backwards,
+}: {
+  width: number;
+  height: number;
+  backwards: boolean;
+}) {
+  const id = 'curl-' + useId().replace(/[^a-zA-Z0-9_-]/g, '');
+  return (
+    <View style={{ width, height, transform: backwards ? [{ scaleX: -1 }] : [] }}>
+      <Svg
+        width={width}
+        height={height}
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        accessible={false}
+      >
+        <Defs>
+          <LinearGradient id={id} x1="0" x2="1" y1="0" y2="0">
+            <Stop stopColor="#9b825a" stopOpacity="0.05" />
+            <Stop offset="0.12" stopColor="#b69c6d" stopOpacity="0.65" />
+            <Stop offset="0.38" stopColor="#eee0bf" />
+            <Stop offset="0.67" stopColor="#fff7df" />
+            <Stop offset="0.9" stopColor="#e9d8b2" />
+            <Stop offset="1" stopColor="#ad9061" />
+          </LinearGradient>
+        </Defs>
+        <Path
+          d="M0 0 C48 0.6 87 2 96 5 Q104 50 96 95 C87 98 48 99.4 0 100 Q24 50 0 0Z"
+          fill={`url(#${id})`}
+        />
+        <Path d="M96 5 Q104 50 96 95" fill="none" stroke="#fff8e6" strokeWidth="0.65" />
+        <Path
+          d="M9 4 Q25 50 9 96"
+          fill="none"
+          stroke="#a88c5d"
+          strokeOpacity="0.2"
+          strokeWidth="0.45"
+        />
+      </Svg>
+    </View>
+  );
+});
+
+const CastShadow = memo(function CastShadow({
+  width,
+  height,
+  backwards,
+}: {
+  width: number;
+  height: number;
+  backwards: boolean;
+}) {
+  const id = 'paper-shadow-' + useId().replace(/[^a-zA-Z0-9_-]/g, '');
+  return (
+    <View style={{ width, height, transform: backwards ? [{ scaleX: -1 }] : [] }}>
+      <Svg width={width} height={height} accessible={false}>
+        <Defs>
+          <LinearGradient id={id} x1="0" x2="1" y1="0" y2="0">
+            <Stop stopColor="#57452d" stopOpacity="0.85" />
+            <Stop offset="0.2" stopColor="#57452d" stopOpacity="0.5" />
+            <Stop offset="1" stopColor="#57452d" stopOpacity="0" />
+          </LinearGradient>
+        </Defs>
+        <Rect width={width} height={height} fill={`url(#${id})`} />
+      </Svg>
     </View>
   );
 });
@@ -100,6 +203,7 @@ const TurningSheet = memo(function TurningSheet({
   end,
   children,
   neutral,
+  backwards,
 }: {
   width: number;
   height: number;
@@ -108,63 +212,59 @@ const TurningSheet = memo(function TurningSheet({
   end: number;
   children?: React.ReactNode;
   neutral: boolean;
+  backwards: boolean;
 }) {
+  const geometry = useMemo(
+    () => pageCurlSamples(width, height, backwards),
+    [width, height, backwards],
+  );
   const timing = useMemo(
-    () => Array.from({ length: 13 }, (_, i) => start + ((end - start) * i) / 12),
-    [start, end],
+    () => geometry.samples.map((sample) => start + (end - start) * sample.p),
+    [geometry, start, end],
   );
-  const angles = useMemo(() => timing.map((_, i) => `${-90 * ease(i / 12)}deg`), [timing]);
-  const edge = useMemo(
-    () =>
-      timing.map((_, i) => {
-        const angle = (ease(i / 12) * Math.PI * 90) / 180;
-        return (
-          (width * Math.cos(angle)) / (1 - (width * Math.sin(angle)) / Math.max(900, width * 3.4))
-        );
-      }),
-    [timing, width],
-  );
+  const sample = (values: number[]) =>
+    clock.interpolate<number>({
+      inputRange: timing,
+      outputRange: values,
+      extrapolate: 'clamp',
+    });
+  const angle = (values: string[]) =>
+    clock.interpolate<string>({ inputRange: timing, outputRange: values, extrapolate: 'clamp' });
+  const edges = geometry.samples.map((s) => s.edge);
+  const flex = geometry.samples.map((s) => s.flex);
+  const visible = clock.interpolate({
+    inputRange: [start, end - (end - start) * 0.035, end],
+    outputRange: [1, 1, 0],
+    extrapolate: 'clamp',
+  });
+  const curlWidth = Math.min(80, width * 0.19);
+  const shadowWidth = Math.min(100, width * 0.25);
   return (
     <>
       <Animated.View
+        testID="book-page-shadow"
         pointerEvents="none"
         style={{
           position: 'absolute',
           top: 0,
           left: 0,
-          width: 50,
+          width: shadowWidth,
           height,
-          opacity: clock.interpolate({
-            inputRange: [start, (start + end) / 2, end],
-            outputRange: [0, 0.16, 0],
-            extrapolate: 'clamp',
-          }),
+          opacity: sample(flex.map((v) => v * 0.24)),
+          transformOrigin: backwards ? 'right center' : 'left center',
           transform: [
-            {
-              translateX: clock.interpolate({
-                inputRange: timing,
-                outputRange: edge,
-                extrapolate: 'clamp',
-              }),
-            },
+            { translateX: sample(edges.map((x) => x - (backwards ? shadowWidth : 0))) },
+            { scaleX: sample(flex.map((v) => 0.35 + v * 0.9)) },
           ],
         }}
       >
-        <Svg width={50} height={height} accessible={false}>
-          <Defs>
-            <LinearGradient id="leaf-shadow">
-              <Stop stopColor="#302b1c" />
-              <Stop offset="1" stopColor="#302b1c" stopOpacity="0" />
-            </LinearGradient>
-          </Defs>
-          <Rect width={50} height={height} fill="url(#leaf-shadow)" />
-        </Svg>
+        <CachedTexture width={shadowWidth} height={height} testID="book-strip-cache">
+          <CastShadow width={shadowWidth} height={height} backwards={backwards} />
+        </CachedTexture>
       </Animated.View>
       <Animated.View
         testID="book-turning-sheet"
         pointerEvents="none"
-        renderToHardwareTextureAndroid
-        shouldRasterizeIOS
         style={{
           position: 'absolute',
           width,
@@ -172,34 +272,51 @@ const TurningSheet = memo(function TurningSheet({
           top: 0,
           left: 0,
           backfaceVisibility: 'hidden',
-          opacity: clock.interpolate({
-            inputRange: [start, end - (end - start) * 0.04, end],
-            outputRange: [1, 1, 0],
-            extrapolate: 'clamp',
-          }),
+          opacity: visible,
+          transformOrigin: backwards ? 'right center' : 'left center',
           transform: [
-            { perspective: Math.max(900, width * 3.4) },
-            { translateX: -width / 2 },
-            {
-              rotateY: clock.interpolate({
-                inputRange: timing,
-                outputRange: angles,
-                extrapolate: 'clamp',
-              }),
-            },
-            { translateX: width / 2 },
+            { perspective: geometry.perspective },
+            { rotateY: angle(geometry.samples.map((s) => s.angle)) },
+            { rotateZ: angle(geometry.samples.map((s) => s.twist)) },
+            { skewY: angle(geometry.samples.map((s) => s.skew)) },
+            { translateY: sample(geometry.samples.map((s) => s.lift)) },
           ],
         }}
       >
-        <SheetArt width={width} height={height} neutral={neutral}>
-          {children}
-        </SheetArt>
+        <CachedTexture width={width} height={height} testID="book-paper-cache">
+          <SheetArt width={width} height={height} neutral={neutral} backwards={backwards}>
+            {children}
+          </SheetArt>
+        </CachedTexture>
+      </Animated.View>
+      <Animated.View
+        testID="book-page-curl"
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          width: curlWidth,
+          height,
+          opacity: Animated.multiply(visible, sample(flex.map((v) => Math.min(1, v * 3)))),
+          transformOrigin: backwards ? 'left center' : 'right center',
+          transform: [
+            { translateX: sample(edges.map((x) => x - (backwards ? 0 : curlWidth))) },
+            { translateY: sample(geometry.samples.map((s) => s.lift)) },
+            { scaleX: sample(flex.map((v) => 0.02 + v * 0.98)) },
+            { scaleY: sample(flex.map((v) => 1 - v * 0.012)) },
+          ],
+        }}
+      >
+        <CachedTexture width={curlWidth} height={height} testID="book-strip-cache">
+          <PaperCurl width={curlWidth} height={height} backwards={backwards} />
+        </CachedTexture>
       </Animated.View>
     </>
   );
 });
 
-/** Cached paper textures move on the UI thread. React never redraws the five leaves per frame. */
+/** Three cached leaves at most; only transforms and opacity run on the native thread. */
 export function PageTurn({
   page,
   onCovered,
@@ -216,6 +333,7 @@ export function PageTurn({
   const callbacks = useRef({ onCovered, onFinished });
   callbacks.current = { onCovered, onFinished };
   const multiple = page.kind === 'species';
+  const backwards = page.to < page.from;
   useEffect(() => {
     const stage = (value: Animated.Value, duration: number, complete?: () => void) => ({
       duration,
@@ -226,6 +344,7 @@ export function PageTurn({
           duration: remaining,
           easing: Easing.linear,
           useNativeDriver: native,
+          isInteraction: false,
         });
         animation.start(({ finished }) => {
           if (finished) done();
@@ -284,13 +403,13 @@ export function PageTurn({
           {
             opacity: Animated.multiply(
               cover,
-              clock.interpolate({ inputRange: [0, 0.91, 1], outputRange: [1, 1, 0] }),
+              clock.interpolate({ inputRange: [0, 0.93, 1], outputRange: [1, 1, 0] }),
             ),
           },
         ]}
       >
         {multiple && (
-          <Paper frame={false} style={[StyleSheet.absoluteFill, { backgroundColor: '#ecddba' }]}>
+          <Paper frame={false} style={[StyleSheet.absoluteFill, { backgroundColor: '#f0e3c7' }]}>
             <PrintedPage
               width={width}
               height={height}
@@ -301,15 +420,18 @@ export function PageTurn({
             />
           </Paper>
         )}
-        {(multiple ? [4, 3, 2, 1, 0] : [0]).map((i) => (
+        {Array.from({ length: multiple ? speciesSheetCount : 1 }, (_, i) =>
+          multiple ? speciesSheetCount - 1 - i : 0,
+        ).map((i) => (
           <TurningSheet
             key={i}
             width={width}
             height={height}
             clock={clock}
-            start={multiple ? 0.04 + i * 0.105 : 0.08}
-            end={multiple ? 0.42 + i * 0.105 : 1}
+            start={multiple ? 0.04 + i * 0.16 : 0.06}
+            end={multiple ? 0.58 + i * 0.16 : 1}
             neutral={i !== 0}
+            backwards={backwards}
           >
             {i === 0 ? source : undefined}
           </TurningSheet>
