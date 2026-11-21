@@ -1,11 +1,17 @@
 import { chromium, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
+import { mechanicIds } from '../src/engine/mechanics';
 import { initial, loadLevel, move } from '../src/state/model';
-import levels from '../src/data/levels.json';
+import levels from '../src/data/campaign';
 import { openCarnet } from './navigation-test-helper';
 
 function beforeWin(id: number, motion: boolean, sound: boolean) {
-  let save = { ...initial(), started: true };
+  let save: ReturnType<typeof initial> = {
+    ...initial(),
+    started: true,
+    guideSeen: true,
+    seenMechanics: [...mechanicIds],
+  };
   for (const level of levels.slice(0, id - 1)) {
     save = loadLevel(save, level.id);
     for (const m of level.solution) save = move(save, m.from, m.to);
@@ -27,6 +33,7 @@ async function main() {
   mkdirSync('test-results', { recursive: true });
   await page.addInitScript({
     content: `
+    window.__name = value => value;
     window.sealSounds = [];
     window.stampGeometryChanges = 0;
     new MutationObserver(records => {

@@ -1,8 +1,9 @@
 import { chromium, expect, type Page } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { initial, loadLevel, move } from '../src/state/model';
-import levels from '../src/data/levels.json';
+import levels from '../src/data/campaign';
 import { openCarnet } from './navigation-test-helper';
+import { mechanicIds } from '../src/engine/mechanics';
 import { firstPageAttempt } from './test-fixtures';
 
 async function main() {
@@ -21,7 +22,13 @@ async function main() {
   const stored = () => page.evaluate(() => JSON.parse(localStorage.getItem('color-world.save')!));
   const tube = (n: number) => page.getByRole('button', { name: new RegExp(`^Flacon ${n + 1},`) });
   const win = async (id: number, motion = false) => {
-    let save = { ...initial(), started: true, guideSeen: true, nickname: 'Camille' };
+    let save: ReturnType<typeof initial> = {
+      ...initial(),
+      started: true,
+      guideSeen: true,
+      nickname: 'Camille',
+      seenMechanics: [...mechanicIds],
+    };
     for (const prior of levels.slice(0, id - 1)) {
       save = loadLevel(save, prior.id);
       for (const step of prior.solution) save = move(save, step.from, step.to);
@@ -67,6 +74,10 @@ async function main() {
     await expect
       .poll(() => paper.evaluate((n) => n.scrollHeight - n.clientHeight))
       .toBeLessThanOrEqual(1);
+    await expect(view.getByTestId('result-plant-name')).toBeVisible();
+    await expect(view.getByTestId('result-plant-latin')).toBeVisible();
+    const card = view.getByTestId('botanical-collection-card');
+    await expect(card).toBeInViewport({ ratio: 1 });
     const art = view.getByTestId('victory-art-space');
     const image = art.getByRole('img').last();
     await expect(image).toBeVisible();
@@ -91,9 +102,6 @@ async function main() {
   };
   try {
     await page.goto(url);
-    await page.getByRole('button', { name: 'Passer le prologue', exact: true }).click();
-    await page.getByRole('textbox', { name: 'Votre pseudo', exact: true }).fill('Camille');
-    await page.getByRole('button', { name: 'Créer mon carnet', exact: true }).click();
     await win(3);
     const won = await stored();
     const sizes = [
@@ -138,6 +146,7 @@ async function main() {
     // A lower-star attempt keeps its replay action on the same visible bottom row.
     const low = firstPageAttempt(3);
     low.save.guideSeen = true;
+    low.save.seenMechanics = [...mechanicIds];
     await page.evaluate(
       (s) => localStorage.setItem('color-world.save', JSON.stringify(s)),
       low.save,
