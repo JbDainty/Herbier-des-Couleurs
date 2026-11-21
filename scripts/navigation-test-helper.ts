@@ -1,6 +1,8 @@
 import { expect, type Page } from '@playwright/test';
+import { passStudio } from './studio-test-helper';
 
 export async function openHome(page: Page) {
+  await passStudio(page);
   const home = page.getByTestId('home-screen');
   if (!(await home.isVisible()))
     await page.getByRole('button', { name: 'Menu principal', exact: true }).click();
@@ -19,6 +21,7 @@ export async function openScreen(page: Page, name: string) {
 
 /** Enter from the cabinet, signing a new carnet and reading its first guide when needed. */
 export async function openCarnet(page: Page, nickname = 'Camille') {
+  await passStudio(page);
   const home = page.getByTestId('home-screen');
   const playing = page.getByTestId('page-folio');
   const guide = page.getByTestId('botanical-guide');

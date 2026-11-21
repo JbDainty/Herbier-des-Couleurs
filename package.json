@@ -1,6 +1,6 @@
 {
   "name": "color-world-herbier",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
@@ -35,7 +35,9 @@
     "test:native-prologue": "node --import tsx scripts/native-prologue-smoke.ts",
     "assets:prologue": "node --import tsx scripts/generate-prologue-textures.ts",
     "assets:botanical": "node --import tsx scripts/generate-botanical-rasters.ts",
-    "test:cinematic": "node --import tsx scripts/cinematic-smoke.ts"
+    "test:cinematic": "node --import tsx scripts/cinematic-smoke.ts",
+    "assets:identity": "node scripts/prepare-app-identity.mjs",
+    "test:studio": "node --import tsx scripts/studio-launch-smoke.ts"
   },
   "dependencies": {
     "@expo-google-fonts/alegreya": "^0.4.2",
@@ -54,6 +56,7 @@
     "expo-haptics": "~15.0.0",
     "expo-linking": "~8.0.0",
     "expo-router": "~6.0.0",
+    "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.0",
     "expo-updates": "~29.0.20",
     "expo-video": "~3.0.16",
@@ -75,6 +78,7 @@
     "@types/upng-js": "^2.1.5",
     "esbuild": "^0.28.2",
     "prettier": "^3.9.10",
+    "sharp": "^0.34.5",
     "tsx": "^4.20.0",
     "typescript": "~5.9.2",
     "vitest": "^3.2.4"

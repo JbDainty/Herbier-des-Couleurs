@@ -29,6 +29,10 @@ import { workshopLayout } from '../src/layout/workshop';
 import { useMeasuredSize } from '../src/components/useMeasuredSize';
 import { BookActionsContext } from '../src/components/BookActions';
 import { HomeRouteCache } from '../src/components/HomeRouteCache';
+import { StudioLaunchGate } from '../src/components/StudioLaunchGate';
+import * as SplashScreen from 'expo-splash-screen';
+
+if (Platform.OS !== 'web') void SplashScreen.preventAutoHideAsync().catch(() => {});
 function Shell() {
   const insets = useSafeAreaInsets();
   const { width, height, fontScale } = useWindowDimensions(),
@@ -171,6 +175,7 @@ function Shell() {
   );
   return (
     <SafeAreaView
+      testID="game-shell"
       onTouchStart={Platform.OS === 'web' ? undefined : unlockAmbience}
       style={{ flex: 1, backgroundColor: C.paper, zIndex: 0 }}
     >
@@ -334,11 +339,12 @@ function Shell() {
 }
 export default function Layout() {
   const [loaded, error] = useFonts(botanicalFonts);
-  if (!loaded && !error) return null;
   return (
     <SafeAreaProvider>
       <GameProvider>
-        <Shell />
+        <StudioLaunchGate fontsReady={loaded || !!error}>
+          <Shell />
+        </StudioLaunchGate>
       </GameProvider>
     </SafeAreaProvider>
   );

@@ -1,3 +1,4 @@
+import { passStudio } from './studio-test-helper';
 import { chromium, expect } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { initial } from '../src/state/model';
@@ -30,6 +31,7 @@ async function main() {
       );
       await page.addInitScript({ content: 'window.__name=value=>value;' });
       await page.goto(url);
+      await passStudio(page);
       const home = page.getByTestId('home-screen');
       await expect(home).toBeVisible();
       await expect(page.getByTestId('home-stage-settled')).toBeAttached();
@@ -136,6 +138,7 @@ async function main() {
       expect(errors).toEqual([]);
       writeFileSync(`test-results/home-return-${motion}.json`, JSON.stringify(timings, null, 2));
       await page.goto(new URL('atelier', url).href);
+      await passStudio(page);
       await expect(page.getByTestId('page-folio')).toBeVisible();
       await expect(page.getByTestId('home-screen')).toHaveCount(0);
       await page.getByRole('button', { name: 'Menu principal', exact: true }).click();

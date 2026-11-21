@@ -1,0 +1,15 @@
+# Identité de l’application et lancement Krabel
+
+La version 1.0.3 (Android versionCode 4) adopte « La fiole enchantée », dans sa version dessinée approuvée. Le dessin transparent original est conservé dans `art/branding/`. `scripts/prepare-app-identity.mjs` produit l’icône opaque 1024 × 1024 pour iOS/Android, le premier plan adaptatif Android, le symbole de démarrage et les icônes Web. Les marges du premier plan adaptatif réservent la zone centrale pour les différents masques du lanceur Android.
+
+L’écran natif affiche le symbole botanique sur un fond ivoire. Le clip du studio démarre ensuite avant le menu ou le prologue habituel. `assets/studio/krabel-intro.mp4` est exactement le fichier fourni, sans réencodage : 4,2 secondes, H.264 1080 × 1920 à 30 images/s, AAC stéréo 48 kHz, environ 279 Kio. Il est embarqué dans l’application et fonctionne hors ligne. Son empreinte et sa provenance figurent dans `assets/studio/source.json`.
+
+`StudioLaunchGate` est monté au niveau du layout racine. Il joue le clip une fois par lancement du processus JavaScript ; la navigation, les retours au menu et les retours du premier plan ne le rejouent pas. Les polices et la sauvegarde se chargent pendant le clip. `Shell`, sa musique d’ambiance et le prologue ne sont montés qu’après l’arrêt du lecteur. La vidéo garde sa bande sonore originale et respecte le réglage de son de la sauvegarde, indépendamment du réglage de musique. Le bouton Passer reste disponible.
+
+Sur téléphone, `expo-video` décode le fichier local avec le son, sans contrôles natifs ni lecture en boucle. L’arrière-plan met le lecteur en pause et libère l’audio ; le retour au premier plan reprend à la position conservée. Le lecteur se coupe avant le passage au jeu et son hook libère le décodeur au démontage. Les activations audio asynchrones sont invalidées par un passage en arrière-plan, un saut ou une fermeture.
+
+Dans un navigateur qui refuse la lecture automatique sonore, la vidéo attend le bouton « Toucher pour démarrer » ; elle ne contourne pas ce refus en imposant une lecture silencieuse. Un échec de décodage laisse ouvrir le jeu. Un délai de secours de quinze secondes au premier plan évite aussi de retenir le joueur sur un lecteur bloqué ; il est suspendu quand une intervention tactile est attendue ou quand l’application est en arrière-plan.
+
+L’icône et `expo-splash-screen` modifient les ressources natives : cette version exige un nouvel APK. Une mise à jour Expo ne peut pas remplacer l’icône d’une version déjà installée. Le nom de paquet et la signature existante sont conservés afin de permettre la mise à jour Android sans effacer la sauvegarde.
+
+Vérifications : contrôleur de lecture, piste vidéo/audio originale, pause/reprise, son coupé, saut, fichier inaccessible, reprise tactile dans le navigateur, arrivée dans le prologue d’un nouveau carnet, entrée dans une sauvegarde existante et absence de répétition dans les navigations. Les icônes sont vérifiées avant le build natif ; le nouvel APK est ensuite contrôlé sur ses métadonnées et ses fichiers embarqués.

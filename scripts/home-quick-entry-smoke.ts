@@ -1,3 +1,4 @@
+import { passStudio } from './studio-test-helper';
 import { chromium, expect } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { initial } from '../src/state/model';
@@ -39,27 +40,39 @@ async function main() {
         save,
       );
       await page.addInitScript({ content: 'window.__name=value=>value;' });
-      try {
-        await page.goto(url);
-        // Click as soon as the first layout exists, without Playwright's animation-stability wait.
-        const selector =
-          scenario.target === 'play'
-            ? '[data-testid=home-restore-action] button'
-            : scenario.target === 'day'
-              ? '[data-testid=home-future-day]'
-              : scenario.target === 'herbarium'
-                ? '[aria-label="Herbier"][role=link]'
-                : '[aria-label="Écosystèmes"][role=link]';
-        await page.waitForFunction((selector) => !!document.querySelector(selector), selector);
-        const historyBefore = await page.evaluate(() => history.length);
-        const clickedDuringIntro = await page.evaluate(
-          ({ selector, destination }) => {
-            const early = !!document.querySelector('[data-testid=home-stage-unfolding]');
+      // Arm the tap before mounting the shell: browser polling can outlast the
+      // entrance on a CPU-throttled cold launch with fonts and native assets.
+      const selector =
+        scenario.target === 'play'
+          ? '[data-testid=home-restore-action] button'
+          : scenario.target === 'day'
+            ? '[data-testid=home-future-day]'
+            : scenario.target === 'herbarium'
+              ? '[aria-label="Herbier"][role=link]'
+              : '[aria-label="Écosystèmes"][role=link]';
+      await page.addInitScript(
+        ({ selector, destination }) => {
+          (window as any).quickEntryReady = new Promise((resolve) => {
+            let clicked = false;
             const events: { event: string; time: number }[] = [];
             (window as any).quickEntryEvents = events;
             let stable = false;
             const watch = new MutationObserver(() => {
-              if (document.querySelector('[data-testid=home-stage-settled]') && !stable) {
+              const control = document.querySelector(selector) as HTMLElement | null;
+              const early = !!document.querySelector('[data-testid=home-stage-unfolding]');
+              const settled = !!document.querySelector('[data-testid=home-stage-settled]');
+              if (!clicked && control && (early || settled)) {
+                clicked = true;
+                stable = settled;
+                const historyBefore = history.length;
+                events.push({ event: 'click', time: performance.now() });
+                control.click();
+                control.click();
+                control.click();
+                resolve({ clickedDuringIntro: early, historyBefore });
+              }
+              if (!clicked) return;
+              if (settled && !stable) {
                 stable = true;
                 events.push({ event: 'menu-settled', time: performance.now() });
               }
@@ -71,23 +84,23 @@ async function main() {
                 watch.disconnect();
               }
             });
-            stable = !!document.querySelector('[data-testid=home-stage-settled]');
             watch.observe(document, {
               subtree: true,
               childList: true,
               attributes: true,
               attributeFilter: ['data-testid'],
             });
-            events.push({ event: 'click', time: performance.now() });
-            const control = document.querySelector(selector) as HTMLElement;
-            control.click();
-            control.click();
-            control.click();
-            return early;
-          },
-          { selector, destination: scenario.destination },
+          });
+        },
+        { selector, destination: scenario.destination },
+      );
+      try {
+        await page.goto(url);
+        await passStudio(page);
+        const { clickedDuringIntro, historyBefore } = await page.evaluate(
+          () => (window as any).quickEntryReady,
         );
-        expect(clickedDuringIntro).toBe(scenario.motion);
+        expect(clickedDuringIntro, JSON.stringify(scenario)).toBe(scenario.motion);
         await expect(page.getByTestId(scenario.destination)).toBeVisible();
         expect(await page.evaluate(() => history.length)).toBe(historyBefore + 1);
         const events = await page.evaluate(
