@@ -72,6 +72,7 @@ async function main() {
     );
     await page.getByRole('button', { name: 'Retourner à mon herbier' }).click();
     await openScreen(page, 'Paramètres');
+    await page.getByRole('tab', { name: 'Carnet', exact: true }).click();
     await expect(page.getByText('Le carnet de Élise des bois', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Créer une copie de sauvegarde' })).toHaveCount(
       0,
@@ -88,6 +89,7 @@ async function main() {
     await page.getByRole('textbox', { name: 'Votre pseudo', exact: true }).fill('Camille');
     await page.getByRole('button', { name: 'Modifier ma signature' }).click();
     await expect(page.getByText('Le carnet de Camille', { exact: true })).toBeVisible();
+    await page.getByRole('tab', { name: 'Jeu', exact: true }).click();
     for (const name of ['Animations douces', 'Sons de l’atelier', 'Musique du livre'])
       await page.getByRole('switch', { name, exact: true }).click();
     await openScreen(page, 'L’Atelier');
@@ -143,6 +145,7 @@ async function main() {
     // Zeroing the game returns to signature and an empty seed reserve; preferences are retained.
     await openScreen(page, 'Paramètres');
     await page.getByRole('switch', { name: 'Animations douces' }).click();
+    await page.getByRole('tab', { name: 'Carnet', exact: true }).click();
     await page.getByRole('button', { name: 'Remettre ma progression à zéro' }).click();
     await page.getByRole('button', { name: 'Continuer vers la confirmation' }).click();
     await page.getByRole('button', { name: 'Oui, effacer ma progression' }).click();

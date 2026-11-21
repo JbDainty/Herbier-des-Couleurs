@@ -8,9 +8,7 @@ export function AccountConnections() {
   const [provider, setProvider] = useState('');
   return (
     <View style={{ gap: 10 }}>
-      <T style={{ fontFamily: F.scientific, color: C.muted, fontSize: 14 }}>
-        Retrouver mon herbier avec un compte
-      </T>
+      <T style={{ fontFamily: F.medium, color: C.green, fontSize: 19 }}>Compte · Bientôt</T>
       <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
         {['Google', 'Apple'].map((name) => (
           <Pressable
@@ -31,7 +29,7 @@ export function AccountConnections() {
             }}
           >
             <T style={{ fontFamily: F.display, fontSize: 19, color: C.green }}>{name}</T>
-            <T style={{ fontSize: 11, color: C.muted }}>À activer</T>
+            <T style={{ fontSize: 12, color: C.muted }}>Bientôt</T>
           </Pressable>
         ))}
       </View>
@@ -41,8 +39,8 @@ export function AccountConnections() {
         style={{ fontSize: 12, color: C.muted }}
       >
         {provider
-          ? `La connexion ${provider} n’est pas encore activée. Votre carnet reste enregistré sur cet appareil ; ce bouton ne crée pas de compte en ligne.`
-          : 'Connexion en ligne bientôt disponible. Pour le moment, votre carnet reste sur cet appareil.'}
+          ? `La connexion ${provider} n’est pas encore activée.`
+          : 'Google et Apple seront disponibles plus tard.'}
       </T>
     </View>
   );

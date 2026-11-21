@@ -5,6 +5,7 @@ import { acquireTheme } from '../src/state/economy';
 import levels from '../src/data/levels.json';
 import { firstPageAttempt } from './test-fixtures';
 import { openCarnet, openScreen } from './navigation-test-helper';
+import { passStudio } from './studio-test-helper';
 
 function progressedSave() {
   let save = { ...initial(), started: true, guideSeen: true };
@@ -174,6 +175,7 @@ async function resetting(page: Page, url: string) {
   await page.goto(url);
   await openCarnet(page);
   await openScreen(page, 'Paramètres');
+  await page.getByRole('tab', { name: 'Carnet', exact: true }).click();
   const start = page.getByRole('button', { name: 'Remettre ma progression à zéro' });
   const warning = page.getByTestId('reset-progress-warning');
   const confirm = page.getByTestId('reset-progress-confirmation');
@@ -233,6 +235,7 @@ async function resetting(page: Page, url: string) {
   expect(await stored()).toEqual({ ...initial(), settings: save.settings });
   expect(await page.evaluate(() => localStorage.getItem('herbarium.test.sentinel'))).toBe('keep');
   await page.reload();
+  await passStudio(page);
   await expect(page.getByTestId('book-signature-page')).toBeVisible();
   expect(await stored()).toEqual({ ...initial(), settings: save.settings });
   await openCarnet(page);
