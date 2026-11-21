@@ -62,7 +62,7 @@ async function main() {
     const last = levels[3].solution.at(-1)!;
     await page.getByRole('button', { name: new RegExp(`^Flacon ${last.from + 1},`) }).click();
     await page.getByRole('button', { name: new RegExp(`^Flacon ${last.to + 1},`) }).click();
-    await expect(page.getByText('Les couleurs retrouvées', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('botanical-collection-card')).toBeVisible();
   };
   try {
     await page.goto(url);
