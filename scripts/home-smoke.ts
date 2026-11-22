@@ -40,9 +40,7 @@ async function main() {
     await expect(page.getByRole('link', { name: 'Herbier', exact: true })).toHaveCount(1);
     await expect(page.getByText('Le cabinet de Dainty', { exact: true })).toHaveCount(0);
     await expect(page.getByTestId('seed-count')).toHaveText('0');
-    await expect(
-      page.getByRole('heading', { name: 'Choisir une aventure', exact: true }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Mode de jeu', exact: true })).toBeVisible();
     await expect(page.getByTestId('home-current-page')).toHaveText('Page 01');
     expect((await stored()).guideSeen).toBe(false);
     expect((await stored()).seeds).toBe(0);
@@ -67,7 +65,7 @@ async function main() {
     await expect(page.getByTestId('home-vitrail-art')).toBeVisible();
     await page.screenshot({ path: 'test-results/home-first-390.png' });
     await expect(page.getByTestId('home-future-day')).toHaveAttribute('role', 'button');
-    await expect(page.getByTestId('home-future-day')).toContainText('Le Vitrail du jour');
+    await expect(page.getByTestId('home-future-day')).toContainText('Mini jeu du jour');
     for (const mode of ['mystery']) {
       const card = page.getByTestId(`home-future-${mode}`);
       await expect(card).toContainText('À venir');

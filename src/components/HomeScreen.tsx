@@ -334,7 +334,7 @@ export function HomeScreen({ active }: { active: boolean }) {
                         color: '#3e5c42',
                       }}
                     >
-                      Choisir une aventure
+                      Mode de jeu
                     </T>
                   </View>
                 )}
