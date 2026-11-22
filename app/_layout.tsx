@@ -17,6 +17,7 @@ import { PageTurn, PageTurnContext, type TurningPage } from '../src/components/P
 import { planBookTurn } from '../src/animation/book';
 import { playPageSound } from '../src/services/pageSounds';
 import { HerbariumTitle } from '../src/components/HerbariumTitle';
+import { SettingsFlourish } from '../src/components/SettingsArtwork';
 import { HerbariumBookButton } from '../src/components/HerbariumBookButton';
 import { basePath } from '../src/config/paths';
 import { BookChromeContext, bookHeaderHeight } from '../src/components/BookScrollView';
@@ -154,7 +155,32 @@ function Shell() {
             onHome={() => router.dismissTo('/')}
           />
           <View style={{ flex: 1, alignItems: 'center' }}>
-            <HerbariumTitle compact={mobile} motion={save.settings.motion} />
+            {path === '/parametres' ? (
+              <>
+                <T
+                  serif
+                  testID="settings-heading"
+                  accessibilityRole="header"
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.7}
+                  maxFontSizeMultiplier={1.25}
+                  style={{
+                    width: '100%',
+                    textAlign: 'center',
+                    fontWeight: '700',
+                    fontSize: mobile ? (width < 360 ? 26 : width < 390 ? 32 : 36) : 42,
+                    lineHeight: mobile ? 44 : 50,
+                    color: '#24452f',
+                  }}
+                >
+                  Paramètres
+                </T>
+                <SettingsFlourish />
+              </>
+            ) : (
+              <HerbariumTitle compact={mobile} motion={save.settings.motion} />
+            )}
           </View>
           <SeedPouch count={save.seeds} motion={save.settings.motion && !replayOpen} />
         </View>

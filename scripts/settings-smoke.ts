@@ -38,6 +38,9 @@ async function main() {
     await page.evaluate((s) => localStorage.setItem('color-world.save', JSON.stringify(s)), save);
     await page.goto(url + 'parametres');
     await passStudio(page);
+    const screen = page.getByTestId('settings-screen');
+    await expect(screen.getByTestId('herbarium-book-title')).toHaveCount(0);
+    await expect(screen.getByRole('heading', { name: 'Paramètres', exact: true })).toHaveCount(1);
     await expect(tab('Jeu')).toHaveAttribute('aria-selected', 'true');
     await expect(page.getByRole('switch')).toHaveCount(5);
     expect(await stored()).toEqual(save);
@@ -126,6 +129,16 @@ async function main() {
         await expect.poll(() => panel.evaluate((n) => n.scrollTop)).toBe(0);
         for (const t of ['Jeu', 'Carnet', 'À propos'])
           await expect(tab(t)).toBeInViewport({ ratio: 1 });
+        const aboutLabel = tab('À propos').getByText('À propos', { exact: true });
+        await expect(aboutLabel).toBeVisible();
+        expect(await aboutLabel.evaluate((n) => n.scrollWidth - n.clientWidth)).toBeLessThanOrEqual(
+          1,
+        );
+        const heading = screen.getByTestId('settings-heading');
+        await expect(heading).toBeInViewport({ ratio: 1 });
+        expect(await heading.evaluate((n) => n.scrollWidth - n.clientWidth)).toBeLessThanOrEqual(1);
+        const titleBounds = (await heading.boundingBox())!;
+        expect(Math.abs(titleBounds.x + titleBounds.width / 2 - width / 2)).toBeLessThanOrEqual(4);
         expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
           width,
         );
@@ -160,7 +173,7 @@ async function main() {
     expect(await stored()).toEqual(signed);
     expect(errors).toEqual([]);
     console.log(
-      'Settings passed: 3 tabs, all 5 preferences persist independently, signature validation/draft/normalization, honest accounts, reset cancellation at both steps, readable credits, 7 phone/tablet/landscape sizes, fixed tabs, internal scroll and unchanged progression.',
+      'Settings passed: centered single heading without the brand logo, full À propos label, 3 tabs, all 5 preferences persist independently, signature validation/draft/normalization, honest accounts, reset cancellation at both steps, readable credits, 7 phone/tablet/landscape sizes, fixed tabs, internal scroll and unchanged progression.',
     );
   } finally {
     await browser.close();
