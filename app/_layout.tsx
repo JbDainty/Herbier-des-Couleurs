@@ -155,11 +155,11 @@ function Shell() {
             onHome={() => router.dismissTo('/')}
           />
           <View style={{ flex: 1, alignItems: 'center' }}>
-            {path === '/parametres' ? (
+            {path === '/parametres' || path === '/boutique' ? (
               <>
                 <T
                   serif
-                  testID="settings-heading"
+                  testID={path === '/boutique' ? 'shop-heading' : 'settings-heading'}
                   accessibilityRole="header"
                   numberOfLines={1}
                   adjustsFontSizeToFit
@@ -174,7 +174,7 @@ function Shell() {
                     color: '#24452f',
                   }}
                 >
-                  Paramètres
+                  {path === '/boutique' ? 'Boutique' : 'Paramètres'}
                 </T>
                 <SettingsFlourish />
               </>
