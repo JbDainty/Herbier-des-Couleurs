@@ -1,5 +1,6 @@
 import { chromium, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
+import { passStudio } from './studio-test-helper';
 import { initial, type Save } from '../src/state/model';
 import { activeVitrail, openVitrail, rotateVitrail } from '../src/state/vitrail';
 import {
@@ -53,6 +54,7 @@ async function main() {
       save,
     );
     await page.goto(url + 'vitrail');
+    await passStudio(page);
     await expect(page.getByTestId('vitrail-board')).toBeVisible();
   };
   const withRotations = (rotations: number[]) => ({

@@ -1,5 +1,14 @@
 import React, { memo, useEffect, useRef, useState } from 'react';
-import { Animated, AppState, Easing, Image, Platform, StyleSheet, View } from 'react-native';
+import {
+  Animated,
+  AppState,
+  Easing,
+  Image,
+  Platform,
+  StyleSheet,
+  View,
+  type ImageSourcePropType,
+} from 'react-native';
 import Svg, { Circle, G, Path } from 'react-native-svg';
 import { useAmbientMotion } from './usePrimaryAnimation';
 import { useGame } from '../state/store';
@@ -40,10 +49,12 @@ export function HomeGarden({
   width,
   height,
   motion,
+  background = require('../../assets/home/garden.png'),
 }: {
   width: number;
   height: number;
   motion: boolean;
+  background?: ImageSourcePropType;
 }) {
   const { save } = useGame();
   const enabled = useAmbientMotion(motion);
@@ -91,7 +102,7 @@ export function HomeGarden({
     >
       <Image
         testID="home-garden-background"
-        source={wallpaperArtwork(save.wallpaper) ?? require('../../assets/home/garden.png')}
+        source={wallpaperArtwork(save.wallpaper) ?? background}
         resizeMethod="resize"
         fadeDuration={0}
         resizeMode="cover"

@@ -6,7 +6,7 @@ import { F } from './fonts';
 import type { SpellIconName } from './SpellIcon';
 import type { workshopLayout } from '../layout/workshop';
 
-const illustrations = {
+export const workshopActionIllustrations = {
   undo: require('../../assets/workshop-actions/undo.webp'),
   restart: require('../../assets/workshop-actions/restart.webp'),
   mix: require('../../assets/workshop-actions/mix.webp'),
@@ -93,7 +93,7 @@ export function WorkshopActionBar({
           >
             <Image
               testID={`workshop-action-icon-${action.icon}`}
-              source={illustrations[action.icon]}
+              source={workshopActionIllustrations[action.icon]}
               accessible={false}
               fadeDuration={0}
               resizeMode="contain"
