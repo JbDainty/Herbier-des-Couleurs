@@ -2,6 +2,7 @@ import { chromium, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { initial } from '../src/state/model';
 import { openCarnet, openScreen } from './navigation-test-helper';
+import { passStudio } from './studio-test-helper';
 
 async function main() {
   const browser = await chromium.launch({
@@ -29,6 +30,7 @@ async function main() {
   const vial = (n: number) =>
     page.getByRole('button', { name: new RegExp(`^Fiole d’essai ${n},`) });
   const practice = async () => {
+    await page.getByRole('button', { name: 'Tester un versement', exact: true }).click();
     await vial(1).click();
     await vial(2).click();
     await expect(page.getByTestId('guide-practice-note')).toContainText('Essayez une fiole vide');
@@ -46,6 +48,7 @@ async function main() {
   mkdirSync('test-results', { recursive: true });
   try {
     await page.goto(url);
+    await passStudio(page);
     await page.getByRole('button', { name: 'Passer le prologue', exact: true }).click();
     await page.getByRole('textbox', { name: 'Votre pseudo', exact: true }).fill('Élise');
     await page.getByRole('button', { name: 'Créer mon carnet', exact: true }).click();
@@ -60,7 +63,6 @@ async function main() {
     expect(await page.evaluate(() => (window as any).ambienceStarts)).toBe(1);
     expect((await saved()).guideSeen).toBe(false);
     const before = await saved();
-    await page.waitForTimeout(1000);
     await page.screenshot({ path: 'test-results/guide-welcome-390.png' });
     await practice();
     expect(await saved()).toEqual(before);
@@ -72,6 +74,7 @@ async function main() {
     expect(await saved()).toEqual(before);
     // A signed but unread carnet still offers its introduction after an interruption.
     await page.reload();
+    await passStudio(page);
     await expect(page.getByTestId('botanical-guide')).toBeVisible();
     await page.getByRole('button', { name: 'Entrer dans la serre', exact: true }).click();
     await expect(page.getByTestId('botanical-guide')).toHaveCount(0);
@@ -85,30 +88,36 @@ async function main() {
     const progress = await saved();
     await practice();
     expect(await saved()).toEqual(progress);
-    await page.getByRole('button', { name: 'Revenir au début de l’aide', exact: true }).click();
-    await expect
-      .poll(() => page.getByTestId('guide-scroll').evaluate((node) => node.scrollTop))
-      .toBe(0);
+    const card = (id: string) => page.getByTestId(`guide-toggle-${id}`);
+    await card('plante').click();
+    await expect(page.getByTestId('guide-practice')).toBeHidden();
+    await card('gestes').click();
+    await expect(page.getByTestId('guide-practice-note')).toContainText('Vous avez le geste');
+    await page.getByRole('button', { name: 'Fermer l’essai', exact: true }).click();
+    await expect(page.getByTestId('guide-practice')).toHaveCount(0);
+    for (const id of ['plante', 'graines', 'fioles']) {
+      await expect(card(id)).toHaveAttribute('aria-expanded', 'false');
+      await card(id).click();
+      await expect(card(id)).toHaveAttribute('aria-expanded', 'true');
+      await expect(page.getByTestId(`guide-content-${id}`)).toBeVisible();
+    }
+    await expect(page.getByText('Fiole de conservation', { exact: true })).toBeVisible();
+    await card('gestes').click();
+    await expect(card('fioles')).toHaveAttribute('aria-expanded', 'false');
+    await expect(card('gestes')).toHaveAttribute('aria-expanded', 'true');
     await page.screenshot({ path: 'test-results/guide-help-390.png' });
     for (const viewport of [
       { width: 320, height: 740 },
       { width: 1280, height: 900 },
     ]) {
       await page.setViewportSize(viewport);
-      await page.getByRole('button', { name: 'Revenir au début de l’aide', exact: true }).click();
-      await expect
-        .poll(() => page.getByTestId('guide-scroll').evaluate((node) => node.scrollTop))
-        .toBe(0);
       await page.screenshot({ path: `test-results/guide-help-${viewport.width}.png` });
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
         viewport.width,
       );
-      for (const name of [
-        'Des fioles pleines et unies',
-        'Réveiller une planche',
-        'Les trésors du jardin',
-      ])
-        await expect(page.getByRole('heading', { name, exact: true })).toHaveCount(1);
+      for (const id of ['gestes', 'plante', 'graines', 'fioles']) {
+        await expect(card(id)).toBeVisible();
+      }
     }
     await page.getByRole('button', { name: 'Fermer l’aide', exact: true }).click();
     await expect(page.getByTestId('home-screen')).toBeVisible();
@@ -132,7 +141,7 @@ async function main() {
     await expect(page.getByTestId('home-screen')).toBeVisible();
     await page.getByTestId('home-restore-action').getByRole('button').click();
     await expect(page.getByTestId('botanical-guide')).toBeVisible();
-    expect((await saved()).seeds).toBe(1);
+    expect((await saved()).seeds).toBe(initial().seeds);
     await page.getByRole('button', { name: 'Aller directement au jeu', exact: true }).click();
     await expect(page.getByTestId('page-folio')).toHaveText('PAGE 01');
     // A previously installed release with no guide field keeps its place on upgrade.
