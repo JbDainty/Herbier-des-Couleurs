@@ -1,5 +1,3 @@
-export const vitrailMastheadHeight = 48;
-
 /** Geometry uses the measured safe viewport, with fixed space for every command. */
 export function vitrailLayout(
   width: number,
@@ -14,13 +12,13 @@ export function vitrailLayout(
   const gap = height < 600 ? 1 : 6;
   const contentWidth = Math.min(width, 1120) - padding * 2;
   const contentHeight = height - padding * 2;
-  const headerHeight = tight ? vitrailMastheadHeight : 108;
+  const headerHeight = tight ? 48 : 104;
   const stagesHeight = 44;
   const playingCaptionHeight = Math.ceil((tight ? 22 : 26) * Math.min(1.2, Math.max(1, fontScale)));
   const captionHeight = won ? 0 : playingCaptionHeight;
-  const actionsHeight = 48;
+  const actionsHeight = tight ? 48 : 60;
   const footerInset = tight ? 4 : 6;
-  const footerHeight = actionsHeight + footerInset * 2;
+  const footerHeight = actionsHeight + footerInset * 2 + (tight ? 0 : 4);
   if (landscape) {
     const boardSize = Math.floor(
       Math.max(0, Math.min(contentHeight, contentWidth - 240 - gap, 720)),
@@ -53,14 +51,14 @@ export function vitrailLayout(
     };
   }
   const playAreaHeight = contentHeight - headerHeight - stagesHeight - footerHeight - gap * 3;
-  // Keep the existing threshold for foliage, then use its slimmer border to grow the board.
+  // Use a wider paper margin when it still leaves room for the full board and controls.
   const minimumBoard = (size + 1) * 44;
   const framed =
     !tight &&
     contentWidth - 64 >= minimumBoard &&
     playAreaHeight - 96 - playingCaptionHeight - actionsHeight - gap * 2 >= minimumBoard;
-  const panelPadding = framed ? 16 : tight ? 0 : 8;
-  const panelVerticalPadding = framed ? 20 : tight ? 0 : 8;
+  const panelPadding = framed ? 16 : tight ? 4 : 8;
+  const panelVerticalPadding = framed ? 20 : tight ? 4 : 8;
   // Reserve the in-game caption even after a win so cells keep the same size.
   const boardBudget =
     playAreaHeight - panelVerticalPadding * 2 - playingCaptionHeight - actionsHeight - gap * 2;

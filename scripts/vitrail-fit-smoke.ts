@@ -3,6 +3,7 @@ import { mkdirSync } from 'node:fs';
 import { initial, type Save } from '../src/state/model';
 import { openVitrail, activeVitrail } from '../src/state/vitrail';
 import { vitrailDays } from '../src/data/vitrails';
+import { passStudio } from './studio-test-helper';
 
 const formats = [
   [320, 400],
@@ -183,6 +184,7 @@ async function main() {
     await page.goto(url);
     await page.evaluate((s) => localStorage.setItem('color-world.save', JSON.stringify(s)), s);
     await page.goto(url + 'vitrail?day=' + day);
+    await passStudio(page);
     await expect(page.getByTestId('vitrail-viewport')).toBeVisible();
   };
   mkdirSync('test-results', { recursive: true });

@@ -3,6 +3,7 @@ import { mkdirSync } from 'node:fs';
 import { initial, type Save } from '../src/state/model';
 import { activeVitrail } from '../src/state/vitrail';
 import { rotationPeriod, traceVitrail, vitrailHint } from '../src/engine/vitrail';
+import { passStudio } from './studio-test-helper';
 
 async function main() {
   const browser = await chromium.launch({
@@ -22,6 +23,7 @@ async function main() {
   page.on('pageerror', (error) => errors.push(error.message));
   const url = process.env.GAME_TEST_URL || 'http://localhost:8126/';
   const button = (name: string) => page.getByRole('button', { name, exact: true });
+  const finishedTabs = page.getByRole('tab', { name: /, terminé$/ });
   const stored = () =>
     page.evaluate(() => JSON.parse(localStorage.getItem('color-world.save')!) as Save);
   const lessons = async () => {
@@ -50,19 +52,26 @@ async function main() {
     await page.goto(url);
     await page.evaluate((s) => localStorage.setItem('color-world.save', JSON.stringify(s)), base);
     await page.reload();
+    await passStudio(page);
     await page.getByTestId('home-future-day').click();
     await expect(page.getByTestId('daily-vitrail-screen')).toBeVisible();
     await expect(page.getByTestId('vitrail-lesson-title')).toHaveText('Les miroirs du vitrail');
     await button('J’ai compris').click();
-    await expect(page.getByTestId('vitrail-progress')).toHaveText(/^0 \/ 3(?: vitraux terminés)?$/);
+    await expect(finishedTabs).toHaveCount(0);
+    await expect(page.getByTestId('vitrail-stage-0')).toHaveAttribute('aria-selected', 'true');
     await expect(page.getByTestId('vitrail-stage-1')).toBeDisabled();
     await expect(page.getByTestId('vitrail-stage-2')).toBeDisabled();
+    await expect(page.getByTestId('vitrail-reward')).toHaveCount(0);
+    for (const tool of ['undo', 'hint', 'restart']) {
+      await expect(page.getByTestId(`vitrail-tool-icon-${tool}`)).toBeVisible();
+    }
     expect(await page.getByText(/étoiles|rotations/i).count()).toBe(0);
     const original = (await stored()).vitrail!.session!;
     const cell = vitrailHint(activeVitrail(original)!, original.rotations)!;
     await page.getByTestId(`vitrail-cell-${cell}`).click();
     const partial = (await stored()).vitrail!.session!;
     await page.reload();
+    await passStudio(page);
     await expect(page.getByTestId('vitrail-board')).toBeVisible();
     expect((await stored()).vitrail!.session).toEqual(partial);
     await expect(page.getByTestId('vitrail-lesson')).toHaveCount(0);
@@ -71,9 +80,10 @@ async function main() {
     await button('Indice').click();
     await expect(page.getByTestId('vitrail-hint')).toContainText('Faites pivoter');
     await finish();
-    await expect(page.getByTestId('vitrail-progress')).toHaveText(/^1 \/ 3(?: vitraux terminés)?$/);
+    await expect(finishedTabs).toHaveCount(1);
     expect((await stored()).seeds).toBe(20);
     await button('Passer au vitrail 2').click();
+    await expect(page.getByTestId('vitrail-stage-1')).toHaveAttribute('aria-selected', 'true');
     await expect(page.getByTestId('vitrail-lesson-title')).toHaveText('Le séparateur de lumière');
     await button('J’ai compris').click();
     for (const [width, height] of [
@@ -110,24 +120,25 @@ async function main() {
     await expect(page.getByTestId('vitrail-lesson-title')).toHaveText('Les couleurs de la lumière');
     await button('J’ai compris').click();
     await finish();
-    await expect(page.getByTestId('vitrail-progress')).toHaveText(/^3 \/ 3(?: vitraux terminés)?$/);
+    await expect(finishedTabs).toHaveCount(3);
     await expect(page.getByTestId('vitrail-reward')).toContainText('Graine du jour obtenue');
     expect((await stored()).seeds).toBe(21);
     const earned = await stored();
     await page.reload();
+    await passStudio(page);
     await expect(page.getByTestId('vitrail-victory')).toBeVisible();
     await button('Rejouer ce vitrail').click();
     await finish();
     expect((await stored()).seeds).toBe(21);
     await page.clock.setFixedTime(new Date('2026-11-19T12:00:00Z'));
     await expect(page.getByTestId('vitrail-date')).toHaveText('19 novembre');
-    await expect(page.getByTestId('vitrail-progress')).toHaveText(/^0 \/ 3(?: vitraux terminés)?$/);
+    await expect(finishedTabs).toHaveCount(0);
     await button('Mon calendrier').click();
     await expect(page.getByTestId('vitrail-calendar')).toBeVisible();
     await expect(page.getByTestId('vitrail-calendar-2026-11-20')).toBeDisabled();
     await page.getByTestId('vitrail-calendar-2026-11-18').click();
     await expect(page.getByTestId('vitrail-date')).toHaveText('18 novembre');
-    await expect(page.getByTestId('vitrail-progress')).toHaveText(/^3 \/ 3(?: vitraux terminés)?$/);
+    await expect(finishedTabs).toHaveCount(3);
     await finish();
     expect((await stored()).seeds).toBe(21);
     await button('Aujourd’hui').click();

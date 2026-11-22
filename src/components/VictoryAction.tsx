@@ -1,5 +1,5 @@
 import React, { useId } from 'react';
-import { Pressable, View } from 'react-native';
+import { Image, Pressable, View, type ImageSourcePropType } from 'react-native';
 import { Defs, LinearGradient, Stop, Path, G, Circle } from 'react-native-svg';
 import { SvgBackdrop } from './SvgBackdrop';
 import { T, Icon, C } from './ui';
@@ -22,7 +22,7 @@ export function VictoryAction({
   children: string;
   onPress: () => void;
   secondary?: boolean;
-  icon: BotanicalIconName;
+  icon: BotanicalIconName | ImageSourcePropType;
   disabled?: boolean;
   compact?: boolean;
   maxFontSizeMultiplier?: number;
@@ -107,7 +107,17 @@ export function VictoryAction({
           gap: narrow ? 6 : 9,
         }}
       >
-        <Icon name={icon} size={narrow ? 19 : 23} color={ink} />
+        {typeof icon === 'string' ? (
+          <Icon name={icon} size={narrow ? 19 : 23} color={ink} />
+        ) : (
+          <Image
+            source={icon}
+            accessible={false}
+            fadeDuration={0}
+            resizeMode="contain"
+            style={{ width: 21, height: 21 }}
+          />
+        )}
         <T
           maxFontSizeMultiplier={maxFontSizeMultiplier}
           numberOfLines={compact ? 1 : undefined}

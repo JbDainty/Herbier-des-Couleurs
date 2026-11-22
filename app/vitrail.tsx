@@ -48,7 +48,12 @@ export default function Vitrail() {
   }, [day, session?.level]);
   return (
     <View testID="daily-vitrail-screen" style={{ flex: 1, minHeight: 0 }}>
-      <HomeGarden width={width} height={height} motion={save.settings.motion} />
+      <HomeGarden
+        width={width}
+        height={height}
+        motion={save.settings.motion}
+        background={require('../assets/home/clearing.jpg')}
+      />
       {allowed && !save.testSession && puzzle && session ? (
         <VitrailScene
           day={day}
@@ -65,7 +70,7 @@ export default function Vitrail() {
       ) : (
         <BookScrollView contentContainerStyle={{ padding: 20, gap: 16 }}>
           <T serif style={{ fontSize: 30, textAlign: 'center' }}>
-            Le Vitrail du jour
+            Vitrail du jour
           </T>
           {save.testSession ? (
             <Paper style={{ padding: 22, borderRadius: 24, backgroundColor: C.card, gap: 14 }}>
