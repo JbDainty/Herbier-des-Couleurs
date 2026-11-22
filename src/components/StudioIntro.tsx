@@ -110,7 +110,10 @@ export function StudioIntro({
         testID="studio-skip"
         accessibilityRole="button"
         accessibilityLabel="Passer le logo du studio"
-        onPress={playback.finish}
+        onPress={() => {
+          if (Platform.OS === 'web') unlockAmbience();
+          playback.finish();
+        }}
         style={{
           position: 'absolute',
           bottom: insets.bottom + 12,

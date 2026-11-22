@@ -1,0 +1,10 @@
+Les couleurs s’éveillent — thème du menu d’Herbier des couleurs
+
+Composition et arrangement originaux dédiés au domaine public sous CC0 1.0.
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Les échantillons d’instruments sont issus de FluidR3 GM sous licence MIT.
+La notice FluidR3-MIT.txt s’applique à ces instruments et figure également
+avec le morceau dans ses métadonnées.
+
+Partition et rendu reproductibles dans scripts/generate-menu-music.py.

@@ -31,21 +31,34 @@ export const ambienceTracks = [
   { title: 'Les chemins retrouvés', source: require('../../assets/music/ecosystem-18.mp3') },
   { title: 'La clairière secrète', source: require('../../assets/music/ecosystem-19.mp3') },
 ] as const;
+const menuTrack = {
+  title: 'Les couleurs s’éveillent',
+  source: require('../../assets/music/menu.mp3'),
+};
+export type AmbienceTrack = number | 'menu';
+const trackFor = (chapter: AmbienceTrack) =>
+  chapter === 'menu' ? menuTrack : ambienceTracks[chapter];
+const resolveTrack = (track: AmbienceTrack) =>
+  track === 'menu' ? track : Math.max(0, Math.min(ambienceTracks.length - 1, track));
 export const ambienceVolume = 0.08;
-type Voice = { chapter: number; level: (gain: number, ms: number) => void; stop: () => void };
+type Voice = {
+  chapter: AmbienceTrack;
+  level: (gain: number, ms: number) => void;
+  stop: () => void;
+};
 let enabled = false,
-  chapter = 0,
+  chapter: AmbienceTrack = 0,
   unlocked = false,
   generation = 0;
 let current: Voice | undefined;
 let recovery: ReturnType<typeof setTimeout> | undefined;
 let recoveryAttempts = 0;
 const retiring = new Set<Voice>();
-const buffers = new Map<number, Promise<AudioBuffer>>();
-const positions = new Map<number, number>();
+const buffers = new Map<AmbienceTrack, Promise<AudioBuffer>>();
+const positions = new Map<AmbienceTrack, number>();
 const desired = () => enabled && unlocked && audioIsForeground();
 
-function makeVoice(index: number, buffer?: AudioBuffer): Voice | undefined {
+function makeVoice(index: AmbienceTrack, buffer?: AudioBuffer): Voice | undefined {
   if (Platform.OS === 'web') {
     const context = sharedAudioContext();
     if (!context || context.state !== 'running' || !buffer) return;
@@ -85,7 +98,7 @@ function makeVoice(index: number, buffer?: AudioBuffer): Voice | undefined {
   }
   let creating: ReturnType<typeof createGameAudioPlayer> | undefined;
   try {
-    const player = createGameAudioPlayer(ambienceTracks[index].source);
+    const player = createGameAudioPlayer(trackFor(index).source);
     creating = player;
     const abort = new AbortController();
     player.loop = true;
@@ -170,15 +183,23 @@ function retire(voice: Voice, ms: number) {
     retiring.delete(voice);
   }, ms + 40);
 }
+function stopVoices() {
+  current?.stop();
+  current = undefined;
+  retiring.forEach((voice) => voice.stop());
+  retiring.clear();
+}
+const playbackLevel = (voice: Voice) =>
+  (voice.chapter === 'menu' ? 0.05 : ambienceVolume) * musicAttenuation();
 function applyLevels() {
-  current?.level(ambienceVolume * musicAttenuation(), musicAttenuation() < 1 ? 90 : 1400);
+  if (current) current.level(playbackLevel(current), musicAttenuation() < 1 ? 90 : 1400);
   if (musicAttenuation() < 1) retiring.forEach((voice) => voice.level(0, 90));
 }
-function bufferFor(index: number, context: AudioContext) {
+function bufferFor(index: AmbienceTrack, context: AudioContext) {
   if (!buffers.has(index))
     buffers.set(
       index,
-      fetch(Asset.fromModule(ambienceTracks[index].source).uri)
+      fetch(Asset.fromModule(trackFor(index).source).uri)
         .then((response) => {
           if (!response.ok) throw Error('Music unavailable');
           return response.arrayBuffer();
@@ -195,24 +216,21 @@ function bufferFor(index: number, context: AudioContext) {
   return buffers.get(index)!;
 }
 /** Decode the opening track while the book is being signed; never play yet. */
-export function prepareAmbience(ecosystem: number) {
+export function prepareAmbience(track: AmbienceTrack) {
   if (Platform.OS !== 'web') return;
   const context = sharedAudioContext();
   if (!context) return;
-  const index = Math.max(0, Math.min(ambienceTracks.length - 1, ecosystem));
+  const index = resolveTrack(track);
   void bufferFor(index, context).catch(() => buffers.delete(index));
 }
-let pendingChapter: number | undefined;
+let pendingChapter: AmbienceTrack | undefined;
 async function reconcile() {
   if (!desired()) {
     clearTimeout(recovery);
     generation++;
     pendingChapter = undefined;
-    if (!audioIsForeground()) {
-      current?.stop();
-      current = undefined;
-      retiring.forEach((voice) => voice.stop());
-      retiring.clear();
+    if (!audioIsForeground() || chapter === 'menu') {
+      stopVoices();
       return;
     }
     if (current) {
@@ -250,7 +268,7 @@ async function reconcile() {
     // Never accumulate a chain of previous tracks after rapid navigation.
     if (current) retire(current, 1200);
     current = voice;
-    voice.level(ambienceVolume * musicAttenuation(), 1200);
+    voice.level(playbackLevel(voice), 1200);
     for (const key of buffers.keys()) {
       if (buffers.size <= 2) break;
       if (key !== next) buffers.delete(key);
@@ -278,13 +296,15 @@ export function unlockAmbience() {
       if (ready) void reconcile();
     });
 }
-export function configureAmbience(active: boolean, ecosystem: number) {
-  const next = Math.max(0, Math.min(ambienceTracks.length - 1, ecosystem));
+export function configureAmbience(active: boolean, track: AmbienceTrack) {
+  const next = resolveTrack(track);
   if (enabled !== active || chapter !== next) {
     recoveryAttempts = 0;
     generation++;
     pendingChapter = undefined;
   }
+  // The menu theme must never play over a puzzle or another screen, even during decoding.
+  if (next !== chapter && (chapter === 'menu' || next === 'menu')) stopVoices();
   enabled = active;
   chapter = next;
   void reconcile();
@@ -294,8 +314,5 @@ export function disposeAmbience() {
   enabled = false;
   generation++;
   pendingChapter = undefined;
-  current?.stop();
-  current = undefined;
-  retiring.forEach((voice) => voice.stop());
-  retiring.clear();
+  stopVoices();
 }
