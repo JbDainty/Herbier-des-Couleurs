@@ -4,6 +4,7 @@ import { initial, type Save } from '../src/state/model';
 import { GOLDEN_COLLECTION_ID, collectionById } from '../src/data/collections';
 import { mechanicIds } from '../src/engine/mechanics';
 import { gardenPuzzle } from '../src/state/gardens';
+import { passStudio } from './studio-test-helper';
 
 async function main() {
   const browser = await chromium.launch({
@@ -20,6 +21,12 @@ async function main() {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   const button = (name: string) => page.getByRole('button', { name, exact: true });
+  const chooseSpecies = async (id: string) => {
+    const tab = page.getByTestId(`golden-gallery-tab-${id}`);
+    await tab.click();
+    await expect(tab).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByTestId(`garden-species-${id}`)).toBeVisible();
+  };
   const stored = () =>
     page.evaluate(() => JSON.parse(localStorage.getItem('color-world.save')!) as Save);
   const seed: Save = {
@@ -37,6 +44,7 @@ async function main() {
     await page.goto(url);
     await page.evaluate((s) => localStorage.setItem('color-world.save', JSON.stringify(s)), seed);
     await page.goto(url);
+    await passStudio(page);
     await page.getByRole('link', { name: 'Herbier', exact: true }).click();
     await expect(page.getByRole('button', { name: /^Ouvrir le carnet / })).toHaveCount(4);
     const grid = (await page.getByTestId('herbarium-volume-grid').boundingBox())!;
@@ -60,16 +68,17 @@ async function main() {
     await expect(page.getByTestId('collection-garden')).toBeVisible();
     expect((await stored()).seeds).toBe(1200);
     expect((await stored()).gardens![golden.id]).toBeUndefined();
-    await expect(page.locator('[data-testid^="golden-silhouette-"]')).toHaveCount(5);
+    await expect(
+      page.getByRole('tablist', { name: 'Les cinq espèces' }).getByRole('tab'),
+    ).toHaveCount(5);
+    await expect(page.locator('[data-testid^="golden-silhouette-"]')).toHaveCount(4);
+    await expect(page.getByRole('heading', { name: 'Les Merveilles', exact: true })).toBeVisible();
+    await chooseSpecies('temps');
     const temps = page.getByTestId('garden-species-temps');
-    await temps
-      .getByRole('button', { name: 'Acquérir cette merveille · 200 graines', exact: true })
-      .click();
+    await temps.getByRole('button', { name: 'Acquérir · 200 graines', exact: true }).click();
     await button('Garder mes graines').click();
     expect((await stored()).seeds).toBe(1200);
-    await temps
-      .getByRole('button', { name: 'Acquérir cette merveille · 200 graines', exact: true })
-      .click();
+    await temps.getByRole('button', { name: 'Acquérir · 200 graines', exact: true }).click();
     await button('Confirmer pour 200 graines').dblclick();
     expect((await stored()).seeds).toBe(1000);
     expect((await stored()).gardens![golden.id].species).toEqual(['temps']);
@@ -81,6 +90,7 @@ async function main() {
       localStorage.setItem('color-world.save', JSON.stringify(s));
     });
     await page.reload();
+    await passStudio(page);
     await temps.getByRole('button', { name: 'Restaurer cette merveille', exact: true }).click();
     const tube = (n: number) => page.getByRole('button', { name: new RegExp(`^Flacon ${n + 1},`) });
     for (let index = 0; index < 5; index++) {
@@ -90,6 +100,7 @@ async function main() {
         if (index === 0 && i === 0) {
           const pending = (await stored()).gardenSession;
           await page.reload();
+          await passStudio(page);
           await expect(page.getByTestId('liquid-board-idle')).toBeVisible();
           expect((await stored()).gardenSession).toEqual(pending);
         }
@@ -101,9 +112,10 @@ async function main() {
     }
     await button('Contempler mon herbier doré').click();
     for (const species of golden.species.slice(0, 4)) {
+      await chooseSpecies(species.id);
       await page
         .getByTestId(`garden-species-${species.id}`)
-        .getByRole('button', { name: 'Acquérir cette merveille · 200 graines', exact: true })
+        .getByRole('button', { name: 'Acquérir · 200 graines', exact: true })
         .click();
       await button('Confirmer pour 200 graines').click();
     }
@@ -127,18 +139,26 @@ async function main() {
       await expect
         .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
         .toBeLessThanOrEqual(width);
-      const bounds = (await book.boundingBox())!;
-      expect(bounds.x).toBeGreaterThanOrEqual(0);
-      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width + 1);
-      expect(bounds.y + bounds.height).toBeLessThanOrEqual(height + 1);
+      await expect
+        .poll(async () => {
+          const bounds = await book.boundingBox();
+          return (
+            !!bounds &&
+            bounds.x >= 0 &&
+            bounds.x + bounds.width <= width + 1 &&
+            bounds.y + bounds.height <= height + 1
+          );
+        })
+        .toBe(true);
     }
     await page.reload();
+    await passStudio(page);
     await expect(book).toBeVisible();
     expect((await stored()).seeds).toBe(200);
     expect((await stored()).gardens![golden.id].species).toHaveLength(5);
     expect(errors).toEqual([]);
     console.log(
-      'Golden herbarium passed: four-slot cover, animated/reduced-motion modes, free browsing, five silhouettes, any-order purchases at 200 without double debit, five puzzles and interrupted resume without seed gains, campaign preserved, ownership reload and four sizes.',
+      'Golden herbarium passed: four-slot cover, animated/reduced-motion modes, five gallery tabs, four hidden paintings, any-order purchases at 200 without double debit, five puzzles and interrupted resume without seed gains, campaign preserved, ownership reload and four sizes.',
     );
   } finally {
     await browser.close();

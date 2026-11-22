@@ -72,7 +72,8 @@ export default function Boutique() {
     });
     return () => sub.remove();
   }, [section, purchase, info]);
-  const seeWonders = () => router.push({ pathname: '/jardin', params: { collection: golden.id } });
+  const seeWonders = () =>
+    router.push({ pathname: '/jardin', params: { collection: golden.id, vue: 'galerie' } });
   const collectPhenix = () => {
     if (phenixOwned) return seeWonders();
     confirm({

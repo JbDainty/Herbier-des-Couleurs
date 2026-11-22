@@ -7,7 +7,13 @@ import { Button, C, Label, T, ui } from '../src/components/ui';
 import { CollectionPurchase, type Purchase } from '../src/components/CollectionPurchase';
 import { LiquidBoard } from '../src/components/LiquidBoard';
 import { useGame } from '../src/state/store';
-import { collections, collectionById } from '../src/data/collections';
+import {
+  collections,
+  collectionById,
+  type GardenCollection,
+  type GardenSpecies,
+} from '../src/data/collections';
+import { GoldenGallery } from '../src/components/GoldenGallery';
 import { GoldenPlantSilhouette } from '../src/components/GoldenHerbarium';
 import { collectionArtwork } from '../src/data/collectionArtwork';
 import { acquireGardenSpecies } from '../src/state/economy';
@@ -32,20 +38,17 @@ import { playPourSound } from '../src/services/pourSound';
 export default function Jardin() {
   const { save, setSave } = useGame();
   const { width, height } = useWindowDimensions();
-  const params = useLocalSearchParams<{ collection?: string }>();
+  const params = useLocalSearchParams<{ collection?: string; espece?: string; vue?: string }>();
   const requested = collectionById(params.collection ?? '');
-  const [playing, setPlaying] = useState(
+  const shouldResume =
+    params.vue !== 'galerie' &&
     !!save.gardenSession &&
-      (!requested ||
-        (save.gardenSession.collection === requested.id && !save.gardenSession.rewarded)),
-  );
+    (!requested ||
+      (save.gardenSession.collection === requested.id && !save.gardenSession.rewarded));
+  const [playing, setPlaying] = useState(shouldResume);
   useEffect(() => {
-    setPlaying(
-      !!save.gardenSession &&
-        (!requested ||
-          (save.gardenSession.collection === requested.id && !save.gardenSession.rewarded)),
-    );
-  }, [params.collection]);
+    setPlaying(shouldResume);
+  }, [params.collection, params.vue]);
   const [purchase, confirm] = useState<Purchase | null>(null);
   const [selected, select] = useState<number | null>(null);
   const [hint, setHint] = useState<Move | null>(null);
@@ -170,6 +173,53 @@ export default function Jardin() {
   const garden = session && collections.find((c) => c.id === session.collection);
   const flower = garden?.species.find((s) => s.id === session?.species);
   const play = playing && session && garden && flower;
+  const openSpecies = (collection: GardenCollection, specimen: GardenSpecies) => {
+    const acquired = save.gardens?.[collection.id]?.species.includes(specimen.id) ?? false;
+    if (save.testSession || (!acquired && save.seeds < specimen.cost)) return;
+    if (acquired) {
+      setSave((s) => startGarden(s, collection.id, specimen.id));
+      setPlaying(true);
+      if (requested?.kind === 'golden') router.setParams({ vue: 'jeu', espece: specimen.id });
+      return;
+    }
+    confirm({
+      title: `Accueillir « ${specimen.name} » ?`,
+      cost: specimen.cost,
+      detail:
+        collection.kind === 'golden'
+          ? 'Cette merveille et ses cinq pages rejoindront votre herbier doré. Les pages de collection ne rapportent pas de graines.'
+          : 'Cette espèce et ses cinq puzzles rejoindront définitivement votre jardin. Votre première orchidée reste acquise.',
+      action: () => setSave((s) => acquireGardenSpecies(s, collection.id, specimen.id)),
+    });
+  };
+  const leavePuzzle = () => {
+    setPlaying(false);
+    if (requested?.kind === 'golden')
+      router.setParams({ vue: 'galerie', espece: session?.species ?? params.espece });
+  };
+  const purchaseDialog = purchase && (
+    <CollectionPurchase
+      purchase={purchase}
+      motion={save.settings.motion}
+      onClose={() => confirm(null)}
+    />
+  );
+  if (requested?.kind === 'golden' && !play) {
+    return (
+      <>
+        <GoldenGallery
+          garden={requested}
+          selection={params.espece}
+          onSelect={(species) => router.setParams({ espece: species.id })}
+          onAction={(species) => openSpecies(requested, species)}
+          onHome={() => router.dismissTo('/')}
+          onShop={() => router.dismissTo('/boutique')}
+          onHerbarium={() => router.dismissTo('/herbier?volume=20')}
+        />
+        {purchaseDialog}
+      </>
+    );
+  }
   return (
     <BookScrollView
       testID="collection-garden"
@@ -348,7 +398,7 @@ export default function Jardin() {
                     setSave((s) => loadGardenPage(s, garden.id, flower.id, session.page + 1));
                   else {
                     setSave((s) => ({ ...s, gardenSession: undefined }));
-                    setPlaying(false);
+                    leavePuzzle();
                   }
                 }}
               >
@@ -365,7 +415,7 @@ export default function Jardin() {
             disabled={!!pouring}
             onPress={() => {
               search.current?.abort();
-              setPlaying(false);
+              leavePuzzle();
             }}
           >
             {garden.kind === 'golden'
@@ -444,23 +494,7 @@ export default function Jardin() {
                     </T>
                     <Button
                       disabled={!!save.testSession || (!acquired && save.seeds < flower.cost)}
-                      onPress={() => {
-                        if (acquired) {
-                          setSave((s) => startGarden(s, garden.id, flower.id));
-                          setPlaying(true);
-                          return;
-                        }
-                        confirm({
-                          title: `Accueillir ${flower.name.toLowerCase()} ?`,
-                          cost: flower.cost,
-                          detail:
-                            garden.kind === 'golden'
-                              ? 'Cette merveille et ses cinq puzzles rejoindront définitivement votre herbier doré. Cet achat ne débloque que cette espèce, sans frais d’entrée supplémentaires.'
-                              : 'Cette espèce et ses cinq puzzles rejoindront définitivement votre jardin. Votre première orchidée reste acquise.',
-                          action: () =>
-                            setSave((s) => acquireGardenSpecies(s, garden.id, flower.id)),
-                        });
-                      }}
+                      onPress={() => openSpecies(garden, flower)}
                     >
                       {acquired
                         ? stage === 5
@@ -491,13 +525,7 @@ export default function Jardin() {
       <Button secondary onPress={() => router.push('/boutique')}>
         Retour à la boutique
       </Button>
-      {purchase && (
-        <CollectionPurchase
-          purchase={purchase}
-          motion={save.settings.motion}
-          onClose={() => confirm(null)}
-        />
-      )}
+      {purchaseDialog}
       {play && (rulesOpen || introductions.length > 0) && (
         <MechanicIntroduction
           key={`${sessionKey}/${rulesOpen ? 'reference' : 'discovery'}`}
@@ -507,7 +535,7 @@ export default function Jardin() {
           onAcknowledge={(id) => setSave((s) => acknowledgeMechanic(s, id))}
           onClose={() => {
             if (rulesOpen) setRulesOpen(false);
-            else setPlaying(false);
+            else leavePuzzle();
           }}
         />
       )}
