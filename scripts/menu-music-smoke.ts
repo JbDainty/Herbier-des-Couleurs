@@ -1,5 +1,8 @@
 import { chromium, expect } from '@playwright/test';
 import { initial } from '../src/state/model';
+import { GOLDEN_COLLECTION_ID } from '../src/data/collections';
+import { mechanicIds } from '../src/engine/mechanics';
+import { acquireGardenSpecies } from '../src/state/economy';
 import { openCarnet, openHome, openScreen } from './navigation-test-helper';
 
 type Voice = { duration: number; offset: number; stopped: boolean };
@@ -17,7 +20,18 @@ async function main() {
     });
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
-    const save = { ...initial(), started: true, guideSeen: true, nickname: 'Camille' };
+    const save = acquireGardenSpecies(
+      {
+        ...initial(),
+        started: true,
+        guideSeen: true,
+        nickname: 'Camille',
+        seeds: 200,
+        seenMechanics: [...mechanicIds],
+      },
+      GOLDEN_COLLECTION_ID,
+      'phenix',
+    );
     save.settings = { ...save.settings, sound: false, music: true };
     await page.addInitScript((save) => {
       if (!localStorage.getItem('color-world.save'))
@@ -48,6 +62,8 @@ async function main() {
       });
     const count = async () => (await active()).length;
     const album = async () => (await active()).map((voice) => Math.round(voice.duration));
+    const starts = () =>
+      page.evaluate(() => (window as typeof window & { musicVoices: Voice[] }).musicVoices.length);
     const hidden = (value: boolean) =>
       page.evaluate((value) => {
         Object.defineProperty(document, 'hidden', { configurable: true, value });
@@ -68,6 +84,27 @@ async function main() {
     await expect.poll(album).toEqual([56]);
     expect((await active())[0].offset).toBeGreaterThan(0);
 
+    const continuous = await starts();
+    await openScreen(page, 'Boutique');
+    await expect.poll(album).toEqual([56]);
+    await page.getByRole('button', { name: 'Voir les décors', exact: true }).click();
+    await expect(page.getByTestId('wallpaper-preview')).toBeVisible();
+    await expect.poll(album).toEqual([56]);
+    await page.getByRole('button', { name: 'Retour à la boutique', exact: true }).click();
+    await page.getByRole('button', { name: 'Découvrir les cinq merveilles', exact: true }).click();
+    await expect(page.getByTestId('golden-gallery')).toBeVisible();
+    await expect.poll(album).toEqual([56]);
+    await openScreen(page, 'Paramètres');
+    await expect.poll(album).toEqual([56]);
+    expect(await starts()).toBe(continuous);
+
+    await openScreen(page, 'Boutique');
+    await page.getByRole('button', { name: 'Découvrir les cinq merveilles', exact: true }).click();
+    await page.getByRole('button', { name: 'Restaurer cette merveille', exact: true }).click();
+    await expect(page.getByTestId('garden-puzzle')).toBeVisible();
+    await expect.poll(album).toEqual([64]);
+    await openHome(page);
+
     await openCarnet(page);
     await expect.poll(album).toEqual([64]);
     await openHome(page);
@@ -79,14 +116,17 @@ async function main() {
 
     await openScreen(page, 'Paramètres');
     const music = page.getByRole('switch', { name: 'Musique du livre', exact: true });
+    await expect.poll(album).toEqual([56]);
     await music.click();
     await expect.poll(count).toBe(0);
-    await openHome(page);
+    await openScreen(page, 'Boutique');
     expect(await active()).toEqual([]);
     await openScreen(page, 'Paramètres');
     await music.click();
-    await openHome(page);
     await expect.poll(album).toEqual([56]);
+    const reenabled = await starts();
+    await openHome(page);
+    expect(await starts()).toBe(reenabled);
 
     await page.getByRole('button', { name: 'Revoir le prologue' }).click();
     await expect(page.getByTestId('book-opening-film')).toBeVisible();
@@ -98,7 +138,7 @@ async function main() {
     ).toBe(false);
     expect(errors).toEqual([]);
     console.log(
-      'Menu music passed: studio exit, 56-second decoded loop, background resume, workshop and daily soundtrack switching, music preference, and prologue without overlapping loops.',
+      'Menu music passed: uninterrupted 56-second loop across the menu, shop, golden gallery and settings, separate puzzle ambience, background resume, music switch, and prologue without overlapping loops.',
     );
   } finally {
     await browser.close();
