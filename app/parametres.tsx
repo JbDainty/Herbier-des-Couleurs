@@ -15,7 +15,7 @@ import { CollectionPaperCorners } from '../src/components/CollectionPaperCorners
 import { TestPageTools } from '../src/components/TestPageTools';
 import { AccountConnections } from '../src/components/AccountConnections';
 import { ResetProgressDialog } from '../src/components/ResetProgressDialog';
-import { SettingsArtwork, SettingsFlourish } from '../src/components/SettingsArtwork';
+import { SettingsArtwork } from '../src/components/SettingsArtwork';
 import { Paper } from '../src/components/Paper';
 import { F } from '../src/components/fonts';
 import { T, Button, C, Icon } from '../src/components/ui';
@@ -60,7 +60,7 @@ const options: { key: keyof Settings; name: string; detail: string; accessibleNa
 export default function Parametres() {
   const { save, setSave, error, reset } = useGame();
   const { header, availableHeight } = useContext(BookChromeContext);
-  const { width, height, fontScale } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const compact = (availableHeight || height) < 820 || width < 360;
   const [tab, setTab] = useState<Tab>('jeu');
   const [nickname, setNickname] = useState(save.nickname);
@@ -100,16 +100,6 @@ export default function Parametres() {
       </View>
       {header}
       <View style={[styles.page, { paddingHorizontal: width < 360 ? 10 : 16 }]}>
-        <View style={{ alignItems: 'center', paddingVertical: compact ? 4 : 8 }}>
-          <T
-            serif
-            accessibilityRole="header"
-            style={[styles.title, { fontSize: compact ? 36 : 44 }]}
-          >
-            Paramètres
-          </T>
-          <SettingsFlourish />
-        </View>
         <View
           accessibilityRole="tablist"
           accessibilityLabel="Rubriques des paramètres"
@@ -136,8 +126,15 @@ export default function Parametres() {
             >
               <T
                 serif
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.65}
+                maxFontSizeMultiplier={1.25}
                 style={{
-                  fontSize: compact ? 22 : 25,
+                  width: '100%',
+                  textAlign: 'center',
+                  flexShrink: 1,
+                  fontSize: compact ? 20 : 22,
                   color: tab === item.key ? '#fff2d5' : C.green,
                 }}
               >
@@ -219,7 +216,6 @@ export default function Parametres() {
                     );
                   })}
                 </View>
-                <BookDecoration compact={compact || fontScale > 1.3} />
               </View>
             )}
             {tab === 'carnet' && (
@@ -323,9 +319,6 @@ export default function Parametres() {
                   validation botanique pour tout usage scientifique. Références : GBIF Backbone
                   Taxonomy, Plants of the World Online (Royal Botanic Gardens, Kew) et TAXREF/INPN.
                 </AboutSection>
-                <View style={{ flexGrow: 1, justifyContent: 'flex-end' }}>
-                  <BookDecoration compact={compact} />
-                </View>
               </View>
             )}
           </ScrollView>
@@ -347,25 +340,6 @@ export default function Parametres() {
           }}
         />
       )}
-    </View>
-  );
-}
-
-function BookDecoration({ compact }: { compact: boolean }) {
-  return (
-    <View
-      pointerEvents="none"
-      accessible={false}
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-      style={{ alignItems: 'flex-end', paddingTop: 8 }}
-    >
-      <Image
-        source={require('../assets/home/herbarium.png')}
-        fadeDuration={0}
-        resizeMode="contain"
-        style={{ width: compact ? 90 : 126, height: compact ? 60 : 84 }}
-      />
     </View>
   );
 }
@@ -417,8 +391,7 @@ function AboutSection({
 
 const styles = StyleSheet.create({
   screen: { flex: 1, minHeight: 0, backgroundColor: '#e4e8dc' },
-  page: { flex: 1, minHeight: 0, width: '100%', maxWidth: 640, alignSelf: 'center' },
-  title: { fontFamily: F.displayBold, color: '#24452f', textAlign: 'center' },
+  page: { flex: 1, minHeight: 0, width: '100%', maxWidth: 640, alignSelf: 'center', paddingTop: 8 },
   tabs: { flexDirection: 'row', gap: 5, paddingHorizontal: 10, marginBottom: -1 },
   tab: {
     flex: 1,
@@ -451,6 +424,7 @@ const styles = StyleSheet.create({
   },
   content: { flexGrow: 1 },
   setting: {
+    flexGrow: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
