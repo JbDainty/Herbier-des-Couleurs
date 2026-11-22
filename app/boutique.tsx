@@ -1,224 +1,405 @@
-import React, { useState } from 'react';
-import { Image, Pressable, View } from 'react-native';
-import { router } from 'expo-router';
-import { BookScrollView } from '../src/components/BookScrollView';
-import { Paper } from '../src/components/Paper';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import {
+  BackHandler,
+  Image,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+  useWindowDimensions,
+} from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { BookChromeContext, BookScrollView } from '../src/components/BookScrollView';
 import { CollectionPurchase, type Purchase } from '../src/components/CollectionPurchase';
+import {
+  PeacefulBook,
+  ShopModal,
+  ShopPaper,
+  ShopRibbon,
+  SpecimenHalo,
+  shopArtwork,
+} from '../src/components/ShopPresentation';
 import { useGame } from '../src/state/store';
 import {
   acquireGarden,
+  acquireGardenSpecies,
   acquireWallpaper,
   wallpapers,
   wallpaperUnlocked,
 } from '../src/state/economy';
-import { featuredCollection } from '../src/data/collections';
-import { GOLDEN_COLLECTION_ID } from '../src/data/collections';
-import { collectionArtwork } from '../src/data/collectionArtwork';
+import { collections, featuredCollection, GOLDEN_COLLECTION_ID } from '../src/data/collections';
 import { wallpaperArtwork } from '../src/data/wallpaperArtwork';
-import { Button, C, Label, T, ui } from '../src/components/ui';
+import { Button, C, Icon, T } from '../src/components/ui';
+import { F } from '../src/components/fonts';
+
+type Section = 'accueil' | 'jardins' | 'decors';
 
 export default function Boutique() {
   const { save, setSave } = useGame();
+  const { width, height } = useWindowDimensions();
+  const { availableHeight } = useContext(BookChromeContext);
+  const compact = (availableHeight || height) < 800 || width < 360;
+  const artHeight = Math.max(145, Math.min(240, (availableHeight || height) - 610));
+  const params = useLocalSearchParams<{ rayon?: string }>();
+  const section: Section =
+    params.rayon === 'jardins' || params.rayon === 'decors' ? params.rayon : 'accueil';
+  const scroll = useRef<ScrollView>(null);
   const [selected, select] = useState(
     save.wallpaper?.startsWith('ecosystem-') ? save.wallpaper : wallpapers[0].id,
   );
   const [purchase, confirm] = useState<Purchase | null>(null);
-  const item = wallpapers.find((w) => w.id === selected)!;
+  const [info, setInfo] = useState<'seeds' | 'ads' | null>(null);
+  const item = wallpapers.find((w) => w.id === selected) ?? wallpapers[0];
   const owned = save.ownedWallpapers?.includes(item.id);
   const unlocked = wallpaperUnlocked(save, item.id);
   const active = save.wallpaper === item.id;
   const featured = featuredCollection();
   const gardenOwned = featured && !!save.gardens?.[featured.id];
+  const golden = collections.find((c) => c.id === GOLDEN_COLLECTION_ID)!;
+  const phenix = golden.species.find((s) => s.id === 'phenix')!;
+  const phenixOwned = !!save.gardens?.[golden.id]?.species.includes(phenix.id);
+  const open = (next: Section) => {
+    router.setParams({ rayon: next });
+    scroll.current?.scrollTo({ y: 0, animated: false });
+  };
+  useEffect(() => {
+    if (Platform.OS === 'web' || section === 'accueil') return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (purchase || info) return false;
+      open('accueil');
+      return true;
+    });
+    return () => sub.remove();
+  }, [section, purchase, info]);
+  const seeWonders = () => router.push({ pathname: '/jardin', params: { collection: golden.id } });
+  const collectPhenix = () => {
+    if (phenixOwned) return seeWonders();
+    confirm({
+      title: `Collectionner « ${phenix.name} » ?`,
+      cost: phenix.cost,
+      detail:
+        'Cette merveille et ses cinq puzzles resteront dans votre collection. Chaque espèce de l’herbier s’acquiert séparément.',
+      action: () => {
+        setSave((s) => acquireGardenSpecies(s, golden.id, phenix.id));
+        seeWonders();
+      },
+    });
+  };
+  const buyGarden = () => {
+    if (!featured) return;
+    if (gardenOwned) {
+      router.push({ pathname: '/jardin', params: { collection: featured.id } });
+      return;
+    }
+    confirm({
+      title: 'Ouvrir le jardin des orchidées ?',
+      cost: featured.cost,
+      detail:
+        'Votre première orchidée et ses cinq puzzles sont inclus. Les autres espèces s’acquièrent séparément. Le jardin reste dans votre collection après la saison.',
+      action: () => {
+        setSave((s) => acquireGarden(s, featured.id));
+        router.push({ pathname: '/jardin', params: { collection: featured.id } });
+      },
+    });
+  };
+
   return (
-    <BookScrollView testID="seed-shop" contentContainerStyle={[ui.page, { gap: 16 }]}>
-      <Label>LES TRÉSORS DU BOTANISTE</Label>
-      <T serif style={ui.title}>
-        La Boutique
-      </T>
-      <T style={ui.muted}>Vos graines font grandir votre collection et transforment votre décor.</T>
-      <Paper style={[ui.card, { gap: 8 }]}>
-        <Label>VOTRE RÉSERVE · {save.seeds} GRAINES</Label>
-        <T>
-          Obtenir les trois étoiles d’une page de la campagne principale donne une graine, une seule
-          fois. Une ou deux étoiles ne donnent pas de graine. Les pages des collections n’en donnent
-          pas, même avec trois étoiles.
-        </T>
-        <T style={ui.muted}>
-          Les indices et les mélanges sont gratuits : gardez vos graines pour vos décors et vos
-          jardins.
-        </T>
-        <T style={ui.muted}>
-          Le Vitrail du jour donne une graine après ses trois défis, une seule fois par jour et sans
-          étoiles. Rejouer les feuillets passés ne donne pas de nouvelle graine.
-        </T>
-        <T style={ui.muted}>Vos graines déjà gagnées et vos acquisitions sont conservées.</T>
-      </Paper>
-      {!!featured && (
-        <Paper testID="featured-garden" style={[ui.card, { gap: 12, backgroundColor: '#f1e8f3' }]}>
-          <Label>LE JARDIN À LA UNE</Label>
-          <Image
-            source={collectionArtwork[featured.species[0].id]}
-            resizeMode="contain"
-            resizeMethod="resize"
-            style={{ width: '100%', height: 210 }}
-            accessibilityLabel={featured.species[0].name}
-          />
-          <T serif style={{ fontSize: 30, lineHeight: 36, color: '#665078' }}>
-            {featured.name}
-          </T>
-          <T>{featured.subtitle}</T>
-          <T>
-            Le jardin et la première orchidée : {featured.cost} graines. Puis{' '}
-            {featured.species[1].cost} graines par nouvelle espèce, avec cinq pages à restaurer.
-          </T>
-          <T style={ui.muted}>
-            Un jardin acquis reste accessible et complétable, même quand une nouvelle collection
-            arrive à la une.
-          </T>
-          <T style={ui.muted}>Les pages de ce jardin ne rapportent pas de graines.</T>
-          <Button
-            disabled={!!save.testSession || (!gardenOwned && save.seeds < featured.cost)}
-            onPress={() => {
-              if (gardenOwned) {
-                router.push('/jardin');
-                return;
-              }
-              confirm({
-                title: 'Ouvrir le jardin des orchidées ?',
-                cost: featured.cost,
-                detail:
-                  'Votre première orchidée et ses cinq puzzles sont inclus. Les cinq autres espèces pourront être acquises séparément. Le jardin restera dans votre collection.',
-                action: () => {
-                  setSave((s) => acquireGarden(s, featured.id));
-                  router.push('/jardin');
-                },
-              });
-            }}
-          >
-            {gardenOwned
-              ? 'Entrer dans mon jardin'
-              : `Débloquer le jardin · ${featured.cost} graines`}
-          </Button>
-          {!gardenOwned && save.seeds < featured.cost && (
-            <T style={ui.muted}>
-              Encore {featured.cost - save.seeds} graines pour ouvrir ce jardin.
+    <BookScrollView
+      ref={scroll}
+      testID="seed-shop"
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={[styles.page, { padding: width < 360 ? 10 : 14 }]}
+    >
+      {section !== 'accueil' && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Retour à la boutique"
+          onPress={() => open('accueil')}
+          style={styles.back}
+        >
+          <Icon name="arrow-undo-outline" size={20} color={C.green} />
+          <T style={{ fontFamily: F.medium, fontSize: 17 }}>Retour à la boutique</T>
+        </Pressable>
+      )}
+      {section === 'accueil' && (
+        <>
+          <ShopPaper testID="golden-shop-entry" style={{ gap: 3, padding: compact ? 12 : 16 }}>
+            <View style={styles.heroTop}>
+              <T style={styles.eyebrow}>LES MERVEILLES</T>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Découvrir les cinq merveilles"
+                onPress={seeWonders}
+                style={styles.more}
+              >
+                <T style={{ color: C.green, fontSize: 14 }}>Les 5 espèces</T>
+                <Icon name="arrow-forward-outline" size={17} color={C.green} />
+              </Pressable>
+            </View>
+            <View style={{ height: artHeight, alignItems: 'center' }}>
+              <SpecimenHalo />
+              <Image
+                source={shopArtwork.phenix}
+                resizeMode="contain"
+                fadeDuration={0}
+                style={{ width: '100%', height: '100%' }}
+                accessibilityLabel="Aquarelle de l’Orchidée du Phénix"
+              />
+            </View>
+            <T
+              serif
+              accessibilityRole="header"
+              style={[styles.specimenName, { fontSize: compact ? 25 : 29 }]}
+            >
+              {phenix.name}
             </T>
+            <T style={styles.centerHelp}>
+              {phenixOwned ? 'Dans votre collection' : '5 puzzles à restaurer'}
+            </T>
+            <ShopRibbon
+              disabled={!!save.testSession || (!phenixOwned && save.seeds < phenix.cost)}
+              onPress={collectPhenix}
+            >
+              {phenixOwned ? 'Retrouver ma merveille' : `Collectionner · ${phenix.cost} graines`}
+            </ShopRibbon>
+            {!phenixOwned && save.seeds < phenix.cost && (
+              <T style={[styles.centerHelp, { fontSize: 13 }]}>
+                Encore {phenix.cost - save.seeds} graines.
+              </T>
+            )}
+          </ShopPaper>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            {!!featured && (
+              <Pressable
+                testID="shop-gardens-link"
+                accessibilityRole="button"
+                accessibilityLabel="Voir le jardin des orchidées"
+                onPress={() => open('jardins')}
+                style={({ pressed }) => [styles.category, { opacity: pressed ? 0.7 : 1 }]}
+              >
+                <Image
+                  source={shopArtwork.orchid}
+                  resizeMode="contain"
+                  fadeDuration={0}
+                  style={{ width: compact ? 38 : 46, height: 72 }}
+                  accessible={false}
+                />
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <T serif style={[styles.categoryTitle, { fontSize: compact ? 17 : 19 }]}>
+                    Jardin des orchidées
+                  </T>
+                  <T style={styles.categoryPrice}>
+                    {gardenOwned ? 'Mon jardin' : `${featured.cost} graines`}
+                  </T>
+                </View>
+              </Pressable>
+            )}
+            <Pressable
+              testID="shop-wallpapers-link"
+              accessibilityRole="button"
+              accessibilityLabel="Voir les décors"
+              onPress={() => open('decors')}
+              style={({ pressed }) => [styles.category, { opacity: pressed ? 0.7 : 1 }]}
+            >
+              <Image
+                source={shopArtwork.meadow}
+                resizeMode="cover"
+                fadeDuration={0}
+                style={{ width: compact ? 38 : 46, height: 64, borderRadius: 9 }}
+                accessible={false}
+              />
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <T serif style={[styles.categoryTitle, { fontSize: compact ? 17 : 19 }]}>
+                  Décors
+                </T>
+                <T style={styles.categoryPrice}>
+                  Dès {Math.min(...wallpapers.map((w) => w.cost))} graines
+                </T>
+              </View>
+            </Pressable>
+          </View>
+          <Pressable
+            testID="remove-ads-offer"
+            accessibilityRole="button"
+            accessibilityLabel="Retirer les pubs · 1,99 € · Bientôt disponible"
+            accessibilityHint="Lire les informations sur cette offre à venir"
+            onPress={() => setInfo('ads')}
+            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+          >
+            <ShopPaper style={styles.noAds}>
+              <PeacefulBook />
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <T serif style={{ fontSize: compact ? 21 : 24 }}>
+                  Retirer les pubs
+                </T>
+                <T style={{ fontSize: 14, color: C.muted }}>Bientôt disponible</T>
+              </View>
+              <View style={styles.priceTag}>
+                <T style={{ fontFamily: F.medium, fontSize: 19, color: C.green }}>1,99 €</T>
+              </View>
+            </ShopPaper>
+          </Pressable>
+        </>
+      )}
+      {section === 'jardins' && (
+        <>
+          {!!featured && (
+            <ShopPaper testID="featured-garden" style={{ gap: 12 }}>
+              <T style={styles.eyebrow}>LE JARDIN À LA UNE</T>
+              <Image
+                source={shopArtwork.orchid}
+                resizeMode="contain"
+                fadeDuration={0}
+                style={{ width: '100%', height: compact ? 175 : 215 }}
+                accessibilityLabel={featured.species[0].name}
+              />
+              <T serif accessibilityRole="header" style={styles.sectionTitle}>
+                {featured.id === 'orchidees-lumiere' ? 'Jardin des orchidées' : featured.name}
+              </T>
+              <T style={styles.help}>Première orchidée + 5 puzzles inclus.</T>
+              <T style={styles.help}>
+                Autres espèces : {featured.species[1].cost} graines chacune.
+              </T>
+              <ShopRibbon
+                disabled={!!save.testSession || (!gardenOwned && save.seeds < featured.cost)}
+                onPress={buyGarden}
+              >
+                {gardenOwned
+                  ? 'Entrer dans mon jardin'
+                  : `Débloquer le jardin · ${featured.cost} graines`}
+              </ShopRibbon>
+              {!gardenOwned && save.seeds < featured.cost && (
+                <T style={styles.help}>Encore {featured.cost - save.seeds} graines.</T>
+              )}
+              <T style={styles.help}>Votre jardin reste accessible après la saison.</T>
+            </ShopPaper>
           )}
-        </Paper>
+          {!!Object.keys(save.gardens ?? {}).length && (
+            <Button secondary onPress={() => router.push('/jardin')}>
+              Retrouver mes jardins
+            </Button>
+          )}
+        </>
       )}
-      {!!Object.keys(save.gardens ?? {}).length && (
-        <Button secondary onPress={() => router.push('/jardin')}>
-          Retrouver mes jardins
-        </Button>
-      )}
-      <Paper testID="golden-shop-entry" style={[ui.card, { gap: 10, backgroundColor: '#ecdaa7' }]}>
-        <Label>LES CINQ MERVEILLES</Label>
-        <T serif style={{ fontSize: 28, color: '#745323' }}>
-          L’Herbier des Merveilles
-        </T>
-        <T>
-          Cinq espèces imaginaires d’exception sur fond d’or. Chaque merveille coûte 200 graines,
-          avec cinq nouvelles pages. L’ouverture de l’herbier est gratuite.
-        </T>
-        <Button onPress={() => router.push(`/jardin?collection=${GOLDEN_COLLECTION_ID}`)}>
-          Découvrir les cinq merveilles
-        </Button>
-      </Paper>
-      <Label>LES DÉCORS DES ÉCOSYSTÈMES</Label>
-      <T>
-        Chaque paysage devient disponible à la découverte de son écosystème. Obtenir les trois
-        étoiles de toutes les pages de son premier chapitre permet de réunir son prix en graines.
-      </T>
-      <Paper testID="wallpaper-preview" style={[ui.card, { gap: 12 }]}>
-        <Image
-          source={wallpaperArtwork(item.id)}
-          resizeMode="cover"
-          resizeMethod="resize"
-          style={{ width: '100%', height: 185, borderRadius: 14 }}
-          accessibilityLabel={`Aperçu : ${item.name}`}
-        />
-        <T serif style={{ fontSize: 28, lineHeight: 34 }}>
-          {item.name}
-        </T>
-        <T>
-          {owned
-            ? 'Ce décor est dans votre collection.'
-            : `${item.cost} graines · décor de l’accueil, de l’atelier et du carnet.`}
-        </T>
-        {!unlocked && !owned && (
-          <T style={ui.muted}>
-            Disponible à la découverte de cet écosystème, page {item.firstPage}.
+      {section === 'decors' && (
+        <>
+          <T serif accessibilityRole="header" style={styles.sectionTitle}>
+            Les décors
           </T>
-        )}
-        {unlocked && !owned && save.seeds < item.cost && (
-          <T style={ui.muted}>Encore {item.cost - save.seeds} graines.</T>
-        )}
-        <Button
-          disabled={
-            active || !!save.testSession || (!owned && (!unlocked || save.seeds < item.cost))
-          }
-          onPress={() => {
-            if (owned) {
-              setSave((s) => acquireWallpaper(s, item.id));
-              return;
-            }
-            confirm({
-              title: `Acquérir « ${item.name} » ?`,
-              cost: item.cost,
-              detail:
-                'Ce paysage sera appliqué immédiatement. Vous pourrez ensuite changer de décor gratuitement parmi vos acquisitions.',
-              action: () => setSave((s) => acquireWallpaper(s, item.id)),
-            });
+          <T style={styles.help}>Un paysage à collectionner pour chaque écosystème découvert.</T>
+          <ShopPaper testID="wallpaper-preview" style={{ gap: 12 }}>
+            <Image
+              source={wallpaperArtwork(item.id)}
+              resizeMode="cover"
+              resizeMethod="resize"
+              fadeDuration={0}
+              style={{ width: '100%', height: compact ? 155 : 185, borderRadius: 14 }}
+              accessibilityLabel={`Aperçu : ${item.name}`}
+            />
+            <T serif style={styles.sectionTitle}>
+              {item.name}
+            </T>
+            <T style={styles.help}>
+              {owned ? 'Ce décor est dans votre collection.' : `${item.cost} graines`}
+            </T>
+            {!unlocked && !owned && (
+              <T style={styles.help}>
+                Disponible à la découverte de cet écosystème, page {item.firstPage}.
+              </T>
+            )}
+            {unlocked && !owned && save.seeds < item.cost && (
+              <T style={styles.help}>Encore {item.cost - save.seeds} graines.</T>
+            )}
+            <ShopRibbon
+              disabled={
+                active || !!save.testSession || (!owned && (!unlocked || save.seeds < item.cost))
+              }
+              onPress={() => {
+                if (owned) {
+                  setSave((s) => acquireWallpaper(s, item.id));
+                  return;
+                }
+                confirm({
+                  title: `Acquérir « ${item.name} » ?`,
+                  cost: item.cost,
+                  detail:
+                    'Ce paysage sera appliqué immédiatement. Vous pourrez ensuite changer gratuitement parmi vos décors acquis.',
+                  action: () => setSave((s) => acquireWallpaper(s, item.id)),
+                });
+              }}
+            >
+              {active
+                ? 'Décor utilisé'
+                : owned
+                  ? 'Utiliser ce décor'
+                  : `Acquérir ce décor · ${item.cost} graines`}
+            </ShopRibbon>
+          </ShopPaper>
+          <View style={{ gap: 7 }}>
+            {wallpapers.map((w) => (
+              <Pressable
+                key={w.id}
+                testID={`wallpaper-choice-${w.ecosystem}`}
+                accessibilityRole="button"
+                accessibilityLabel={`Voir le décor ${w.name}`}
+                accessibilityState={{ selected: selected === w.id }}
+                aria-selected={selected === w.id}
+                onPress={() => {
+                  select(w.id);
+                  scroll.current?.scrollTo({ y: 0, animated: save.settings.motion });
+                }}
+                style={({ pressed }) => [
+                  styles.wallpaperChoice,
+                  {
+                    backgroundColor: selected === w.id ? '#dce5ce' : '#f5eddcdd',
+                    borderColor: selected === w.id ? '#809563' : C.line,
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <View
+                  style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: w.color }}
+                />
+                <T style={{ flex: 1, fontSize: 17 }}>{w.name}</T>
+                <T style={{ fontSize: 13, color: C.muted }}>
+                  {save.ownedWallpapers?.includes(w.id)
+                    ? 'Acquis'
+                    : wallpaperUnlocked(save, w.id)
+                      ? `${w.cost} graines`
+                      : 'À découvrir'}
+                </T>
+              </Pressable>
+            ))}
+          </View>
+          <Button
+            secondary
+            disabled={!save.wallpaper || save.wallpaper === 'default'}
+            onPress={() => setSave((s) => acquireWallpaper(s, 'default'))}
+          >
+            Retrouver le décor d’origine
+          </Button>
+        </>
+      )}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Comment gagner des graines ?"
+        onPress={() => setInfo('seeds')}
+        style={styles.rules}
+      >
+        <Icon name="book-outline" size={21} color={C.green} />
+        <T
+          style={{
+            fontFamily: F.medium,
+            fontSize: 16,
+            color: C.green,
+            textDecorationLine: 'underline',
+            flexShrink: 1,
           }}
         >
-          {active
-            ? 'Décor utilisé'
-            : owned
-              ? 'Utiliser ce décor'
-              : `Acquérir ce décor · ${item.cost} graines`}
-        </Button>
-      </Paper>
-      <View style={{ gap: 6 }}>
-        {wallpapers.map((w) => (
-          <Pressable
-            key={w.id}
-            testID={`wallpaper-choice-${w.ecosystem}`}
-            accessibilityRole="button"
-            accessibilityLabel={`Voir le décor ${w.name}`}
-            accessibilityState={{ selected: selected === w.id }}
-            onPress={() => select(w.id)}
-            style={{
-              minHeight: 48,
-              padding: 12,
-              borderRadius: 12,
-              backgroundColor: selected === w.id ? '#dce5ce' : '#f5eddcdd',
-              borderWidth: 1,
-              borderColor: selected === w.id ? '#809563' : '#d9cba9',
-              flexDirection: 'row',
-              gap: 10,
-              alignItems: 'center',
-            }}
-          >
-            <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: w.color }} />
-            <T style={{ flex: 1 }}>{w.name}</T>
-            <T style={{ fontSize: 12, color: C.muted }}>
-              {save.ownedWallpapers?.includes(w.id)
-                ? 'Acquis'
-                : wallpaperUnlocked(save, w.id)
-                  ? `${w.cost} graines`
-                  : 'À découvrir'}
-            </T>
-          </Pressable>
-        ))}
-      </View>
-      <Button
-        secondary
-        disabled={!save.wallpaper || save.wallpaper === 'default'}
-        onPress={() => setSave((s) => acquireWallpaper(s, 'default'))}
-      >
-        Retrouver le décor d’origine
-      </Button>
-      <T style={ui.muted}>Les achats en argent réel ne sont pas proposés dans cette version.</T>
+          Comment gagner des graines ?
+        </T>
+      </Pressable>
       {purchase && (
         <CollectionPurchase
           purchase={purchase}
@@ -226,6 +407,95 @@ export default function Boutique() {
           onClose={() => confirm(null)}
         />
       )}
+      {info && (
+        <ShopModal
+          title={info === 'ads' ? 'Retirer les pubs' : 'Vos graines'}
+          onClose={() => setInfo(null)}
+          motion={save.settings.motion}
+        >
+          {info === 'ads' ? (
+            <>
+              <T style={{ fontFamily: F.medium, fontSize: 19, color: C.green }}>
+                1,99 € · Offre à venir
+              </T>
+              <T>
+                Cette version du jeu ne contient pas de publicités. L’offre sera proposée lorsque
+                les achats seront disponibles.
+              </T>
+              <T style={styles.help}>Aucun achat n’est effectué ici.</T>
+            </>
+          ) : (
+            <>
+              <T>Campagne : 1 graine au premier résultat à trois étoiles de chaque page.</T>
+              <T>Vitrail du jour : 1 graine après les trois défis du jour.</T>
+              <T>
+                Rejouer une page déjà récompensée ou terminer une page de collection n’ajoute pas de
+                graines.
+              </T>
+              <T style={styles.help}>Les indices et les mélanges restent gratuits.</T>
+            </>
+          )}
+        </ShopModal>
+      )}
     </BookScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  page: { width: '100%', maxWidth: 680, alignSelf: 'center', gap: 12, paddingBottom: 18 },
+  back: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  heroTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  eyebrow: {
+    fontFamily: F.medium,
+    fontSize: 11,
+    letterSpacing: 1.7,
+    color: C.muted,
+    flexShrink: 1,
+  },
+  more: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 3 },
+  specimenName: { fontFamily: F.displayBold, color: C.green, textAlign: 'center' },
+  centerHelp: { fontSize: 16, lineHeight: 21, color: C.muted, textAlign: 'center' },
+  category: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 92,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    padding: 10,
+    borderRadius: 18,
+    borderWidth: 0.8,
+    borderColor: '#c7ad7a',
+    backgroundColor: C.card,
+  },
+  categoryTitle: { fontFamily: F.displayBold, color: C.green, lineHeight: 23 },
+  categoryPrice: { fontSize: 14, lineHeight: 19, color: C.muted, marginTop: 3 },
+  noAds: { minHeight: 88, flexDirection: 'row', alignItems: 'center', gap: 9, padding: 13 },
+  priceTag: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: '#e4e6cf',
+    borderRadius: 14,
+    borderWidth: 0.7,
+    borderColor: '#c1b28a',
+  },
+  sectionTitle: { fontSize: 28, lineHeight: 34, color: C.green },
+  help: { fontSize: 16, lineHeight: 22, color: C.muted },
+  wallpaperChoice: {
+    minHeight: 56,
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 0.8,
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center',
+  },
+  rules: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 8,
+  },
+});

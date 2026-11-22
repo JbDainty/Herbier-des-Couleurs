@@ -57,6 +57,16 @@ La mise à la une suit des cycles de deux mois à partir du premier janvier UTC 
 
 Seul le jardin à la une peut être acquis pour la première fois. Une fois acquis, il reste affiché dans « Mes jardins », jouable et complétable, avec possibilité d’acquérir ses espèces manquantes, même après sa rotation. Les acquisitions n’expirent pas.
 
+## La galerie de la boutique
+
+La première page met en avant l’Orchidée du Phénix, avec accès aux cinq merveilles, au jardin d’orchidées et aux décors. Le titre et les papiers ivoire reprennent les autres pages du jeu. Trois illustrations aquarellées fixes, conditionnées en WebP (environ 170 Ko au total), gardent les dessins doux et le rendu léger ; les compositions originales sont conservées dans `art/shop`.
+
+Les rayons `jardins` et `decors` sont regroupés dans `/boutique?rayon=…`, avec retour à la galerie. Les prix, les conditions de découverte des écosystèmes, les confirmations et les droits acquis sont conservés. Les règles des graines sont regroupées dans une fenêtre dédiée.
+
+L’offre « Retirer les pubs » est présentée à **1,99 €**, avec la mention **Bientôt disponible**. Son bouton ouvre uniquement les informations de disponibilité : cette version ne diffuse aucune publicité, ne facture rien et n’accorde aucun droit d’achat fictif. Aucun pack de graines payant n’est affiché. L’activation du paiement et du retrait des publicités demandera un produit configuré dans les boutiques, un fournisseur connecté et une restauration fiable des droits.
+
+`node --import tsx scripts/shop-gallery-smoke.ts` vérifie la disponibilité explicite de l’offre sans débit ni modification de sauvegarde, les achats/annulations/rechargements des merveilles, jardins et décors, les doubles confirmations, les restrictions en session d’essai et sept formats d’écran. Les tests de collections, merveilles et graines contrôlent également la comptabilité et les puzzles.
+
 ## Vérification et achats réels
 
 `tests/collections.test.ts` simule le plafond de 1 000 graines de la campagne à trois étoiles, l’achat des vingt décors puis du jardin, les doubles achats, la migration répétée, l’absence de gains à une ou deux étoiles, la prime unique des trois étoiles de la campagne et l’absence de gains sur les trente pages saisonnières, la rotation et la reprise indépendante des orchidées. Il vérifie les trente certificats et leurs minima. `node --import tsx scripts/collections-smoke.ts` joue les cinq premières pages dans l’interface et contrôle achats, rechargements, sauvegardes anciennes et trois tailles d’écran. `GAME_TEST_URL` désigne le serveur Expo ou l’export Web à tester.

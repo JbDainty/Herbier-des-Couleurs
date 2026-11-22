@@ -94,7 +94,7 @@ async function main() {
           await page.screenshot({ path: `test-results/review-${route || 'home'}.png` });
       }
       await page.goto(base + 'boutique');
-      await expect(page.getByText('La Boutique', { exact: true })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Boutique', exact: true })).toBeVisible();
       await rootFits(width);
       await page.goto(base + 'carte');
       await page.getByTestId('journey-page-1').click();

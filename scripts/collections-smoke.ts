@@ -47,6 +47,7 @@ async function main() {
     await page.goto(url);
     await page.getByRole('link', { name: 'Boutique', exact: true }).click();
     await expect(page.getByTestId('seed-shop')).toBeVisible();
+    await button('Voir les décors').click();
     await button('Acquérir ce décor · 20 graines').click();
     await button('Garder mes graines').click();
     expect((await stored()).seeds).toBe(240);
@@ -68,6 +69,7 @@ async function main() {
     const campaign = await stored();
     await button('Menu principal').click();
     await page.getByRole('link', { name: 'Boutique', exact: true }).click();
+    await button('Voir le jardin des orchidées').click();
     await page.getByTestId('featured-garden').screenshot({ path: 'test-results/orchid-shop.png' });
     await button('Débloquer le jardin · 150 graines').click();
     await button('Confirmer pour 150 graines').dblclick();
@@ -189,6 +191,7 @@ async function main() {
     await page.goto(url);
     await expect(page.getByTestId('seed-count').filter({ visible: true })).toHaveText('157');
     await page.getByRole('link', { name: 'Boutique', exact: true }).click();
+    await button('Voir les décors').click();
     await button('Acquérir ce décor · 20 graines').click();
     await button('Confirmer pour 20 graines').click();
     expect((await stored()).seeds).toBe(137);
