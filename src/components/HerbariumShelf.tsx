@@ -103,7 +103,7 @@ export function HerbariumShelf({
     if (!alive.current || !activated.current) return;
     router.push(
       (index === chapters.length
-        ? `/jardin?collection=${GOLDEN_COLLECTION_ID}`
+        ? `/jardin?collection=${GOLDEN_COLLECTION_ID}&vue=galerie`
         : `/carnet?ecosystem=${index}`) as Href,
     );
   };
