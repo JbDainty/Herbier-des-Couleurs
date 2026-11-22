@@ -6,12 +6,13 @@ import { useMeasuredSize } from './useMeasuredSize';
 import { useVitrailMelody } from './useVitrailMelody';
 import { VitrailBoard } from './VitrailBoard';
 import { Paper } from './Paper';
+import { HerbariumBookButton } from './HerbariumBookButton';
 import { HerbariumTitle } from './HerbariumTitle';
 import { SeedPouch } from './SeedPouch';
 import { VictoryAction } from './VictoryAction';
 import { C, Icon, T } from './ui';
 import { F } from './fonts';
-import { vitrailLayout } from '../layout/vitrail';
+import { vitrailLayout, vitrailMastheadHeight } from '../layout/vitrail';
 import { useGame } from '../state/store';
 import { openVitrail, rotateVitrail, undoVitrail, type VitrailSession } from '../state/vitrail';
 import { traceVitrail, vitrailHint, type VitrailPuzzle } from '../engine/vitrail';
@@ -119,36 +120,21 @@ export function VitrailScene({
       testID="vitrail-header"
       style={{ height: layout.headerHeight, width: '100%', justifyContent: 'center' }}
     >
-      <View style={{ height: 44, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Menu principal"
-          onPress={() => router.dismissTo('/')}
-          style={({ pressed }) => ({
-            width: 44,
-            height: 44,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: '#a58b51',
-            backgroundColor: pressed ? '#eadab3' : '#fff4dd',
-            shadowColor: '#293e34',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.18,
-            shadowRadius: 3,
-            elevation: 3,
-            transform: [{ scale: pressed ? 0.97 : 1 }],
-          })}
-        >
-          <Icon name="book-outline" size={26} color={C.green} />
-          <T
-            maxFontSizeMultiplier={1.1}
-            style={{ fontFamily: F.bold, fontSize: 10, lineHeight: 12, color: C.green }}
-          >
-            Menu
-          </T>
-        </Pressable>
+      <View
+        style={{
+          height: vitrailMastheadHeight,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 4,
+        }}
+      >
+        <View style={{ backgroundColor: '#fff4dd', borderRadius: 12 }}>
+          <HerbariumBookButton
+            compact
+            motion={save.settings.motion}
+            onHome={() => router.dismissTo('/')}
+          />
+        </View>
         <View style={{ flex: 1, minWidth: 0, alignItems: 'center' }}>
           {layout.tight ? (
             <T
@@ -198,7 +184,7 @@ export function VitrailScene({
       {!layout.tight && (
         <View
           style={{
-            height: layout.headerHeight - 44,
+            height: layout.headerHeight - vitrailMastheadHeight,
             alignItems: 'center',
             justifyContent: 'center',
           }}

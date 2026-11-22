@@ -1,3 +1,5 @@
+export const vitrailMastheadHeight = 48;
+
 /** Geometry uses the measured safe viewport, with fixed space for every command. */
 export function vitrailLayout(
   width: number,
@@ -12,7 +14,7 @@ export function vitrailLayout(
   const gap = height < 600 ? 1 : 6;
   const contentWidth = Math.min(width, 1120) - padding * 2;
   const contentHeight = height - padding * 2;
-  const headerHeight = tight ? 44 : 108;
+  const headerHeight = tight ? vitrailMastheadHeight : 108;
   const stagesHeight = 44;
   const playingCaptionHeight = Math.ceil((tight ? 22 : 26) * Math.min(1.2, Math.max(1, fontScale)));
   const captionHeight = won ? 0 : playingCaptionHeight;
