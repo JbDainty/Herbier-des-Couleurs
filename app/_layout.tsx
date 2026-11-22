@@ -209,7 +209,7 @@ function Shell() {
         music={ready && save.settings.music}
         sound={save.settings.sound}
         started={ready && save.started && !replayOpen && path !== '/aide'}
-        ecosystem={ecosystemForPage(save.current)}
+        track={home ? 'menu' : ecosystemForPage(save.current)}
       />
       <PaperTexture background />
       {ready && save.started && <SelectedWallpaper />}

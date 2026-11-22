@@ -5,6 +5,7 @@ import {
   disposeAmbience,
   unlockAmbience,
   prepareAmbience,
+  type AmbienceTrack,
 } from '../services/ambience';
 import { setAudioForeground } from '../services/audioFocus';
 import { stopBotanicalCues } from '../services/botanicalAudio';
@@ -14,19 +15,21 @@ export function Soundscape({
   music,
   sound,
   started,
-  ecosystem,
+  track,
 }: {
   music: boolean;
   sound: boolean;
   started: boolean;
-  ecosystem: number;
+  track: AmbienceTrack;
 }) {
   useEffect(() => {
-    if (music) prepareAmbience(ecosystem);
-  }, [music, ecosystem]);
+    if (music) prepareAmbience(track);
+  }, [music, track]);
   useEffect(() => {
-    configureAmbience(music && started, ecosystem);
-  }, [music, started, ecosystem]);
+    const active = music && started;
+    configureAmbience(active, track);
+    if (active && track === 'menu') unlockAmbience();
+  }, [music, started, track]);
   useEffect(() => {
     if (!sound) stopBotanicalCues();
   }, [sound]);

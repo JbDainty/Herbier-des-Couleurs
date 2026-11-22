@@ -244,6 +244,32 @@ it('does not restart an identical volume fade on every game gesture', async () =
   expect(music.volume).toBeCloseTo(0.08, 5);
 });
 
+it('releases the menu player before starting the ecosystem and stops it for the prologue', async () => {
+  ambience.unlockAmbience();
+  ambience.configureAmbience(true, 'menu');
+  await flush();
+  const menu = live()[0];
+  expect(menu.source).toContain('menu.mp3');
+  expect(menu.loop).toBe(true);
+  menu.currentTime = 3;
+
+  ambience.configureAmbience(true, 0);
+  expect(menu.released).toBe(true);
+  await flush();
+  expect(live()).toHaveLength(1);
+  const ecosystem = live()[0];
+  expect(ecosystem.source).toContain('prairies.mp3');
+
+  ambience.configureAmbience(true, 'menu');
+  expect(ecosystem.released).toBe(true);
+  await flush();
+  expect(live()).toHaveLength(1);
+  expect(live()[0].source).toContain('menu.mp3');
+  expect(live()[0].currentTime).toBe(3);
+  ambience.configureAmbience(false, 'menu');
+  expect(live()).toHaveLength(0);
+});
+
 it('cancels load listeners and never plays a late-loaded cue after backgrounding', async () => {
   backend.state.neverLoad = true;
   createBotanicalCue(42, 0.2).play(true);
