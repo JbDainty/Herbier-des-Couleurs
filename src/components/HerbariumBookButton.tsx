@@ -305,10 +305,12 @@ export function HerbariumBookButton({
   motion,
   onHome,
   compact = false,
+  accessibilityLabel = 'Menu principal',
 }: {
   motion: boolean;
   onHome: () => void;
   compact?: boolean;
+  accessibilityLabel?: string;
 }) {
   const [opening, setOpening] = useState(false);
   const activated = useRef(false);
@@ -322,8 +324,12 @@ export function HerbariumBookButton({
     <Pressable
       testID="herbarium-book-button"
       accessibilityRole="button"
-      accessibilityLabel="Menu principal"
-      accessibilityHint="Ouvrir le menu principal en conservant votre partie"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={
+        accessibilityLabel === 'Menu principal'
+          ? 'Ouvrir le menu principal en conservant votre partie'
+          : undefined
+      }
       accessibilityState={{ busy: opening }}
       disabled={opening}
       onPress={activate}
