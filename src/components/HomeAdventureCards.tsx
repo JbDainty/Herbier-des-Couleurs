@@ -156,7 +156,7 @@ function RestorationCardDrawing({
           color: ink,
         }}
       >
-        La Restauration
+        Mon Herbier
       </T>
       {showProgress && (
         <View
@@ -176,7 +176,7 @@ function RestorationCardDrawing({
                   color: muted,
                 }}
               >
-                Faites refleurir l’herbier.
+                Retrouvez les couleurs perdues.
               </T>
             )}
             <View
@@ -256,6 +256,8 @@ function DailyModeCardDrawing({
   onPlay: () => void;
 }) {
   const { fontScale } = useWindowDimensions();
+  const title = 'Mini jeu du jour';
+  const subtitle = 'Réparez les vitraux.';
   const mini = height < 132 || (width < 260 && height < 160);
   const compact = height < 190;
   const padding = mini ? 12 : compact ? 16 : width >= 500 ? 28 : 24;
@@ -302,7 +304,7 @@ function DailyModeCardDrawing({
       accessibilityRole="button"
       accessible
       accessibilityLabel={
-        'Le Vitrail du jour. Trois vitraux, une graine. ' +
+        `${title}. ${subtitle} ` +
         (availability === 'Terminé' ? 'Défi du jour terminé. ' : '') +
         'Jouer.'
       }
@@ -339,7 +341,7 @@ function DailyModeCardDrawing({
             color: ink,
           }}
         >
-          Le Vitrail du jour
+          {title}
         </T>
         {mini ? (
           <>
@@ -401,7 +403,7 @@ function DailyModeCardDrawing({
                       color: '#526b53',
                     }}
                   >
-                    Trois vitraux, une graine.
+                    {subtitle}
                   </T>
                 )}
                 <View
