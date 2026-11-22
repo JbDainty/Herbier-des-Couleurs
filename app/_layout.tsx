@@ -1,7 +1,8 @@
 import { ecosystemForPage, ecosystemForPlant } from '../src/data/ecology';
+import { GOLDEN_COLLECTION_ID } from '../src/data/collections';
 import React from 'react';
 import { View, Pressable, useWindowDimensions, Platform } from 'react-native';
-import { Slot, usePathname, router } from 'expo-router';
+import { Slot, useGlobalSearchParams, usePathname, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
@@ -41,6 +42,12 @@ function Shell() {
     path = usePathname(),
     playing = path === '/atelier',
     home = path === '/';
+  const { collection, vue } = useGlobalSearchParams<{ collection?: string; vue?: string }>();
+  const menuMusic =
+    home ||
+    path === '/boutique' ||
+    path === '/parametres' ||
+    (path === '/jardin' && collection === GOLDEN_COLLECTION_ID && vue === 'galerie');
   const { save, setSave, ready, error, retry } = useGame();
   const [replayOpen, setReplayOpen] = React.useState(false);
   const [sceneHeight, setSceneHeight] = React.useState(0);
@@ -209,7 +216,7 @@ function Shell() {
         music={ready && save.settings.music}
         sound={save.settings.sound}
         started={ready && save.started && !replayOpen && path !== '/aide'}
-        track={home ? 'menu' : ecosystemForPage(save.current)}
+        track={menuMusic ? 'menu' : ecosystemForPage(save.current)}
       />
       <PaperTexture background />
       {ready && save.started && <SelectedWallpaper />}
