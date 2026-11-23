@@ -63,6 +63,8 @@ async function main() {
     // The approved watercolor book and rosette are independent decorative assets.
     await expect(page.getByTestId('home-restoration-art')).toBeVisible();
     await expect(page.getByTestId('home-vitrail-art')).toBeVisible();
+    await expect(play().locator('svg')).toHaveCount(1);
+    await expect(page.getByTestId('home-daily-action').locator('svg')).toHaveCount(1);
     await page.screenshot({ path: 'test-results/home-first-390.png' });
     await expect(page.getByTestId('home-future-day')).toHaveAttribute('role', 'button');
     await expect(page.getByTestId('home-future-day')).toContainText('Mini jeu du jour');

@@ -5,6 +5,7 @@ import audit from '../docs/solvability-audit.json';
 import { initial, loadLevel, type Save } from '../src/state/model';
 import { mechanicIds } from '../src/engine/mechanics';
 import { referencePour, referenceWon } from '../tests/reference-puzzle';
+import { passStudio } from './studio-test-helper';
 
 async function main() {
   const browser = await chromium.launch({
@@ -30,6 +31,7 @@ async function main() {
     await page.goto(url);
     await page.evaluate((s) => localStorage.setItem('color-world.save', JSON.stringify(s)), save);
     await page.goto(url + 'atelier');
+    await passStudio(page);
     await page.getByTestId('game-actions').waitFor();
     await expect(page.getByTestId('page-folio')).toHaveText(
       `PAGE ${String(save.current).padStart(2, '0')}`,
@@ -74,25 +76,25 @@ async function main() {
     expect((await page.getByTestId('game-actions').boundingBox())!.y).toBeCloseTo(before.y, 1);
     await page.screenshot({ path: 'test-results/solvability-863-corrected-hint.png' });
 
-    // Complete the photographed layout through four separately purchased hints.
+    // Complete the photographed layout through four separately requested hints.
     // A checked ordinary full vial must still be pourable in the middle.
     save.settings.confirmHints = false;
     await seed(save);
     let expected = save.board;
-    for (const [index, [from, to]] of [
+    for (const [from, to] of [
       [7, 2],
       [4, 7],
       [0, 2],
       [0, 3],
-    ].entries()) {
+    ]) {
       await action('Indice').click();
       await expect(page.getByTestId('hint-writing-text')).toHaveText(
         `Versez le flacon ${from + 1} dans le flacon ${to + 1}.`,
       );
-      expect((await state()).seeds).toBe(3 - index);
+      expect((await state()).seeds).toBe(save.seeds);
       await action('Indice').click();
       await expect(action('Indice')).toBeEnabled();
-      expect((await state()).seeds).toBe(3 - index);
+      expect((await state()).seeds).toBe(save.seeds);
       await transfer(from, to);
       expected = referencePour(expected, from, to, levels[862].rules)!;
       expect((await state()).board).toEqual(expected);
@@ -101,7 +103,7 @@ async function main() {
     expect(expected[2]).toEqual([0, 0, 0]);
     expect(expected[3]).toEqual([0, 0, 0]);
     await expect(page.getByTestId('victory-summary')).toBeVisible();
-    expect((await state()).seeds).toBe(0);
+    expect((await state()).seeds).toBe(save.seeds);
     await page.screenshot({ path: 'test-results/solvability-863-finished.png' });
 
     // An actual campaign state after a wrong irreversible choice, with the

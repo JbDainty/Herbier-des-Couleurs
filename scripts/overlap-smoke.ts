@@ -48,11 +48,16 @@ async function main() {
     await expect(page.getByTestId('liquid-board-pouring')).toBeVisible();
     await expect(page.getByTestId('completed-vial-bloom')).toBeVisible();
     await observe('[data-testid="completed-vial-bloom"]');
-    const bloom = page.getByTestId('vial-bloom-growth');
-    const first = await bloom.evaluate((node) => getComputedStyle(node).transform);
+    // The stem stops growing partway through the effect, while its pollen keeps moving.
+    const pollen = page
+      .getByTestId('completed-vial-bloom')
+      .locator('svg[viewBox="-4 -4 8 8"]')
+      .first()
+      .locator('..');
+    const first = await pollen.evaluate((node) => getComputedStyle(node).transform);
     await page.waitForTimeout(220);
     expect(await page.evaluate(() => (window as any).geometryChanges)).toBe(0);
-    expect(await bloom.evaluate((node) => getComputedStyle(node).transform)).not.toBe(first);
+    expect(await pollen.evaluate((node) => getComputedStyle(node).transform)).not.toBe(first);
     const jet = await page.locator('#pouring-vessel').getAttribute('transform');
     await page.waitForTimeout(100);
     expect(await page.locator('#pouring-vessel').getAttribute('transform')).not.toBe(jet);

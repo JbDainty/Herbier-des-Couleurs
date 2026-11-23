@@ -2,7 +2,7 @@ import { chromium, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { initial, loadLevel, move, type Save } from '../src/state/model';
 import levels from '../src/data/campaign';
-import { openScreen } from './navigation-test-helper';
+import { openCarnet, openHome, openScreen } from './navigation-test-helper';
 import { passStudio } from './studio-test-helper';
 
 async function main() {
@@ -54,6 +54,7 @@ async function main() {
     await visit(save);
     await expect(page.getByRole('heading', { name: 'Boutique', exact: true })).toHaveCount(1);
     await expect(page.getByTestId('seed-shop').getByTestId('herbarium-book-title')).toHaveCount(0);
+    await expect(button('Collectionner · 200 graines').locator('svg')).toHaveCount(1);
     await page.getByTestId('remove-ads-offer').click();
     await expect(
       page.getByRole('heading', { name: 'Retirer les pubs', exact: true }),
@@ -93,6 +94,23 @@ async function main() {
     await expect(page.getByTestId('wallpaper-preview')).toBeVisible();
     await expect(button('Décor utilisé')).toBeDisabled();
     expect((await stored()).seeds).toBe(780);
+    await expect(page.getByTestId('selected-wallpaper')).toHaveCount(0);
+    await openHome(page);
+    await expect(
+      page.getByTestId('home-screen').getByTestId('home-garden-background').locator('img'),
+    ).toHaveAttribute('src', /\/home\/clearing\./);
+    await openCarnet(page);
+    await expect(page.getByTestId('workshop-wallpaper').locator('img')).toHaveAttribute(
+      'src',
+      /\/journey\/prairies\./,
+    );
+    await openHome(page);
+    await page.getByTestId('home-future-day').click();
+    await expect(
+      page.getByTestId('daily-vitrail-screen').getByTestId('home-garden-background').locator('img'),
+    ).toHaveAttribute('src', /\/home\/clearing\./);
+    await page.goto(url + 'boutique?rayon=decors');
+    await passStudio(page);
     await page.getByTestId('wallpaper-choice-19').click();
     await expect(button(/^Acquérir ce décor ·/)).toBeDisabled();
     await expect(page.getByText(/Disponible à la découverte de cet écosystème/)).toBeVisible();
@@ -107,6 +125,10 @@ async function main() {
     expect((await stored()).wallpaper).toBe('ecosystem-0');
     await button('Retrouver le décor d’origine').click();
     expect((await stored()).wallpaper).toBe('default');
+    await expect(page.getByTestId('workshop-wallpaper').locator('img')).toHaveAttribute(
+      'src',
+      /\/illustrations\/serre\./,
+    );
     await button('Retour à la boutique').click();
     await button('Voir le jardin des orchidées').click();
     await button('Débloquer le jardin · 150 graines').click();

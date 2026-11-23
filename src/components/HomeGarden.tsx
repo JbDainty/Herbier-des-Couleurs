@@ -11,8 +11,6 @@ import {
 } from 'react-native';
 import Svg, { Circle, G, Path } from 'react-native-svg';
 import { useAmbientMotion } from './usePrimaryAnimation';
-import { useGame } from '../state/store';
-import { wallpaperArtwork } from '../data/wallpaperArtwork';
 
 const Pollen = memo(function Pollen() {
   return (
@@ -56,7 +54,6 @@ export function HomeGarden({
   motion: boolean;
   background?: ImageSourcePropType;
 }) {
-  const { save } = useGame();
   const enabled = useAmbientMotion(motion);
   const clock = useRef(new Animated.Value(0)).current;
   const [running, setRunning] = useState(false);
@@ -102,7 +99,7 @@ export function HomeGarden({
     >
       <Image
         testID="home-garden-background"
-        source={wallpaperArtwork(save.wallpaper) ?? background}
+        source={background}
         resizeMethod="resize"
         fadeDuration={0}
         resizeMode="cover"

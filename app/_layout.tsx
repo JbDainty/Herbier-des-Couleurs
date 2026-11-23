@@ -10,7 +10,6 @@ import { botanicalFonts } from '../src/components/fonts';
 import { GameProvider, useGame } from '../src/state/store';
 import { T, C } from '../src/components/ui';
 import { PaperTexture } from '../src/components/Paper';
-import { SelectedWallpaper } from '../src/components/SelectedWallpaper';
 import { GreenhouseBackdrop } from '../src/components/Greenhouse';
 import { SceneVeil } from '../src/components/SceneVeil';
 import { SceneSizeContext } from '../src/components/SceneSize';
@@ -219,7 +218,6 @@ function Shell() {
         track={menuMusic ? 'menu' : ecosystemForPage(save.current)}
       />
       <PaperTexture background />
-      {ready && save.started && <SelectedWallpaper />}
       <View
         pointerEvents="none"
         style={{
@@ -243,7 +241,9 @@ function Shell() {
             height: Math.max(height, sceneHeight + insets.top),
           }}
         >
-          {ready && save.started && <GreenhouseBackdrop onReady={onGreenhouseReady} />}
+          {ready && save.started && (
+            <GreenhouseBackdrop wallpaper={save.wallpaper} onReady={onGreenhouseReady} />
+          )}
           <SceneVeil
             ground={C.paper}
             tint={
