@@ -82,6 +82,8 @@ async function main() {
     await finish();
     await expect(finishedTabs).toHaveCount(1);
     expect((await stored()).seeds).toBe(20);
+    await expect(button('Passer au vitrail 2').locator('svg')).toHaveCount(1);
+    await expect(button('Mon calendrier').locator('svg')).toHaveCount(2);
     await button('Passer au vitrail 2').click();
     await expect(page.getByTestId('vitrail-stage-1')).toHaveAttribute('aria-selected', 'true');
     await expect(page.getByTestId('vitrail-lesson-title')).toHaveText('Le séparateur de lumière');

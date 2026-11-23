@@ -22,7 +22,7 @@ export function VictoryAction({
   children: string;
   onPress: () => void;
   secondary?: boolean;
-  icon: BotanicalIconName | ImageSourcePropType;
+  icon?: BotanicalIconName | ImageSourcePropType;
   disabled?: boolean;
   compact?: boolean;
   maxFontSizeMultiplier?: number;
@@ -107,17 +107,18 @@ export function VictoryAction({
           gap: narrow ? 6 : 9,
         }}
       >
-        {typeof icon === 'string' ? (
-          <Icon name={icon} size={narrow ? 19 : 23} color={ink} />
-        ) : (
-          <Image
-            source={icon}
-            accessible={false}
-            fadeDuration={0}
-            resizeMode="contain"
-            style={{ width: 21, height: 21 }}
-          />
-        )}
+        {icon !== undefined &&
+          (typeof icon === 'string' ? (
+            <Icon name={icon} size={narrow ? 19 : 23} color={ink} />
+          ) : (
+            <Image
+              source={icon}
+              accessible={false}
+              fadeDuration={0}
+              resizeMode="contain"
+              style={{ width: 21, height: 21 }}
+            />
+          ))}
         <T
           maxFontSizeMultiplier={maxFontSizeMultiplier}
           numberOfLines={compact ? 1 : undefined}

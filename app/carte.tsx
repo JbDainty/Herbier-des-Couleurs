@@ -259,7 +259,7 @@ export default function Carte() {
               )}
               <VictoryAction
                 compact
-                icon={completed ? 'refresh-outline' : 'leaf-outline'}
+                icon={completed ? 'refresh-outline' : undefined}
                 onPress={play}
               >
                 {completed

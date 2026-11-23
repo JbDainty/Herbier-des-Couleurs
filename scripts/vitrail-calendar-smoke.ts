@@ -2,6 +2,7 @@ import { chromium, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { initial, type Save } from '../src/state/model';
 import { openVitrail } from '../src/state/vitrail';
+import { passStudio } from './studio-test-helper';
 
 async function main() {
   const browser = await chromium.launch({
@@ -42,6 +43,7 @@ async function main() {
     await page.goto(url);
     await page.evaluate((s) => localStorage.setItem('color-world.save', JSON.stringify(s)), save);
     await page.goto(url + 'vitrail?day=' + save.vitrail!.session!.day);
+    await passStudio(page);
     await expect(page.getByTestId('vitrail-board')).toBeVisible();
     await button('Mon calendrier').click();
     await expect(page.getByTestId('vitrail-calendar')).toBeVisible();

@@ -4,7 +4,7 @@ import Svg, { Circle, G, Path } from 'react-native-svg';
 import { Paper } from './Paper';
 import { CollectionPaperCorners } from './CollectionPaperCorners';
 import { SvgBackdrop } from './SvgBackdrop';
-import { T, C, Icon, Button } from './ui';
+import { T, C, Button } from './ui';
 import { F } from './fonts';
 
 export const shopArtwork = {
@@ -60,7 +60,6 @@ export function ShopRibbon({
           <Path d="M18 37Q26 29 22 15M23 28Q14 27 17 20Q24 22 23 28M24 25Q31 23 28 17Q22 19 24 25M332 37Q324 29 328 15M327 28Q336 27 333 20Q326 22 327 28M326 25Q319 23 322 17Q328 19 326 25" />
         </G>
       </SvgBackdrop>
-      <Icon name="leaf-outline" size={20} color="#fff0cf" />
       <T
         numberOfLines={1}
         adjustsFontSizeToFit
@@ -197,7 +196,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 28,
     flexDirection: 'row',
-    gap: 7,
     alignItems: 'center',
     justifyContent: 'center',
   },

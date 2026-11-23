@@ -1,3 +1,4 @@
+import { passStudio } from './studio-test-helper';
 import { chromium, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { mechanicIds } from '../src/engine/mechanics';
@@ -36,6 +37,7 @@ async function main() {
     await page.goto(url);
     await page.evaluate((s) => localStorage.setItem('color-world.save', JSON.stringify(s)), s);
     await page.goto(url + 'atelier');
+    await passStudio(page);
     await page.getByTestId('game-actions').waitFor();
   };
   const button = (name: string) => page.getByRole('button', { name, exact: true });
@@ -50,6 +52,7 @@ async function main() {
     await button('Indice').click();
     expect((await saved()).seeds).toBe(3);
     await page.reload();
+    await passStudio(page);
     await page.getByTestId('game-actions').waitFor();
     const before = await saved();
     await button('Mélanger').click();
@@ -65,6 +68,7 @@ async function main() {
     expect(mixed.moves).toBe(0);
     expect(mixed.history).toEqual([]);
     await page.reload();
+    await passStudio(page);
     await page.getByTestId('game-actions').waitFor();
     expect((await saved()).board).toEqual(mixed.board);
     await button('Indice').click();
@@ -111,7 +115,11 @@ async function main() {
     await expect(page.getByTestId('workshop-confirm')).toHaveCount(0);
     expect((await saved()).seeds).toBe(0);
     await page.goto(url + 'aide');
-    await expect(page.getByText('Mélanger pour repartir autrement', { exact: true })).toBeVisible();
+    await passStudio(page);
+    await button('Étoiles et graines').click();
+    await expect(
+      page.getByText(/Mélanger change la disposition et conserve les étoiles/),
+    ).toBeVisible();
     expect(errors).toEqual([]);
     console.log(
       'Remix passed: free hints and mixtures, cancel preserves board and balance, certified mixed puzzle and exact stars, reload, animation lock, cancellation on departure, zero seeds still allows hints and mixtures, updated help.',

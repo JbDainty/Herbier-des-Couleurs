@@ -59,9 +59,12 @@ async function main() {
     await expect(button('Décor utilisé')).toBeDisabled();
     expect((await stored()).seeds).toBe(220);
     await button('Menu principal').click();
-    await expect(page.getByTestId('selected-wallpaper')).toBeAttached();
+    await expect(page.getByTestId('selected-wallpaper')).toHaveCount(0);
     await page.getByTestId('home-restore-action').getByRole('button').click();
-    await expect(page.getByTestId('workshop-wallpaper')).toBeAttached();
+    await expect(page.getByTestId('workshop-wallpaper').locator('img')).toHaveAttribute(
+      'src',
+      /\/journey\/prairies\./,
+    );
     await button('Indice').click();
     await expect(page.getByTestId('hint-writing-text')).not.toBeEmpty();
     expect((await stored()).seeds).toBe(220);

@@ -325,7 +325,7 @@ export default function Boutique() {
                   title: `Acquérir « ${item.name} » ?`,
                   cost: item.cost,
                   detail:
-                    'Ce paysage sera appliqué immédiatement. Vous pourrez ensuite changer gratuitement parmi vos décors acquis.',
+                    'Ce paysage remplacera le fond de l’atelier de Mon Herbier. Vous pourrez passer gratuitement d’un décor acquis à l’autre.',
                   action: () => setSave((s) => acquireWallpaper(s, item.id)),
                 });
               }}

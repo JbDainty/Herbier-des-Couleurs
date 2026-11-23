@@ -3,7 +3,7 @@ import { chromium, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { initial, loadLevel, move, type Save } from '../src/state/model';
 import { pour } from '../src/engine/puzzle';
-import levels from '../src/data/levels.json';
+import levels from '../src/data/campaign';
 async function main() {
   const browser = await chromium.launch({
     executablePath: '/usr/bin/chromium',
@@ -77,13 +77,14 @@ async function main() {
     await page.evaluate((s) => localStorage.setItem('color-world.save', JSON.stringify(s)), last);
     await page.goto(url);
     await openCarnet(page);
-    await tube(3).click();
-    await tube(6).click();
+    const next = levels[99].solution[0];
+    await tube(next.from + 1).click();
+    await tube(next.to + 1).click();
     await page.locator('#pour-jet').waitFor();
     await page.waitForTimeout(180);
     await page.screenshot({ path: 'test-results/pour-mobile-cross-row.png', fullPage: true });
     await expect(page.getByTestId('liquid-board-idle')).toBeVisible();
-    expect((await saved()).board).toEqual(pour(last.board, 2, 5));
+    expect((await saved()).board).toEqual(pour(last.board, next.from, next.to, levels[99].rules));
     expect((await saved()).moves).toBe(1);
     expect(errors).toEqual([]);
     console.log(

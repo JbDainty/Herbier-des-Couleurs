@@ -286,7 +286,7 @@ export function VitrailScene({
               disabled={blocked}
               maxFontSizeMultiplier={1.15}
               label={victoryLabel}
-              icon={hasNext ? 'leaf-outline' : workshopActionIllustrations.restart}
+              icon={hasNext ? undefined : workshopActionIllustrations.restart}
               onPress={() => {
                 if (hasNext) setSave((s) => openVitrail(s, day, session.level + 1));
                 else restart();

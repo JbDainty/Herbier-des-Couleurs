@@ -70,15 +70,12 @@ function Ribbon({ label, width }: { label: string; width: number }) {
           opacity={0.6}
         />
       </SvgBackdrop>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
-        <Icon name="leaf-outline" size={23} color="#f7edcd" />
-        <T
-          maxFontSizeMultiplier={1.15}
-          style={{ fontFamily: F.display, fontSize: 19, lineHeight: 24, color: '#fff3d9' }}
-        >
-          {label}
-        </T>
-      </View>
+      <T
+        maxFontSizeMultiplier={1.15}
+        style={{ fontFamily: F.display, fontSize: 19, lineHeight: 24, color: '#fff3d9' }}
+      >
+        {label}
+      </T>
     </View>
   );
 }
@@ -230,13 +227,7 @@ function RestorationCardDrawing({
         </View>
       )}
       <View testID="home-restore-action" style={{ width: '100%', alignItems: 'center' }}>
-        <VictoryAction
-          compact
-          icon="leaf-outline"
-          onPress={onPlay}
-          disabled={disabled}
-          maxFontSizeMultiplier={1.15}
-        >
+        <VictoryAction compact onPress={onPlay} disabled={disabled} maxFontSizeMultiplier={1.15}>
           {label}
         </VictoryAction>
       </View>

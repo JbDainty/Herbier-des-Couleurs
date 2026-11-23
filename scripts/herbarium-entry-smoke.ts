@@ -1,3 +1,4 @@
+import { passStudio } from './studio-test-helper';
 import { chromium, expect } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { initial, loadLevel, move } from '../src/state/model';
@@ -64,6 +65,7 @@ async function main() {
         });
         const plateUrl = `${url}herbier?plant=${Math.floor((scenario.current - 1) / 5)}`;
         await page.goto(plateUrl);
+        await passStudio(page);
         await page.waitForFunction(() => (window as any).plateEntryFrames.length > 2);
         const frames = await page.evaluate(
           () =>
@@ -110,6 +112,7 @@ async function main() {
         await page.getByRole('button', { name: 'Menu principal', exact: true }).click();
         await expect(page.getByTestId('home-screen')).toBeVisible();
         await page.goto(plateUrl);
+        await passStudio(page);
         await expect(plate).toBeVisible();
         await plate.getByRole('button', { name: 'Fermer la planche', exact: true }).click();
         expect(

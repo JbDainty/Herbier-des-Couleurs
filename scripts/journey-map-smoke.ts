@@ -1,7 +1,10 @@
+import { passStudio } from './studio-test-helper';
 import { chromium, expect, type Page } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { initial, loadLevel, move, type Save } from '../src/state/model';
 import levels from '../src/data/levels.json';
+import { chapters } from '../src/data/botany';
+import { ecosystemForPage } from '../src/data/ecology';
 
 function carnet(done: number, current = done + 1, motion = false) {
   let s = { ...initial(), started: true, guideSeen: true, nickname: 'Camille' };
@@ -9,7 +12,7 @@ function carnet(done: number, current = done + 1, motion = false) {
     s = loadLevel(s, level.id);
     for (const step of level.solution) s = move(s, step.from, step.to);
   }
-  s = loadLevel(s, Math.min(100, current));
+  s = loadLevel(s, Math.min(levels.length, current));
   s.settings = { ...s.settings, motion, sound: false, music: false, haptics: false };
   return s;
 }
@@ -28,6 +31,7 @@ async function main() {
     await page.goto(url);
     await page.evaluate((s) => localStorage.setItem('color-world.save', JSON.stringify(s)), s);
     await page.goto(url + 'carte');
+    await passStudio(page);
     await expect(page.getByTestId('journey-frame')).toBeVisible();
   };
   const scroll = page.getByTestId('ecosystem-map-scroll');
@@ -43,7 +47,10 @@ async function main() {
       .toBe(page.viewportSize()!.height < 550 ? 23 : 32);
     await expect
       .poll(async () => {
-        const content = await page.getByTestId('journey-landscape').boundingBox();
+        const content = await page
+          .getByTestId(/^journey-row-/)
+          .first()
+          .boundingBox();
         const viewport = await scroll.boundingBox();
         return Math.abs(content!.width - viewport!.width);
       })
@@ -67,7 +74,7 @@ async function main() {
       await root.evaluate((n) => n.clientHeight),
     );
     await expect(
-      page.getByRole('button', { name: 'Revenir à ma page sur le chemin' }),
+      page.getByRole('button', { name: 'Revenir à ma page', exact: true }),
     ).toBeInViewport();
   };
   try {
@@ -128,6 +135,7 @@ async function main() {
     expect(replay.pigments).toEqual(save.pigments);
     // Replaying an early page does not hide already explored landscapes.
     await page.goto(url + 'carte');
+    await passStudio(page);
     await expect(page.getByTestId('journey-page-24')).toHaveCount(1);
     await expect(page.getByTestId('journey-page-25')).toHaveCount(0);
     const progress = move(carnet(23), levels[23].solution[0].from, levels[23].solution[0].to);
@@ -136,19 +144,13 @@ async function main() {
     await page.getByRole('button', { name: 'Continuer cette page', exact: true }).click();
     await expect(page.getByTestId('page-folio')).toHaveText('PAGE 24');
     expect(await state()).toEqual(progress);
-    for (const done of [0, 43, 63, 83, 100]) {
+    for (const done of [0, 43, 63, 83, 100, levels.length]) {
       const s = carnet(done);
       await seed(s);
       await bounds();
-      await expect(page.getByTestId(`journey-page-${Math.min(100, done + 1)}`)).toBeInViewport();
+      await expect(page.getByTestId(`journey-page-${s.current}`)).toBeInViewport();
       await expect(page.getByTestId('journey-biome-title')).toHaveText(
-        [
-          'Les prairies fleuries',
-          'Le sous-bois',
-          'Les zones humides',
-          'Les montagnes alpines',
-          'La flore méditerranéenne',
-        ][Math.floor((Math.min(100, done + 1) - 1) / 20)],
+        chapters[ecosystemForPage(s.current)].name,
       );
       expect(await state()).toEqual(s);
       await page.screenshot({ path: `test-results/journey-frontier-${done}.png` });

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
-import { useGame } from '../state/store';
 import { wallpaperArtwork } from '../data/wallpaperArtwork';
 import {
   Defs,
@@ -15,8 +14,13 @@ import {
   Rect,
 } from 'react-native-svg';
 
-function GreenhouseBackdropDrawing({ onReady }: { onReady?: () => void }) {
-  const { save } = useGame();
+function GreenhouseBackdropDrawing({
+  wallpaper,
+  onReady,
+}: {
+  wallpaper?: string;
+  onReady?: () => void;
+}) {
   return (
     <View
       pointerEvents="none"
@@ -25,7 +29,7 @@ function GreenhouseBackdropDrawing({ onReady }: { onReady?: () => void }) {
       style={[StyleSheet.absoluteFill, { zIndex: 0 }]}
     >
       <Image
-        source={wallpaperArtwork(save.wallpaper) ?? require('../../assets/illustrations/serre.png')}
+        source={wallpaperArtwork(wallpaper) ?? require('../../assets/illustrations/serre.png')}
         testID="workshop-wallpaper"
         resizeMethod="resize"
         fadeDuration={0}

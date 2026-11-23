@@ -169,8 +169,9 @@ function LiquidBoardDrawing({
   const state = pouring
     ? samplePour(animationMove.current === pouring ? elapsed : 0, count)
     : emptySample;
+  const hasLayout = width > 0;
   useEffect(() => {
-    if (!pouring || !width) return;
+    if (!pouring || !hasLayout) return;
     animationMove.current = pouring;
     setElapsed(0);
     const playback = framePlayback({
@@ -192,7 +193,7 @@ function LiquidBoardDrawing({
       subscription.remove();
       playback.dispose();
     };
-  }, [pouring, width, motion, count]);
+  }, [pouring, hasLayout, motion, count]);
   const time = motion && pouring ? elapsed / 1000 : 0;
   const poses: Pose[] = layout.map((p, i) => ({
     ...p,
@@ -759,14 +760,14 @@ function LiquidBoardDrawing({
               {front(pouring.from, true)}
             </Svg>
           )}
-          {reward && layout[reward.tube] && (
+          {reward && poses[reward.tube] && (
             <TubeBloom
               key={reward.id}
               color={reward.color}
               motion={motion}
-              x={layout[reward.tube].x}
-              y={layout[reward.tube].y}
-              scale={scale}
+              x={poses[reward.tube].x}
+              y={poses[reward.tube].y}
+              scale={poses[reward.tube].scale}
               onDone={finishReward}
             />
           )}
