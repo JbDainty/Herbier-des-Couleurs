@@ -2,6 +2,8 @@ import { chromium, expect } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { initial, type Save } from '../src/state/model';
 import { discoverPigment } from '../src/state/pigments';
+import { passStudio } from './studio-test-helper';
+import { chapters } from '../src/data/botany';
 import { herbariumLayout } from '../src/layout/herbarium';
 
 async function main() {
@@ -39,6 +41,7 @@ async function main() {
       settings: { ...full.settings, motion },
     });
     await page.goto(base + 'herbier');
+    await passStudio(page);
     await expect(page.getByTestId('herbarium-shelf')).toBeVisible();
   };
   const fit = async (width: number, height: number) => {
@@ -77,7 +80,9 @@ async function main() {
       [480, 280],
     ]) {
       await page.setViewportSize({ width, height });
-      await page.getByRole('button', { name: 'Les planches', exact: true }).click();
+      await expect(
+        page.getByRole('button', { name: /Les planches|Pigments et sceaux/ }),
+      ).toHaveCount(0);
       const layout = herbariumLayout(width, height);
       await expect(page.getByRole('button', { name: /^Ouvrir le carnet / })).toHaveCount(
         layout.booksPerPage,
@@ -85,12 +90,32 @@ async function main() {
       await fit(width, height);
       expect(await page.locator('[aria-label^="Planche de "]').count()).toBe(0);
       await page.screenshot({ path: `test-results/herbarium-fit-${width}x${height}.png` });
-      await page.getByRole('button', { name: 'Pigments et sceaux', exact: true }).click();
-      await expect(page.getByTestId('herbarium-pigment-card')).toHaveCount(layout.pigmentsPerPage);
+      const count = Math.ceil(chapters.length / layout.booksPerPage) + 1;
+      const indicator = page.getByTestId('herbarium-shelf-page');
+      const next = page.getByRole('button', { name: 'Suite', exact: true });
+      const prev = page.getByRole('button', { name: 'Avant', exact: true });
+      await expect(prev).toBeDisabled();
+      for (let spread = 1; spread <= count; spread++) {
+        await expect(indicator).toHaveText(`${spread} / ${count}`);
+        await expect(indicator).toHaveAccessibleName(`Page ${spread} sur ${count}`);
+        if (spread < count) {
+          await expect(
+            page.getByTestId(`herbarium-book-${(spread - 1) * layout.booksPerPage}`),
+          ).toBeVisible();
+          if (spread === 2 && width === 412)
+            await page.screenshot({ path: 'test-results/herbarium-second-shelf.png' });
+          await next.click();
+        }
+      }
+      await expect(page.getByTestId('golden-herbarium-book')).toBeVisible();
+      await expect(next).toBeDisabled();
       await fit(width, height);
-      await page.getByRole('button', { name: 'Suivants', exact: true }).click();
-      await fit(width, height);
-      await page.screenshot({ path: `test-results/herbarium-pigments-${width}x${height}.png` });
+      if (width === 412) await page.screenshot({ path: 'test-results/herbarium-golden-shelf.png' });
+      await prev.click();
+      await expect(indicator).toHaveText(`${count - 1} / ${count}`);
+      await page.getByRole('button', { name: 'Voir l’Herbier des Merveilles' }).click();
+      await page.getByRole('button', { name: 'Retrouver les carnets des écosystèmes' }).click();
+      await expect(indicator).toHaveText(`1 / ${count}`);
       expect(await stored()).toBe(saved);
     }
     // Every ecosystem, including the longest titles, stays inside its binding.
@@ -106,8 +131,19 @@ async function main() {
             range.selectNodeContents(node);
             const ink = range.getBoundingClientRect(),
               box = node.getBoundingClientRect();
+            const splitWords: string[] = [];
+            const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+            while (walker.nextNode()) {
+              const text = walker.currentNode;
+              for (const match of (text.textContent ?? '').matchAll(/\S+/g)) {
+                range.setStart(text, match.index);
+                range.setEnd(text, match.index + match[0].length);
+                if (range.getClientRects().length > 1) splitWords.push(match[0]);
+              }
+            }
             return {
               name: node.textContent,
+              splitWords,
               inkHeight: ink.height,
               boxHeight: box.height,
               inkWidth: ink.width,
@@ -117,6 +153,7 @@ async function main() {
         );
       ink.push(...samples);
       for (const s of samples) {
+        expect(s.splitWords, s.name!).toEqual([]);
         expect(s.inkHeight, s.name!).toBeLessThanOrEqual(s.boxHeight + 1);
         expect(s.inkWidth, s.name!).toBeLessThanOrEqual(s.boxWidth + 1);
       }
@@ -139,15 +176,6 @@ async function main() {
     await expect(page.getByTestId('ecosystem-album')).toHaveCount(0);
     await expect(page.getByRole('button', { name: /^Ouvrir le carnet / }).first()).toBeEnabled();
     await page.setViewportSize({ width: 412, height: 915 });
-    await page
-      .getByRole('button', { name: /^Ouvrir le carnet / })
-      .first()
-      .dispatchEvent('click');
-    await expect(page.getByTestId('antique-book-opening')).toBeVisible();
-    await page.getByRole('button', { name: 'Pigments et sceaux', exact: true }).click();
-    await page.waitForTimeout(450);
-    await expect(page.getByTestId('ecosystem-album')).toHaveCount(0);
-    await page.getByRole('button', { name: 'Les planches', exact: true }).click();
     const first = page.getByRole('button', { name: /^Ouvrir le carnet / }).first();
     await first.dispatchEvent('click');
     await first.dispatchEvent('click');
@@ -158,15 +186,16 @@ async function main() {
     await page
       .getByRole('button', { name: /^Ouvrir le carnet / })
       .first()
-      .dispatchEvent('click');
-    await page.getByRole('button', { name: 'Menu principal', exact: true }).click();
+      .click();
+    await expect(page.getByTestId('antique-book-opening')).toBeVisible();
+    await page.getByRole('button', { name: 'Menu principal', exact: true }).dispatchEvent('click');
     await expect(page.getByTestId('home-screen')).toBeVisible();
     await page.waitForTimeout(450);
     await expect(page.getByTestId('ecosystem-album')).toHaveCount(0);
     expect(await stored()).toBe(unchanged);
     expect(errors).toEqual([]);
     console.log(
-      'Herbarium viewport passed: no scroll in either tab on eight phone/tablet/landscape sizes; 44-point controls; all twenty titles inside bindings; adaptive pagination; 1000-pigment collection; rapid taps and cancellation during opening; unchanged save.',
+      'Herbarium viewport passed: all spreads without scrolling on eight phone/tablet/landscape sizes; 44-point controls; all twenty titles inside bindings; adaptive pagination; existing saves; rapid taps and cancellation during opening; unchanged save.',
     );
   } finally {
     await browser.close();

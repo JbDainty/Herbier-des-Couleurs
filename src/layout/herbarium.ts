@@ -7,13 +7,9 @@ export function herbariumLayout(width: number, height: number, fontScale = 1) {
   const contentWidth = Math.min(1120, width - padding * 2);
   const gap = short ? 10 : width >= 700 ? 20 : 14;
   const hudHeight = short ? 52 : 68;
-  const summaryHeight = short ? 18 : 26;
-  const tabHeight = 44,
-    pagerHeight = 44;
-  const bodyHeight = Math.max(
-    80,
-    height - padding * 2 - hudHeight - tabHeight - summaryHeight - 12,
-  );
+  const summaryHeight = 44;
+  const pagerHeight = 48;
+  const bodyHeight = Math.max(80, height - padding * 2 - hudHeight - summaryHeight - gap);
   const booksPerPage = height < 340 || (!landscape && (height < 500 || fontScale > 1.4)) ? 2 : 4;
   const columns = landscape && booksPerPage === 4 ? 4 : 2;
   const rows = Math.ceil(booksPerPage / columns);
@@ -23,14 +19,6 @@ export function herbariumLayout(width: number, height: number, fontScale = 1) {
     bookWidth * (fontScale > 1.4 ? 2.1 : 1.65),
     (bodyHeight - pagerHeight - gap - (rows - 1) * gap) / rows,
   );
-  const pigmentColumns = contentWidth >= 620 ? 4 : 2;
-  const pigmentRows = Math.max(
-    1,
-    Math.min(
-      8 / pigmentColumns,
-      Math.floor((bodyHeight - pagerHeight) / (fontScale > 1.3 ? 180 : 112)),
-    ),
-  );
   return {
     padding,
     gap,
@@ -39,7 +27,6 @@ export function herbariumLayout(width: number, height: number, fontScale = 1) {
     contentWidth,
     hudHeight,
     summaryHeight,
-    tabHeight,
     pagerHeight,
     bodyHeight,
     booksPerPage,
@@ -49,11 +36,6 @@ export function herbariumLayout(width: number, height: number, fontScale = 1) {
     bookHeight,
     gridWidth: columns * bookWidth + (columns - 1) * gap,
     gridHeight: rows * bookHeight + (rows - 1) * gap,
-    pigmentColumns,
-    pigmentRows,
-    pigmentsPerPage: pigmentColumns * pigmentRows,
-    pigmentWidth: (contentWidth - (pigmentColumns - 1) * gap) / pigmentColumns,
-    pigmentHeight: (bodyHeight - pagerHeight - gap - (pigmentRows - 1) * gap) / pigmentRows,
   };
 }
 export type HerbariumLayout = ReturnType<typeof herbariumLayout>;

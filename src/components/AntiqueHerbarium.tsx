@@ -351,7 +351,14 @@ export const AntiqueHerbarium = memo(function AntiqueHerbarium({
   const tiny = height < 115,
     small = height < 280;
   const emblem = tiny ? 0 : Math.min(small ? (height < 200 ? 32 : 50) : 78, height * 0.25);
-  const titleSize = tiny ? 14 : small ? 17 : Math.min(29, width * 0.13);
+  const titleWidth = width - 40;
+  const longestWord = Math.max(...title.split(/\s+/).map((word) => word.length));
+  // Reserve enough space for an unbroken botanical name even at the supported font scale.
+  const titleScaleLimit = height < 210 ? 1 : 1.1;
+  const titleSize = Math.min(
+    tiny ? 14 : small ? 17 : Math.min(29, width * 0.13),
+    titleWidth / (longestWord * 0.52 * titleScaleLimit),
+  );
   const leather = herbariumBindings[index % herbariumBindings.length].leather;
   const start = (index % 4) * 0.24;
   return (
@@ -434,8 +441,8 @@ export const AntiqueHerbarium = memo(function AntiqueHerbarium({
       <View
         style={{
           position: 'absolute',
-          left: 25,
-          right: 23,
+          left: 22,
+          right: 18,
           top: tiny ? 8 : 18,
           bottom: tiny ? 13 : 23,
           alignItems: 'center',
@@ -464,7 +471,7 @@ export const AntiqueHerbarium = memo(function AntiqueHerbarium({
           numberOfLines={tiny ? 2 : 3}
           adjustsFontSizeToFit
           minimumFontScale={0.78}
-          maxFontSizeMultiplier={height < 210 ? 1 : 1.1}
+          maxFontSizeMultiplier={titleScaleLimit}
           style={{
             fontSize: titleSize,
             lineHeight: Math.ceil(titleSize * 1.4),
@@ -489,16 +496,8 @@ export const AntiqueHerbarium = memo(function AntiqueHerbarium({
             marginTop: small ? 2 : 4,
           }}
         >
-          {done} / {total} estampillées
+          {done} / {total}
         </T>
-        {height > 310 && (
-          <T
-            maxFontSizeMultiplier={1.1}
-            style={{ fontFamily: F.scientific, fontSize: 12, lineHeight: 16, color: '#cbb57f' }}
-          >
-            Ouvrir le carnet
-          </T>
-        )}
       </View>
       <Animated.View
         testID={`antique-cover-glimmer-${index}`}

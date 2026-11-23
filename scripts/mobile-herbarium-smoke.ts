@@ -98,9 +98,7 @@ async function main() {
         fullPage: true,
       });
       await openScreen(page, 'Le Grand Herbier');
-      await expect(
-        page.getByRole('button', { name: 'Pigments et sceaux', exact: true }),
-      ).toBeInViewport();
+      await expect(page.getByRole('button', { name: 'Suite', exact: true })).toBeInViewport();
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
         width,
       );
