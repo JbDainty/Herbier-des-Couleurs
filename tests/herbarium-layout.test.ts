@@ -18,7 +18,7 @@ const viewports = [
   [568, 320],
   [932, 430],
 ];
-it('fits readable paginated books and pigments within phone/tablet safe-area viewports', () => {
+it('fits readable paginated books and their navigation within phone/tablet safe-area viewports', () => {
   for (const [w, h] of viewports)
     for (const fontScale of [1, 1.3, 1.8]) {
       const l = herbariumLayout(w, h, fontScale);
@@ -26,17 +26,10 @@ it('fits readable paginated books and pigments within phone/tablet safe-area vie
       expect(l.gridHeight + l.gap + l.pagerHeight).toBeLessThanOrEqual(l.bodyHeight + 0.01);
       expect(l.bookWidth).toBeGreaterThanOrEqual(100);
       expect(l.bookHeight).toBeGreaterThanOrEqual(75);
-      expect(l.tabHeight).toBeGreaterThanOrEqual(44);
+      expect(l.summaryHeight).toBeGreaterThanOrEqual(44);
       expect(l.pagerHeight).toBeGreaterThanOrEqual(44);
       expect(
-        l.pigmentColumns * l.pigmentWidth + (l.pigmentColumns - 1) * l.gap,
-      ).toBeLessThanOrEqual(l.contentWidth + 0.01);
-      expect(
-        l.pigmentRows * l.pigmentHeight + l.pigmentRows * l.gap + l.pagerHeight,
-      ).toBeLessThanOrEqual(l.bodyHeight + 0.01);
-      expect(l.pigmentHeight).toBeGreaterThanOrEqual(75);
-      expect(
-        l.padding * 2 + l.hudHeight + l.tabHeight + l.summaryHeight + 12 + l.bodyHeight,
+        l.padding * 2 + l.hudHeight + l.summaryHeight + l.gap + l.bodyHeight,
       ).toBeLessThanOrEqual(h + 0.01);
     }
 });
@@ -47,5 +40,4 @@ it('uses fewer books on short displays and keeps a complete shelf on ordinary ph
   expect(herbariumLayout(412, 915).booksPerPage).toBe(4);
   expect(herbariumLayout(412, 915, 1.8).booksPerPage).toBe(2);
   expect(herbariumLayout(932, 430).columns).toBe(4);
-  expect(herbariumLayout(412, 915).pigmentsPerPage).toBe(8);
 });

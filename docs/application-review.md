@@ -29,7 +29,7 @@ Les seize parcours suivants ont été exécutés avec succès :
 | `guide-smoke.ts`               | Première inscription, aide accessible depuis le menu, exercice, préférences, reprise et remise à zéro.                          |
 | `remix-smoke.ts`               | Confirmation, annulation, une graine par aide, relecture gratuite, mélange certifié, départ pendant l’animation.                |
 | `reward-reset-smoke.ts`        | Gains uniques, meilleur score conservé, rejeu, deux confirmations, écriture en échec et succès durable.                         |
-| `herbarium-stability-smoke.ts` | Collection complète, vingt livres accessibles, quatre couvertures montées, une planche et huit pigments à la fois.              |
+| `herbarium-stability-smoke.ts` | Collection complète, vingt livres accessibles, quatre couvertures montées, une planche à la fois et retour du grand livre doré.              |
 | `expansion-smoke.ts`           | Huit leçons jouées, capacités différentes, mille pages sur carte virtualisée, migration et essai isolé.                         |
 | `app-review-smoke.ts`          | Sept écrans sur quatre formats, lecture défaillante, boutique, pseudo, statut des comptes et vingt musiques réellement lancées. |
 | `native-foliage-smoke.ts`      | Même composant avec la branche mobile, surfaces bornées et comparaison des pixels de la bordure avec la surface originale.      |

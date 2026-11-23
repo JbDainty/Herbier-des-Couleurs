@@ -3,6 +3,7 @@ import { mkdirSync } from 'node:fs';
 import { chapters } from '../src/data/botany';
 import levels from '../src/data/campaign';
 import { initial, loadLevel, move, type Save } from '../src/state/model';
+import { passStudio } from './studio-test-helper';
 import { discoverPigment } from '../src/state/pigments';
 
 async function main() {
@@ -23,6 +24,7 @@ async function main() {
     await page.goto(base);
     await page.evaluate((s) => localStorage.setItem('color-world.save', JSON.stringify(s)), save);
     await page.goto(base + route);
+    await passStudio(page);
   };
   mkdirSync('test-results', { recursive: true });
   try {
@@ -109,12 +111,14 @@ async function main() {
     await page.getByRole('button', { name: 'Carnets', exact: true }).click();
     await expect(page.getByTestId('herbarium-shelf')).toBeVisible();
     await expect(page.getByTestId('herbarium-shelf-page')).toHaveText('5 / 6');
-    await page.getByRole('button', { name: 'Pigments et sceaux', exact: true }).click();
-    await expect(page.getByText(/Découvert le|Apposé le/)).toHaveCount(8);
-    await page.getByRole('button', { name: 'Suivants', exact: true }).click();
-    await expect(page.getByText(/Découvert le|Apposé le/)).toHaveCount(8);
+    await page.getByRole('button', { name: 'Suite', exact: true }).click();
+    await expect(page.getByTestId('golden-herbarium-book')).toBeVisible();
+    await expect(page.getByTestId('herbarium-shelf-page')).toHaveText('6 / 6');
+    await page.getByRole('button', { name: 'Avant', exact: true }).click();
+    await expect(page.getByTestId('herbarium-shelf-page')).toHaveText('5 / 6');
     for (let repeat = 0; repeat < 6; repeat++) {
       await page.goto(base);
+      await passStudio(page);
       await page.getByRole('link', { name: 'Herbier', exact: true }).click();
       await expect(page.getByTestId('herbarium-shelf')).toBeVisible();
       await expect(page.getByRole('button', { name: /^Ouvrir le carnet / })).toHaveCount(4);
@@ -122,7 +126,7 @@ async function main() {
     expect(await page.evaluate(() => localStorage.getItem('color-world.save'))).toBe(saved);
     expect(errors).toEqual([]);
     console.log(
-      'Herbarium passed: missing test completion date, 1000-page collection, four lightweight covers, all 20 books, one plate, eight pigments, repeated menu openings, four screen formats and unchanged save.',
+      'Herbarium passed: missing test completion date, 1000-page collection, four lightweight covers, all 20 books, one plate, last spread and back, repeated menu openings, four screen formats and unchanged save.',
     );
   } finally {
     await browser.close();

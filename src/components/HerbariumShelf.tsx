@@ -1,12 +1,13 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Animated, AppState, Easing, Platform, Pressable, View } from 'react-native';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Animated, AppState, Easing, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams, useFocusEffect, type Href } from 'expo-router';
-import { chapters } from '../data/botany';
+import { chapters, species } from '../data/botany';
 import { plantsForEcosystem } from '../data/ecology';
 import { restoration, type Save } from '../state/model';
 import type { HerbariumLayout } from '../layout/herbarium';
 import { F } from './fonts';
-import { Button, C, T } from './ui';
+import { C, Icon, T } from './ui';
+import { VictoryAction } from './VictoryAction';
 import { AntiqueHerbarium, OpeningHerbarium } from './AntiqueHerbarium';
 import { useAmbientMotion } from './usePrimaryAnimation';
 import { preparePageArtwork } from '../services/pageArtwork';
@@ -56,11 +57,10 @@ export function HerbariumShelf({
   const params = useLocalSearchParams<{ shelf?: string; volume?: string }>();
   const remembered =
     params.volume !== undefined ? Number(params.volume) : Number(params.shelf ?? 0) * 4;
-  const [anchor, setAnchor] = useState(
+  const anchor =
     Number.isInteger(remembered) && remembered >= 0 && remembered <= chapters.length
       ? remembered
-      : 0,
-  );
+      : 0;
   const [opening, setOpening] = useState<number | null>(null),
     [focused, setFocused] = useState(true);
   const activated = useRef(false),
@@ -81,7 +81,9 @@ export function HerbariumShelf({
   useEffect(() => () => onBusyChange(false), [onBusyChange]);
   const perPage = layout.booksPerPage,
     golden = anchor === chapters.length,
-    first = golden ? chapters.length : Math.floor(anchor / perPage) * perPage;
+    regularPages = Math.ceil(chapters.length / perPage),
+    page = golden ? regularPages : Math.floor(anchor / perPage),
+    first = golden ? chapters.length : page * perPage;
   useLayoutEffect(() => {
     // Keep a new tap if its book remains visible after resizing. Cancel only
     // a volume removed from this spread, before the next frame can be touched.
@@ -91,12 +93,13 @@ export function HerbariumShelf({
     onBusyChange(false);
   }, [first, perPage, opening, onBusyChange]);
   const light = useBindingLight(save.settings.motion && focused && opening === null && !golden);
-  const page = first / perPage,
-    count = Math.ceil(chapters.length / perPage) + 1;
-  const turnShelf = (next: number) => {
-    if (activated.current) return;
-    const start = Math.max(0, Math.min(chapters.length, next));
-    setAnchor(start);
+  const complete = useMemo(
+    () => species.filter((_, i) => restoration(save, i) === 5).length,
+    [save],
+  );
+  const turnShelf = (nextPage: number) => {
+    if (activated.current || nextPage < 0 || nextPage > regularPages) return;
+    const start = Math.min(nextPage * perPage, chapters.length);
     router.setParams({ shelf: String(Math.floor(start / 4)), volume: String(start) });
   };
   const enter = (index: number) => {
@@ -126,6 +129,50 @@ export function HerbariumShelf({
       testID="herbarium-shelf"
       style={{ flex: 1, minHeight: 0, width: '100%', alignItems: 'center' }}
     >
+      <View
+        style={[
+          styles.indexRow,
+          { height: layout.summaryHeight, width: layout.gridWidth, marginBottom: layout.gap },
+        ]}
+      >
+        <T
+          testID="herbarium-collection-progress"
+          accessibilityLabel={`${complete} planches estampillées sur ${species.length}`}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          maxFontSizeMultiplier={1.2}
+          style={styles.progress}
+        >
+          {complete} / {species.length} planches
+        </T>
+        {!!Object.keys(save.gardens ?? {}).length && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Mes jardins de collection"
+            onPress={() => router.push('/jardin')}
+            disabled={opening !== null}
+            style={styles.gardenLink}
+          >
+            <Icon name="leaf-outline" size={22} color="#805c91" />
+          </Pressable>
+        )}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={
+            golden ? 'Retrouver les carnets des écosystèmes' : 'Voir l’Herbier des Merveilles'
+          }
+          onPress={() => turnShelf(golden ? 0 : regularPages)}
+          disabled={opening !== null}
+          style={({ pressed }) => [styles.bookmarkTarget, { opacity: pressed ? 0.75 : 1 }]}
+        >
+          <View style={styles.bookmark}>
+            <Icon name={golden ? 'book-outline' : 'sparkles-outline'} size={17} color="#80602e" />
+            <T numberOfLines={1} maxFontSizeMultiplier={1.2} style={styles.bookmarkText}>
+              {golden ? 'Les carnets' : 'Merveilles'}
+            </T>
+          </View>
+        </Pressable>
+      </View>
       <View style={{ flex: 1, minHeight: 0, justifyContent: 'center', alignItems: 'center' }}>
         <View
           testID="herbarium-volume-grid"
@@ -207,53 +254,81 @@ export function HerbariumShelf({
           gap: 8,
         }}
       >
-        <Button
-          secondary
-          icon="arrow-undo-outline"
-          disabled={page === 0 || opening !== null}
-          onPress={() => turnShelf(first - perPage)}
-          style={{ minHeight: 44, paddingVertical: 8, paddingHorizontal: 10 }}
-        >
-          Avant
-        </Button>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={
-            golden ? 'Retrouver les carnets des écosystèmes' : 'Voir l’Herbier des Merveilles'
-          }
-          disabled={opening !== null}
-          onPress={() => turnShelf(golden ? 0 : chapters.length)}
-          style={{
-            alignItems: 'center',
-            minHeight: 44,
-            justifyContent: 'center',
-            paddingHorizontal: 4,
-          }}
-        >
-          <T
-            maxFontSizeMultiplier={1.15}
-            style={{ fontFamily: F.scientific, color: C.muted, fontSize: 11, lineHeight: 15 }}
+        <View style={styles.pagerButton}>
+          <VictoryAction
+            compact
+            narrow
+            secondary
+            maxFontSizeMultiplier={1.2}
+            disabled={page === 0 || opening !== null}
+            onPress={() => turnShelf(page - 1)}
           >
-            {golden ? 'Les carnets' : 'Merveilles ✦'}
-          </T>
-          <T
-            testID="herbarium-shelf-page"
-            accessibilityLiveRegion="polite"
-            style={{ color: C.green, fontFamily: F.scientific, fontSize: 13, lineHeight: 17 }}
-          >
-            {page + 1} / {count}
-          </T>
-        </Pressable>
-        <Button
-          secondary
-          icon="arrow-forward-outline"
-          disabled={page + 1 === count || opening !== null}
-          onPress={() => turnShelf(first + perPage)}
-          style={{ minHeight: 44, paddingVertical: 8, paddingHorizontal: 10 }}
+            Avant
+          </VictoryAction>
+        </View>
+        <T
+          testID="herbarium-shelf-page"
+          accessibilityLiveRegion="polite"
+          accessibilityLabel={`Page ${page + 1} sur ${regularPages + 1}`}
+          maxFontSizeMultiplier={1.2}
+          numberOfLines={1}
+          style={styles.pageNumber}
         >
-          Suite
-        </Button>
+          {page + 1} / {regularPages + 1}
+        </T>
+        <View style={styles.pagerButton}>
+          <VictoryAction
+            compact
+            narrow
+            maxFontSizeMultiplier={1.2}
+            disabled={page === regularPages || opening !== null}
+            onPress={() => turnShelf(page + 1)}
+          >
+            Suite
+          </VictoryAction>
+        </View>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  indexRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 3,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: C.line,
+  },
+  progress: {
+    flex: 1,
+    minWidth: 0,
+    fontFamily: F.scientific,
+    color: C.green,
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  gardenLink: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
+  bookmarkTarget: { minHeight: 44, justifyContent: 'center' },
+  bookmark: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingVertical: 3,
+    paddingHorizontal: 10,
+    borderRadius: 14,
+    borderWidth: 0.8,
+    borderColor: '#c7ae78',
+    backgroundColor: '#f1e3bf',
+  },
+  bookmarkText: { fontFamily: F.medium, fontSize: 15, lineHeight: 21, color: '#69532e' },
+  pagerButton: { flex: 1, minWidth: 0 },
+  pageNumber: {
+    minWidth: 52,
+    textAlign: 'center',
+    fontFamily: F.scientific,
+    fontSize: 16,
+    lineHeight: 22,
+    color: C.green,
+  },
+});
