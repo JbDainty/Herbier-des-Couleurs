@@ -4,7 +4,16 @@ import Svg, { Circle, Defs, G, LinearGradient, Path, Stop } from 'react-native-s
 import type { Save } from '../state/model';
 import { chapters } from '../data/botany';
 import { ecosystemForPage } from '../data/ecology';
+import { JourneyLandscapeBlend } from './JourneyLandscapeBlend';
+import { LANDSCAPE_ROWS, landscapeSlice, rowEcosystem } from '../journey/scenery';
 import { journeyLandscapes } from '../data/journeyLandscapes';
+import {
+  journeyPageX,
+  journeyRowPath,
+  MAP_NODE_Y,
+  MAP_ROW_HEIGHT,
+  MAP_WIDTH,
+} from '../journey/layout';
 import { T, C, Icon } from './ui';
 import { F } from './fonts';
 import { JourneyFrame } from './JourneyFrame';
@@ -27,8 +36,8 @@ export function JourneyMap({
   const { replaying } = useContext(BookActionsContext);
   const highest = Math.floor((frontier - 1) / 3),
     rows = Array.from({ length: highest + 1 }, (_, i) => highest - i);
-  const scale = size.width / 360,
-    rowHeight = 152 * scale;
+  const scale = size.width / MAP_WIDTH,
+    rowHeight = MAP_ROW_HEIGHT * scale;
   const [visible, setVisible] = useState(save.current);
   const latest = useRef({ onBiome, frontier });
   latest.current = { onBiome, frontier };
@@ -75,9 +84,8 @@ export function JourneyMap({
               viewabilityConfig={{ itemVisiblePercentThreshold: 40 }}
               style={{ flex: 1, overscrollBehavior: 'contain' } as any}
               renderItem={({ item: row }) => {
-                const page = Math.min(frontier, row * 3 + 2),
-                  eco = ecosystemForPage(page),
-                  reverse = row % 2 === 1;
+                const eco = rowEcosystem(row, frontier),
+                  path = journeyRowPath(row, frontier);
                 return (
                   <View
                     testID={`journey-row-${row}`}
@@ -97,36 +105,43 @@ export function JourneyMap({
                         position: 'absolute',
                         left: 0,
                         width: size.width,
-                        height: rowHeight * 4,
-                        top: -((4 - (row % 4)) % 4) * rowHeight,
+                        height: rowHeight * LANDSCAPE_ROWS,
+                        top: -landscapeSlice(row) * rowHeight,
                       }}
+                    />
+                    <JourneyLandscapeBlend row={row} frontier={frontier} edge="top" scale={scale} />
+                    <JourneyLandscapeBlend
+                      row={row}
+                      frontier={frontier}
+                      edge="bottom"
+                      scale={scale}
                     />
                     <View
                       pointerEvents="none"
                       style={[StyleSheet.absoluteFill, { backgroundColor: '#f4ead62b' }]}
                     />
-                    <Svg
-                      width={size.width}
-                      height={rowHeight}
-                      viewBox="0 0 360 152"
-                      style={StyleSheet.absoluteFill}
-                      accessible={false}
-                    >
-                      <Path
-                        d={`M20 72H340M${reverse ? 30 : 330} 72Q${reverse ? 4 : 356} 72 ${reverse ? 4 : 356} 152`}
-                        stroke="#ac8c53"
-                        strokeWidth="12"
-                        opacity=".75"
-                        fill="none"
-                      />
-                      <Path
-                        d="M20 72H340"
-                        stroke="#f6e5b8"
-                        strokeWidth="2"
-                        strokeDasharray="2 8"
-                        fill="none"
-                      />
-                    </Svg>
+                    {!!path && (
+                      <Svg
+                        width="100%"
+                        height="100%"
+                        viewBox={`0 0 ${MAP_WIDTH} ${MAP_ROW_HEIGHT}`}
+                        preserveAspectRatio="none"
+                        style={StyleSheet.absoluteFill}
+                        accessible={false}
+                        pointerEvents="none"
+                      >
+                        <Path d={path} stroke="#46503a" strokeWidth="13" fill="none" />
+                        <Path d={path} stroke="#9b7c47" strokeWidth="9.5" fill="none" />
+                        <Path
+                          d={path}
+                          stroke="#fff4cf"
+                          strokeWidth="2.8"
+                          strokeLinecap="round"
+                          strokeDasharray="1 9"
+                          fill="none"
+                        />
+                      </Svg>
+                    )}
                     {[0, 1, 2].map((col) => {
                       const id = row * 3 + col + 1;
                       if (id > frontier) return null;
@@ -134,8 +149,8 @@ export function JourneyMap({
                         <JourneyNode
                           key={id}
                           id={id}
-                          x={(reverse ? 292 - col * 112 : 68 + col * 112) * scale}
-                          y={72 * scale}
+                          x={journeyPageX(id) * scale}
+                          y={MAP_NODE_Y * scale}
                           active={save.current === id}
                           next={frontier === id && !save.completed[id]}
                           stars={save.completed[id]?.stars ?? 0}

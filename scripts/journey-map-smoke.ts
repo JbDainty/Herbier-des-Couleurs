@@ -52,7 +52,7 @@ async function main() {
           .first()
           .boundingBox();
         const viewport = await scroll.boundingBox();
-        return Math.abs(content!.width - viewport!.width);
+        return content && viewport ? Math.abs(content.width - viewport.width) : Infinity;
       })
       .toBeLessThan(0.5);
     // Let the committed resize's initial-position effect finish before a test gesture.
@@ -144,7 +144,7 @@ async function main() {
     await page.getByRole('button', { name: 'Continuer cette page', exact: true }).click();
     await expect(page.getByTestId('page-folio')).toHaveText('PAGE 24');
     expect(await state()).toEqual(progress);
-    for (const done of [0, 43, 63, 83, 100, levels.length]) {
+    for (const done of [0, 43, 63, 83, 100, 952, levels.length]) {
       const s = carnet(done);
       await seed(s);
       await bounds();
@@ -154,6 +154,37 @@ async function main() {
       );
       expect(await state()).toEqual(s);
       await page.screenshot({ path: `test-results/journey-frontier-${done}.png` });
+    }
+    // Scroll the complete route so that both independently virtualized halves of each wash mount.
+    const highest = Math.floor((levels.length - 1) / 3);
+    const rowHeight = (await page.getByTestId(`journey-row-${highest}`).boundingBox())!.height;
+    for (let row = highest; row > 0; row--) {
+      const upper = ecosystemForPage(Math.min(levels.length, row * 3 + 2));
+      const lower = ecosystemForPage(row * 3 - 1);
+      if (upper === lower && row !== highest) continue;
+      const offset = (highest - row) * rowHeight;
+      await scroll.evaluate((n, y) => {
+        n.scrollTop = y;
+      }, offset);
+      const topHalf = page.getByTestId(`journey-wash-${row}-bottom`);
+      const bottomHalf = page.getByTestId(`journey-wash-${row}-top`);
+      await expect(topHalf).toBeInViewport();
+      await expect(bottomHalf).toBeInViewport();
+      const upperImage = await page
+        .getByTestId(`journey-row-${row}`)
+        .locator('img')
+        .getAttribute('src');
+      const lowerImage = await page
+        .getByTestId(`journey-row-${row - 1}`)
+        .locator('img')
+        .getAttribute('src');
+      for (const half of [topHalf, bottomHalf]) {
+        await expect(half.locator('image').first()).toHaveAttribute('href', upperImage!);
+        await expect(half.locator('image').last()).toHaveAttribute('href', lowerImage!);
+      }
+      const a = (await topHalf.boundingBox())!;
+      const b = (await bottomHalf.boundingBox())!;
+      expect(Math.abs(a.y + a.height - b.y)).toBeLessThan(1);
     }
     await seed(carnet(23, 24, true));
     await expect(page.getByTestId('journey-life-animating')).toBeVisible();
