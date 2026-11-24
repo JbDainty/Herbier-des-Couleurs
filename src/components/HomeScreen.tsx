@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { Animated, Pressable, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
+import { campaignTestAdsEnabled } from '../services/campaignAds';
 import { useGame } from '../state/store';
 import { homeProgress } from '../state/home';
 import { homeLayout } from '../layout/home';
@@ -27,7 +28,8 @@ import { useVitrailDate } from './useVitrailDate';
 
 /** Soft watercolor clearing with two clearly playable adventures and a quiet future teaser. */
 export function HomeScreen({ active }: { active: boolean }) {
-  const { save } = useGame();
+  const { save, setSave } = useGame();
+  const [showAdOffer, setShowAdOffer] = useState(false);
   const today = useVitrailDate(active);
   const { fontScale } = useWindowDimensions();
   const measured = useMeasuredSize();
@@ -48,6 +50,14 @@ export function HomeScreen({ active }: { active: boolean }) {
   }, [active]);
   const { replayPrologue, replaying, openWorkshop, enteringWorkshop } =
     useContext(BookActionsContext);
+  useEffect(() => {
+    if (!active || replaying) {
+      setShowAdOffer(false);
+    } else if (campaignTestAdsEnabled && !save.testSession && save.removeAdsOfferPending) {
+      setShowAdOffer(true);
+      setSave((s) => ({ ...s, removeAdsOfferPending: false }));
+    }
+  }, [active, replaying, save.testSession, save.removeAdsOfferPending, setSave]);
   const { value, settled } = useNativeProgress(
     2600,
     save.settings.motion && focused && !replaying && !departure,
@@ -213,7 +223,57 @@ export function HomeScreen({ active }: { active: boolean }) {
     <Animated.View
       style={[{ width: layout.sideWidth, height: layout.mysteryHeight }, stages.mystery]}
     >
-      <MysteryModeCard width={layout.sideWidth} height={layout.mysteryHeight} />
+      {showAdOffer ? (
+        <View
+          style={{
+            height: '100%',
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: '#f7ebd1',
+            borderRadius: 13,
+            borderColor: '#b39c70',
+            borderWidth: 1,
+          }}
+        >
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Retirer les pubs à 1,99 €, offre à venir"
+            onPress={() => {
+              setShowAdOffer(false);
+              leave(() => router.push({ pathname: '/boutique', params: { offre: 'pubs' } }));
+            }}
+            style={{
+              flex: 1,
+              minWidth: 0,
+              justifyContent: 'center',
+              paddingLeft: 12,
+              minHeight: 44,
+            }}
+          >
+            <T
+              serif
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              style={{ fontSize: 17, lineHeight: 20 }}
+            >
+              Retirer les pubs
+            </T>
+            <T numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 14, lineHeight: 17 }}>
+              1,99 € · Offre à venir
+            </T>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Fermer l’offre"
+            onPress={() => setShowAdOffer(false)}
+            style={{ width: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Icon name="close-outline" size={20} />
+          </Pressable>
+        </View>
+      ) : (
+        <MysteryModeCard width={layout.sideWidth} height={layout.mysteryHeight} />
+      )}
     </Animated.View>
   );
   const navHeight = short ? 54 : tight ? 48 : 64;

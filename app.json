@@ -3,7 +3,7 @@
     "name": "Herbier des couleurs",
     "slug": "color-world-herbier",
     "owner": "jbame",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "scheme": "colorworld",
     "userInterfaceStyle": "light",
@@ -13,7 +13,7 @@
     },
     "android": {
       "package": "com.colorworld.herbier",
-      "versionCode": 4,
+      "versionCode": 5,
       "blockedPermissions": ["android.permission.RECORD_AUDIO"],
       "adaptiveIcon": {
         "foregroundImage": "./assets/branding/adaptive-foreground.png",
@@ -54,6 +54,14 @@
           "imageWidth": 240,
           "resizeMode": "contain",
           "backgroundColor": "#f4f0e5"
+        }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511",
+          "delayAppMeasurementInit": true
         }
       ]
     ],

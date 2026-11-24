@@ -19,6 +19,13 @@
     "production": {
       "channel": "production",
       "autoIncrement": true
+    },
+    "preview-ads": {
+      "extends": "preview",
+      "channel": "preview-ads",
+      "env": {
+        "EXPO_PUBLIC_CAMPAIGN_TEST_ADS": "1"
+      }
     }
   },
   "submit": {
