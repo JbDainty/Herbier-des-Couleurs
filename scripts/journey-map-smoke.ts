@@ -36,6 +36,7 @@ async function main() {
   };
   const scroll = page.getByTestId('ecosystem-map-scroll');
   const root = page.getByTestId('ecosystems-screen');
+  const starCounter = page.getByTestId('journey-star-total');
   const bounds = async () => {
     // Window dimensions reach React after the CSS viewport has already resized.
     await expect
@@ -44,7 +45,7 @@ async function main() {
           .getByTestId('journey-biome-title')
           .evaluate((n) => parseFloat(getComputedStyle(n).fontSize)),
       )
-      .toBe(page.viewportSize()!.height < 550 ? 23 : 32);
+      .toBe(page.viewportSize()!.height < 550 ? 23 : 27);
     await expect
       .poll(async () => {
         const content = await page
@@ -74,11 +75,12 @@ async function main() {
       await root.evaluate((n) => n.clientHeight),
     );
     await expect(
-      page.getByRole('button', { name: 'Revenir à ma page', exact: true }),
+      page.getByRole('button', { name: 'Recentrer la carte', exact: true }),
     ).toBeInViewport();
   };
   try {
     const save = carnet(23);
+    const total = String(Object.values(save.completed).reduce((n, page) => n + page.stars, 0));
     await seed(save);
     await expect(page.getByTestId('journey-page-24')).toBeInViewport();
     await expect(page.getByTestId('journey-page-25')).toHaveCount(0);
@@ -104,7 +106,21 @@ async function main() {
         })
         .toBe(height);
       await bounds();
+      await expect(page.getByRole('heading', { name: 'Écosystèmes', exact: true })).toHaveCount(1);
+      await expect(starCounter).toBeInViewport();
+      await expect(starCounter).toHaveText(total);
+      await expect(starCounter.locator('svg')).toHaveCount(1);
       await page.screenshot({ path: `test-results/journey-${width}x${height}.png` });
+      await page.getByTestId('journey-page-24').click();
+      const book = page.getByTestId('journey-page-dialog');
+      await expect(book).toBeInViewport({ ratio: 0.99 });
+      await expect(book.getByRole('button', { name: 'Jouer la page' })).toBeInViewport({
+        ratio: 0.99,
+      });
+      await expect(book.getByTestId('journey-dialog-stars')).toHaveAccessibleName('0 étoile sur 3');
+      await expect(book.getByTestId('journey-dialog-stars').locator('svg')).toHaveCount(3);
+      await book.getByRole('button', { name: 'Fermer la fiche', exact: true }).click();
+      await expect(book).toHaveCount(0);
     }
     await page.setViewportSize({ width: 393, height: 852 });
     await bounds();
@@ -113,18 +129,27 @@ async function main() {
     await expect(page.getByTestId('journey-page-1')).toBeInViewport();
     expect((await page.getByTestId('journey-frame').boundingBox())!.y).toBe(y);
     await expect(page.getByTestId('journey-biome-title')).toHaveText('Les prairies fleuries');
+    await expect(starCounter).toHaveText(total);
+    await page.getByRole('button', { name: 'Recentrer la carte', exact: true }).click();
+    await expect(page.getByTestId('journey-page-24')).toBeInViewport();
+    await expect(page.getByTestId('journey-stars-24')).toHaveText('Ma page');
+    await scroll.evaluate((n) => (n.scrollTop = n.scrollHeight));
+    await expect(page.getByTestId('journey-page-1')).toBeInViewport();
     await page.mouse.move(200, 600);
     await page.mouse.wheel(0, 3000);
     expect(await page.evaluate(() => window.scrollY)).toBe(0);
     expect(await state()).toEqual(save);
     await page.getByRole('button', { name: 'Page 1', exact: true }).click();
     await expect(page.getByTestId('journey-page-dialog')).toBeVisible();
+    await expect(page.getByTestId('journey-dialog-stars')).toHaveAccessibleName(
+      `${save.completed[1].stars} étoiles sur 3`,
+    );
     await page.screenshot({ path: 'test-results/journey-replay-dialog.png' });
     expect(await state()).toEqual(save);
     await page.getByRole('button', { name: 'Fermer la fiche', exact: true }).click();
     await expect(page.getByTestId('journey-page-dialog')).toHaveCount(0);
     await page.getByRole('button', { name: 'Page 1', exact: true }).click();
-    await page.getByRole('button', { name: 'Rejouer cette page', exact: true }).click();
+    await page.getByRole('button', { name: 'Rejouer la page', exact: true }).click();
     await expect(page.getByTestId('page-folio')).toHaveText('PAGE 01');
     const replay = await state();
     expect(replay.current).toBe(1);
@@ -141,9 +166,13 @@ async function main() {
     const progress = move(carnet(23), levels[23].solution[0].from, levels[23].solution[0].to);
     await seed(progress);
     await page.getByRole('button', { name: 'Page 24', exact: true }).click();
-    await page.getByRole('button', { name: 'Continuer cette page', exact: true }).click();
+    await page.getByRole('button', { name: 'Reprendre la page', exact: true }).click();
     await expect(page.getByTestId('page-folio')).toHaveText('PAGE 24');
     expect(await state()).toEqual(progress);
+    await seed(carnet(0));
+    await page.getByTestId('journey-page-1').click();
+    await page.getByRole('button', { name: 'Jouer la page' }).click();
+    await expect(page.getByTestId('page-folio')).toHaveText('PAGE 01');
     for (const done of [0, 43, 63, 83, 100, 952, levels.length]) {
       const s = carnet(done);
       await seed(s);
@@ -151,6 +180,9 @@ async function main() {
       await expect(page.getByTestId(`journey-page-${s.current}`)).toBeInViewport();
       await expect(page.getByTestId('journey-biome-title')).toHaveText(
         chapters[ecosystemForPage(s.current)].name,
+      );
+      await expect(starCounter).toHaveText(
+        String(Object.values(s.completed).reduce((sum, result) => sum + result.stars, 0)),
       );
       expect(await state()).toEqual(s);
       await page.screenshot({ path: `test-results/journey-frontier-${done}.png` });

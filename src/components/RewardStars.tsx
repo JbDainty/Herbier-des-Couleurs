@@ -3,10 +3,16 @@ import { Animated, View } from 'react-native';
 import { useNativeProgress } from './useNativeProgress';
 import Svg, { Circle, Defs, G, LinearGradient, Path, Stop } from 'react-native-svg';
 
-const StarFlower = memo(function StarFlower({ filled }: { filled: boolean }) {
+export const StarFlower = memo(function StarFlower({
+  filled,
+  size = 64,
+}: {
+  filled: boolean;
+  size?: number;
+}) {
   const token = 'star-flower-' + useId().replace(/[^a-zA-Z0-9_-]/g, '');
   return (
-    <Svg width="64" height="64" viewBox="0 0 80 80" accessible={false}>
+    <Svg width={size} height={size} viewBox="0 0 80 80" accessible={false}>
       <Defs>
         <LinearGradient id={token} x1="0" y1="0" x2="0.8" y2="1">
           <Stop stopColor="#fff0b3" />
