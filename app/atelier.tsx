@@ -58,6 +58,8 @@ import { completedByPour, type TubeReward } from '../src/animation/tubeReward';
 import { playVialChime } from '../src/services/vialChime';
 import { preparePageArtwork } from '../src/services/pageArtwork';
 import { RestorationProgress } from '../src/components/RestorationProgress';
+import { campaignAdBreak, type CampaignAd } from '../src/state/campaignAds';
+import { prepareCampaignAd } from '../src/services/campaignAds';
 import { RestorationResult } from '../src/components/RestorationResult';
 import { workshopLayout } from '../src/layout/workshop';
 type Note = { text: string; kind: 'info' | 'hint'; request: number; pending: boolean };
@@ -85,6 +87,18 @@ function Workshop() {
   const introductions = won(save.board, rules) ? [] : mechanicsToIntroduce(save, rules);
   useEffect(() => reportSceneHeight(layout.height), [layout.height, reportSceneHeight]);
   const [replay, setReplay] = useState(!!save.completed[save.current]);
+  const adBreak = campaignAdBreak(save.current, replay, !!save.testSession);
+  const adSlot = useRef<CampaignAd | undefined>(undefined);
+  const leavingResult = useRef(false);
+  useEffect(() => {
+    leavingResult.current = false;
+    const slot = adBreak ? prepareCampaignAd() : undefined;
+    adSlot.current = slot;
+    return () => {
+      adSlot.current = undefined;
+      slot?.dispose();
+    };
+  }, [save.current, adBreak]);
   const [tubeReward, setTubeReward] = useState<TubeReward | null>(null);
   const [winReady, setWinReady] = useState(won(save.board, rules));
   const hintPending = useRef(false);
@@ -371,13 +385,31 @@ function Workshop() {
         ? playPlantMelody(save.settings.sound)
         : playRevealMelody(save.settings.sound);
   };
+  const leaveResult = (continuePlaying: () => void) => {
+    if (leavingResult.current) return;
+    leavingResult.current = true;
+    const slot = adSlot.current;
+    const impression = slot?.show();
+    if (!impression) {
+      continuePlaying();
+      return;
+    }
+    void impression.then((shown) => {
+      if (adSlot.current !== slot) return;
+      if (shown && adBreak === 'species-with-offer')
+        setSave((s) => ({ ...s, removeAdsOfferPending: true }));
+      continuePlaying();
+    });
+  };
   const next = () => {
     if (sealPage && !sealFinished) return;
-    setDismissed(true);
-    if (save.current < 1000) {
-      const target = save.current + 1;
-      turnPage(target, () => setSave((v) => loadLevel(v, target)));
-    } else router.push('/herbier');
+    leaveResult(() => {
+      setDismissed(true);
+      if (save.current < 1000) {
+        const target = save.current + 1;
+        turnPage(target, () => setSave((v) => loadLevel(v, target)));
+      } else router.push('/herbier');
+    });
   };
   const replayPage = () => {
     const current = save.current;
@@ -392,6 +424,7 @@ function Workshop() {
       setBusy(false);
       setPouring(null);
       setReplay(true);
+      leavingResult.current = false;
       setTubeReward(null);
       revealPlayed.current = false;
       stopPour.current();
@@ -664,11 +697,13 @@ function Workshop() {
             sealFinished={sealFinished}
             onReveal={restorePigment}
             onContinue={next}
-            onReplay={replayPage}
-            onHerbarium={() => {
-              setDismissed(true);
-              router.push('/herbier');
-            }}
+            onReplay={() => leaveResult(replayPage)}
+            onHerbarium={() =>
+              leaveResult(() => {
+                setDismissed(true);
+                router.push('/herbier');
+              })
+            }
             onSealDone={() => setSealFinished(true)}
           />
         )}

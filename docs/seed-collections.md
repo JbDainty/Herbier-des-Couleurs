@@ -63,7 +63,9 @@ La première page met en avant l’Orchidée du Phénix, avec accès aux cinq me
 
 Les rayons `jardins` et `decors` sont regroupés dans `/boutique?rayon=…`, avec retour à la galerie. Les prix, les conditions de découverte des écosystèmes, les confirmations et les droits acquis sont conservés. Les règles des graines sont regroupées dans une fenêtre dédiée.
 
-L’offre « Retirer les pubs » est présentée à **1,99 €**, avec la mention **Bientôt disponible**. Son bouton ouvre uniquement les informations de disponibilité : cette version ne diffuse aucune publicité, ne facture rien et n’accorde aucun droit d’achat fictif. Aucun pack de graines payant n’est affiché. L’activation du paiement et du retrait des publicités demandera un produit configuré dans les boutiques, un fournisseur connecté et une restauration fiable des droits.
+L’offre « Retirer les pubs » est présentée à **1,99 €** avec la mention **Bientôt disponible**. Le bouton ouvre les informations de disponibilité. Le paiement et la restauration de l’achat nécessitent encore un produit configuré dans les boutiques.
+
+Le profil Android `preview-ads` utilise les annonces interstitielles de démonstration de Google. Les dix premières pages sont exemptées. À partir de la troisième espèce, une annonce prête peut apparaître en quittant la victoire de la troisième ou de la cinquième page de l’espèce (13, 15, 18, 20…). Les reprises de pages déjà réussies, les vitraux, les collections bonus et le mode de test des niveaux sont exclus. Après l’annonce de fin de chaque deuxième espèce admissible (20, 30, 40…), le prochain passage au menu présente l’offre une fois. Le jeu continue immédiatement si l’annonce est indisponible. Les profils habituels gardent la diffusion désactivée.
 
 `node --import tsx scripts/shop-gallery-smoke.ts` vérifie la disponibilité explicite de l’offre sans débit ni modification de sauvegarde, les achats/annulations/rechargements des merveilles, jardins et décors, les doubles confirmations, les restrictions en session d’essai et sept formats d’écran. Les tests de collections, merveilles et graines contrôlent également la comptabilité et les puzzles.
 

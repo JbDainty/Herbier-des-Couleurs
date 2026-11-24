@@ -51,6 +51,7 @@ export type Save = {
   /** Legacy ledger, preserved for compatibility without granting further replay seeds. */
   replayRewards?: ReplayRewards;
   lastSeedReward?: number;
+  removeAdsOfferPending?: boolean;
 };
 export function campaignStarTotal(completed: Save['completed']) {
   return Object.values(completed).reduce((total, page) => total + page.stars, 0);
@@ -413,6 +414,8 @@ export function restore(raw: string | null): Save {
     (!Number.isInteger(v.lastSeedReward) || v.lastSeedReward < 0 || v.lastSeedReward > 3)
   )
     throw Error('Récompense invalide.');
+  if (v.removeAdsOfferPending !== undefined && typeof v.removeAdsOfferPending !== 'boolean')
+    throw Error('Offre enregistrée invalide.');
   validateGardens(v);
   validateVitrail(v);
   const migrationCredit =

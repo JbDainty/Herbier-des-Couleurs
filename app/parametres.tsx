@@ -20,6 +20,7 @@ import { Paper } from '../src/components/Paper';
 import { F } from '../src/components/fonts';
 import { T, Button, C, Icon } from '../src/components/ui';
 import { useGame } from '../src/state/store';
+import { campaignTestAdsEnabled } from '../src/services/campaignAds';
 import { campaignStarTotal, normalizeNickname, type Settings } from '../src/state/model';
 import { unlockAmbience } from '../src/services/ambience';
 
@@ -297,10 +298,11 @@ export default function Parametres() {
                 <T style={[styles.help, { marginTop: -10 }]}>Volume I</T>
                 <AboutSection
                   title="Confidentialité"
-                  summary="Vos données restent sur cet appareil."
+                  summary="Votre progression reste sur cet appareil."
                 >
-                  Aucune mesure d’audience ni publicité active. La progression est enregistrée
-                  localement. Les connexions Apple et Google ne sont pas encore disponibles.
+                  {campaignTestAdsEnabled
+                    ? 'Cette version contacte Google AdMob pour charger des annonces de démonstration. La progression est enregistrée localement.'
+                    : 'Aucune mesure d’audience ni publicité active. La progression est enregistrée localement. Les connexions Apple et Google ne sont pas encore disponibles.'}
                 </AboutSection>
                 <AboutSection
                   title="Illustrations & sons"
@@ -323,7 +325,7 @@ export default function Parametres() {
             )}
           </ScrollView>
         </Paper>
-        <T style={styles.version}>Version {Constants.expoConfig?.version ?? '1.0.3'}</T>
+        <T style={styles.version}>Version {Constants.expoConfig?.version ?? '1.0.4'}</T>
       </View>
       {resetOpen && (
         <ResetProgressDialog

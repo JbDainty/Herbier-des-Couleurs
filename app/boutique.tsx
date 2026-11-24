@@ -20,6 +20,7 @@ import {
   SpecimenHalo,
   shopArtwork,
 } from '../src/components/ShopPresentation';
+import { campaignTestAdsEnabled } from '../src/services/campaignAds';
 import { useGame } from '../src/state/store';
 import {
   acquireGarden,
@@ -41,7 +42,7 @@ export default function Boutique() {
   const { availableHeight } = useContext(BookChromeContext);
   const compact = (availableHeight || height) < 800 || width < 360;
   const artHeight = Math.max(145, Math.min(240, (availableHeight || height) - 610));
-  const params = useLocalSearchParams<{ rayon?: string }>();
+  const params = useLocalSearchParams<{ rayon?: string; offre?: string }>();
   const section: Section =
     params.rayon === 'jardins' || params.rayon === 'decors' ? params.rayon : 'accueil';
   const scroll = useRef<ScrollView>(null);
@@ -49,7 +50,7 @@ export default function Boutique() {
     save.wallpaper?.startsWith('ecosystem-') ? save.wallpaper : wallpapers[0].id,
   );
   const [purchase, confirm] = useState<Purchase | null>(null);
-  const [info, setInfo] = useState<'seeds' | 'ads' | null>(null);
+  const [info, setInfo] = useState<'seeds' | 'ads' | null>(params.offre === 'pubs' ? 'ads' : null);
   const item = wallpapers.find((w) => w.id === selected) ?? wallpapers[0];
   const owned = save.ownedWallpapers?.includes(item.id);
   const unlocked = wallpaperUnlocked(save, item.id);
@@ -420,8 +421,9 @@ export default function Boutique() {
                 1,99 € · Offre à venir
               </T>
               <T>
-                Cette version du jeu ne contient pas de publicités. L’offre sera proposée lorsque
-                les achats seront disponibles.
+                {campaignTestAdsEnabled
+                  ? 'Cette version de test présente des annonces de démonstration. L’achat unique sera proposé lors de l’ouverture des paiements.'
+                  : 'Cette version du jeu ne contient pas de publicités. L’offre sera proposée lorsque les achats seront disponibles.'}
               </T>
               <T style={styles.help}>Aucun achat n’est effectué ici.</T>
             </>
