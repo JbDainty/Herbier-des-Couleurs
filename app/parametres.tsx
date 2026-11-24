@@ -20,7 +20,7 @@ import { Paper } from '../src/components/Paper';
 import { F } from '../src/components/fonts';
 import { T, Button, C, Icon } from '../src/components/ui';
 import { useGame } from '../src/state/store';
-import { normalizeNickname, type Settings } from '../src/state/model';
+import { campaignStarTotal, normalizeNickname, type Settings } from '../src/state/model';
 import { unlockAmbience } from '../src/services/ambience';
 
 type Tab = 'jeu' | 'carnet' | 'apropos';
@@ -226,7 +226,7 @@ export default function Parametres() {
                 <View style={styles.stats}>
                   {[
                     [Object.keys(save.completed).length, 'pages'],
-                    [Object.values(save.completed).reduce((n, l) => n + l.stars, 0), 'étoiles'],
+                    [campaignStarTotal(save.completed), 'étoiles'],
                     [save.pigments.length, 'découvertes'],
                   ].map(([n, label]) => (
                     <View key={label} style={styles.stat}>

@@ -95,7 +95,7 @@ async function main() {
     // A page selected from the exploration book uses the same transition coordinator.
     await openScreen(page, 'Écosystèmes');
     await page.getByRole('button', { name: 'Page 2', exact: true }).click();
-    await page.getByRole('button', { name: 'Rejouer cette page', exact: true }).click();
+    await page.getByRole('button', { name: 'Rejouer la page', exact: true }).click();
     await expect(page.getByTestId('book-page-turn')).toBeVisible();
     await expect(page.getByTestId('book-page-turn')).toHaveCount(0);
     await expect(page.getByTestId('page-folio')).toHaveText('PAGE 02');

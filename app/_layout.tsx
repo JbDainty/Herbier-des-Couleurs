@@ -34,13 +34,19 @@ import { StudioLaunchGate } from '../src/components/StudioLaunchGate';
 import * as SplashScreen from 'expo-splash-screen';
 
 if (Platform.OS !== 'web') void SplashScreen.preventAutoHideAsync().catch(() => {});
+const pageHeadings: Partial<Record<string, { title: string; testID: string }>> = {
+  '/boutique': { title: 'Boutique', testID: 'shop-heading' },
+  '/parametres': { title: 'Paramètres', testID: 'settings-heading' },
+  '/carte': { title: 'Écosystèmes', testID: 'ecosystems-heading' },
+};
 function Shell() {
   const insets = useSafeAreaInsets();
   const { width, height, fontScale } = useWindowDimensions(),
     mobile = width < 800,
     path = usePathname(),
     playing = path === '/atelier',
-    home = path === '/';
+    home = path === '/',
+    pageHeading = pageHeadings[path];
   const { collection, vue } = useGlobalSearchParams<{ collection?: string; vue?: string }>();
   const menuMusic =
     home ||
@@ -161,11 +167,11 @@ function Shell() {
             onHome={() => router.dismissTo('/')}
           />
           <View style={{ flex: 1, alignItems: 'center' }}>
-            {path === '/parametres' || path === '/boutique' ? (
+            {pageHeading ? (
               <>
                 <T
                   serif
-                  testID={path === '/boutique' ? 'shop-heading' : 'settings-heading'}
+                  testID={pageHeading.testID}
                   accessibilityRole="header"
                   numberOfLines={1}
                   adjustsFontSizeToFit
@@ -180,7 +186,7 @@ function Shell() {
                     color: '#24452f',
                   }}
                 >
-                  {path === '/boutique' ? 'Boutique' : 'Paramètres'}
+                  {pageHeading.title}
                 </T>
                 <SettingsFlourish />
               </>

@@ -1,5 +1,13 @@
 import React, { memo, useRef, useState, useContext } from 'react';
-import { Animated, Image, FlatList, View, Pressable, StyleSheet } from 'react-native';
+import {
+  Animated,
+  Image,
+  FlatList,
+  View,
+  Pressable,
+  StyleSheet,
+  useWindowDimensions,
+} from 'react-native';
 import Svg, { Circle, Defs, G, LinearGradient, Path, Stop } from 'react-native-svg';
 import type { Save } from '../state/model';
 import { chapters } from '../data/botany';
@@ -14,9 +22,10 @@ import {
   MAP_ROW_HEIGHT,
   MAP_WIDTH,
 } from '../journey/layout';
-import { T, C, Icon } from './ui';
+import { T, C } from './ui';
 import { F } from './fonts';
 import { JourneyFrame } from './JourneyFrame';
+import { VictoryAction } from './VictoryAction';
 import { useMeasuredSize } from './useMeasuredSize';
 import { useNativeProgress } from './useNativeProgress';
 import { BookActionsContext } from './BookActions';
@@ -33,6 +42,7 @@ export function JourneyMap({
 }) {
   const { size, ref, onLayout } = useMeasuredSize(),
     list = useRef<FlatList<number>>(null);
+  const { height: windowHeight } = useWindowDimensions();
   const { replaying } = useContext(BookActionsContext);
   const highest = Math.floor((frontier - 1) / 3),
     rows = Array.from({ length: highest + 1 }, (_, i) => highest - i);
@@ -61,7 +71,7 @@ export function JourneyMap({
         <View ref={ref} onLayout={onLayout} collapsable={false} style={{ flex: 1, minHeight: 0 }}>
           {scale > 0 && (
             <FlatList
-              key={`${frontier}/${save.current}/${size.width}/${size.height}`}
+              key={`${frontier}/${save.current}/${size.width}/${windowHeight}`}
               ref={list}
               testID="ecosystem-map-scroll"
               data={rows}
@@ -176,21 +186,29 @@ export function JourneyMap({
           )}
         </View>
       </JourneyFrame>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Revenir à ma page"
-        onPress={jump}
+      <View
         style={{
-          minHeight: 44,
+          width: '100%',
+          maxWidth: 720,
+          alignSelf: 'center',
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'center',
+          justifyContent: 'space-between',
+          paddingLeft: 10,
+          paddingRight: 3,
+          marginTop: 4,
           gap: 8,
         }}
       >
-        <Icon name="leaf-outline" size={20} />
-        <T style={{ fontFamily: F.scientific }}>Ma page · {save.current}</T>
-      </Pressable>
+        <T numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.scientific, fontSize: 18 }}>
+          Page {save.current}
+        </T>
+        <View style={{ width: 170, maxWidth: '62%' }}>
+          <VictoryAction compact narrow maxFontSizeMultiplier={1.25} onPress={jump}>
+            Recentrer la carte
+          </VictoryAction>
+        </View>
+      </View>
     </>
   );
 }
@@ -317,7 +335,13 @@ const JourneyNode = memo(function JourneyNode({
             fontFamily: stars ? F.body : F.scientific,
           }}
         >
-          {stars ? '★'.repeat(stars) + '☆'.repeat(3 - stars) : next ? 'À vous' : 'En cours'}
+          {stars
+            ? '★'.repeat(stars) + '☆'.repeat(3 - stars)
+            : active
+              ? 'Ma page'
+              : next
+                ? 'À jouer'
+                : 'En cours'}
         </T>
       </View>
     </View>

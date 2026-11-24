@@ -52,6 +52,9 @@ export type Save = {
   replayRewards?: ReplayRewards;
   lastSeedReward?: number;
 };
+export function campaignStarTotal(completed: Save['completed']) {
+  return Object.values(completed).reduce((total, page) => total + page.stars, 0);
+}
 export function initial(): Save {
   return {
     version: 2,
