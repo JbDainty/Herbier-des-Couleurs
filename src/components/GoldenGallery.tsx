@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Animated, Image, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import type { GardenCollection, GardenSpecies } from '../data/collections';
 import { collectionArtwork } from '../data/collectionArtwork';
 import { gardenStage } from '../state/gardens';
@@ -12,6 +12,7 @@ import { SettingsFlourish } from './SettingsArtwork';
 import { ShopPaper, ShopRibbon, SpecimenHalo, shopArtwork } from './ShopPresentation';
 import { C, Icon, T } from './ui';
 import { F } from './fonts';
+import { useNativeProgress } from './useNativeProgress';
 
 const engravedPlants: Record<string, number> = {
   phenix: shopArtwork.phenix,
@@ -25,6 +26,7 @@ export function GoldenGallery({
   garden,
   selection,
   onSelect,
+  onRevealed,
   onAction,
   onHome,
   onShop,
@@ -33,12 +35,15 @@ export function GoldenGallery({
   garden: GardenCollection;
   selection?: string;
   onSelect: (species: GardenSpecies) => void;
+  onRevealed?: () => void;
   onAction: (species: GardenSpecies) => void;
   onHome: () => void;
   onShop: () => void;
   onHerbarium: () => void;
 }) {
   const { save } = useGame();
+  const reveal = !!onRevealed && save.settings.motion;
+  const { value } = useNativeProgress(220, reveal, onRevealed);
   const viewport = useWindowDimensions();
   const chrome = useContext(BookChromeContext);
   const width = Math.min(chrome.availableWidth || viewport.width, 500);
@@ -63,7 +68,8 @@ export function GoldenGallery({
   return (
     <View testID="collection-garden" style={styles.screen}>
       <PaperTexture background textureOpacity={0.47} />
-      <ScrollView
+      <Animated.ScrollView
+        style={reveal ? { opacity: value } : undefined}
         testID="golden-gallery"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.page, compact && styles.compactPage, { width }]}
@@ -206,7 +212,7 @@ export function GoldenGallery({
             <T style={styles.linkText}>Herbier doré</T>
           </Pressable>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 }

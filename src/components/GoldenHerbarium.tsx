@@ -1,11 +1,10 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { Animated, AppState, Easing, Image, Platform, Pressable, View } from 'react-native';
+import { Animated, AppState, Easing, Platform, Pressable, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 import { T } from './ui';
 import { F } from './fonts';
-import { useNativeProgress } from './useNativeProgress';
-import { usePrimaryAnimation, useAmbientMotion } from './usePrimaryAnimation';
+import { useAmbientMotion } from './usePrimaryAnimation';
 
 /** Original engraved silhouettes: locked paintings remain a discovery. */
 export function GoldenPlantSilhouette({
@@ -350,67 +349,5 @@ export function GoldenHerbarium({
         </>
       )}
     </Pressable>
-  );
-}
-
-export function OpeningGoldenHerbarium({
-  width,
-  height,
-  onDone,
-  children,
-}: {
-  width: number;
-  height: number;
-  onDone: () => void;
-  children: React.ReactNode;
-}) {
-  const { value } = useNativeProgress(560, true, onDone);
-  usePrimaryAnimation(true);
-  return (
-    <View pointerEvents="none" testID="antique-book-opening" style={{ width, height }}>
-      <View
-        style={{
-          position: 'absolute',
-          inset: 4,
-          borderRadius: 13,
-          borderColor: '#b39659',
-          borderWidth: 2,
-          backgroundColor: '#f7e8c2',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Image
-          source={require('../../assets/shop/phenix.webp')}
-          resizeMode="contain"
-          fadeDuration={0}
-          style={{ width: '76%', height: '69%' }}
-        />
-        <T serif style={{ fontSize: 23, color: '#665332', textAlign: 'center' }}>
-          Orchidée du Phénix
-        </T>
-      </View>
-      <Animated.View
-        renderToHardwareTextureAndroid
-        shouldRasterizeIOS
-        style={{
-          width,
-          height,
-          transformOrigin: 'left center',
-          opacity: value.interpolate({ inputRange: [0, 0.8, 1], outputRange: [1, 1, 0] }),
-          transform: [
-            { perspective: width * 4 },
-            {
-              rotateY: value.interpolate({
-                inputRange: [0, 0.12, 0.85, 1],
-                outputRange: ['0deg', '-2deg', '-82deg', '-90deg'],
-              }),
-            },
-          ],
-        }}
-      >
-        {children}
-      </Animated.View>
-    </View>
   );
 }

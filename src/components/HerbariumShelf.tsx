@@ -11,7 +11,7 @@ import { VictoryAction } from './VictoryAction';
 import { AntiqueHerbarium, OpeningHerbarium } from './AntiqueHerbarium';
 import { useAmbientMotion } from './usePrimaryAnimation';
 import { preparePageArtwork } from '../services/pageArtwork';
-import { GoldenHerbarium, OpeningGoldenHerbarium } from './GoldenHerbarium';
+import { GoldenHerbarium } from './GoldenHerbarium';
 import { GOLDEN_COLLECTION_ID } from '../data/collections';
 
 /** One shared native clock lights one binding at a time; no SVG frame updates. */
@@ -104,19 +104,24 @@ export function HerbariumShelf({
   };
   const enter = (index: number) => {
     if (!alive.current || !activated.current) return;
-    router.push(
-      (index === chapters.length
-        ? `/jardin?collection=${GOLDEN_COLLECTION_ID}&vue=galerie`
-        : `/carnet?ecosystem=${index}`) as Href,
-    );
+    router.push(`/carnet?ecosystem=${index}` as Href);
   };
   const open = (index: number) => {
     if (activated.current || !alive.current) return;
     activated.current = true;
-    if (index < chapters.length) {
-      const plant = plantsForEcosystem(index)[0];
-      preparePageArtwork(plant, restoration(save, plant));
+    if (index === chapters.length) {
+      router.push({
+        pathname: '/jardin',
+        params: {
+          collection: GOLDEN_COLLECTION_ID,
+          vue: 'galerie',
+          ...(save.settings.motion ? { entree: 'herbier' } : {}),
+        },
+      });
+      return;
     }
+    const plant = plantsForEcosystem(index)[0];
+    preparePageArtwork(plant, restoration(save, plant));
     if (!save.settings.motion) {
       enter(index);
       return;
@@ -184,68 +189,55 @@ export function HerbariumShelf({
             gap: layout.gap,
           }}
         >
-          {golden
-            ? (() => {
-                const art = (
-                  <GoldenHerbarium
-                    width={layout.gridWidth}
-                    height={layout.gridHeight}
-                    motion={save.settings.motion && focused && opening === null}
-                    acquired={save.gardens?.[GOLDEN_COLLECTION_ID]?.species.length ?? 0}
-                    onPress={() => open(chapters.length)}
-                  />
-                );
-                return opening === chapters.length ? (
-                  <OpeningGoldenHerbarium
-                    width={layout.gridWidth}
-                    height={layout.gridHeight}
-                    onDone={() => enter(chapters.length)}
-                  >
-                    {art}
-                  </OpeningGoldenHerbarium>
-                ) : (
-                  art
-                );
-              })()
-            : chapters.slice(first, first + perPage).map((eco, offset) => {
-                const index = first + offset,
-                  plants = plantsForEcosystem(index),
-                  done = plants.filter((p) => restoration(save, p) === 5).length;
-                const art = (
-                  <AntiqueHerbarium
-                    index={index}
-                    title={eco.name}
-                    done={done}
-                    total={plants.length}
-                    width={layout.bookWidth}
-                    height={layout.bookHeight}
-                    glimmer={light}
-                  />
-                );
-                return (
-                  <Pressable
-                    key={index}
-                    testID={`herbarium-book-${index}`}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Ouvrir le carnet ${eco.name}`}
-                    accessibilityHint={`${done} planches estampillées sur ${plants.length}`}
-                    accessibilityState={{ busy: opening === index, disabled: opening !== null }}
-                    disabled={opening !== null}
-                    onPress={() => open(index)}
-                    style={({ pressed }) => ({
-                      width: layout.bookWidth,
-                      height: layout.bookHeight,
-                      opacity: pressed ? 0.86 : 1,
-                    })}
-                  >
-                    {opening === index ? (
-                      <OpeningHerbarium onDone={() => enter(index)}>{art}</OpeningHerbarium>
-                    ) : (
-                      art
-                    )}
-                  </Pressable>
-                );
-              })}
+          {golden ? (
+            <GoldenHerbarium
+              width={layout.gridWidth}
+              height={layout.gridHeight}
+              motion={save.settings.motion && focused}
+              acquired={save.gardens?.[GOLDEN_COLLECTION_ID]?.species.length ?? 0}
+              onPress={() => open(chapters.length)}
+            />
+          ) : (
+            chapters.slice(first, first + perPage).map((eco, offset) => {
+              const index = first + offset,
+                plants = plantsForEcosystem(index),
+                done = plants.filter((p) => restoration(save, p) === 5).length;
+              const art = (
+                <AntiqueHerbarium
+                  index={index}
+                  title={eco.name}
+                  done={done}
+                  total={plants.length}
+                  width={layout.bookWidth}
+                  height={layout.bookHeight}
+                  glimmer={light}
+                />
+              );
+              return (
+                <Pressable
+                  key={index}
+                  testID={`herbarium-book-${index}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Ouvrir le carnet ${eco.name}`}
+                  accessibilityHint={`${done} planches estampillées sur ${plants.length}`}
+                  accessibilityState={{ busy: opening === index, disabled: opening !== null }}
+                  disabled={opening !== null}
+                  onPress={() => open(index)}
+                  style={({ pressed }) => ({
+                    width: layout.bookWidth,
+                    height: layout.bookHeight,
+                    opacity: pressed ? 0.86 : 1,
+                  })}
+                >
+                  {opening === index ? (
+                    <OpeningHerbarium onDone={() => enter(index)}>{art}</OpeningHerbarium>
+                  ) : (
+                    art
+                  )}
+                </Pressable>
+              );
+            })
+          )}
         </View>
       </View>
       <View
