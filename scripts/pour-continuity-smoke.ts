@@ -39,13 +39,21 @@ async function main() {
     await transfer(first.from, first.to);
     const stream = await page.locator('#pour-jet').evaluateHandle((firstJet) => {
       const board = firstJet.closest('[data-testid="liquid-board-pouring"]')!;
+      const missingPaint: string[] = [];
+      board.querySelectorAll('svg [fill], svg [stroke], svg [clip-path]').forEach((shape) => {
+        for (const attribute of ['fill', 'stroke', 'clip-path']) {
+          const id = shape.getAttribute(attribute)?.match(/^url\(#([^)]+)\)$/)?.[1];
+          if (id && !shape.closest('svg')?.querySelector('#' + CSS.escape(id)))
+            missingPaint.push(id);
+        }
+      });
       const jets = new Set<Element>([firstJet]);
       const observer = new MutationObserver(() => {
         const current = board.querySelector('#pour-jet');
         if (current) jets.add(current);
       });
       observer.observe(board, { childList: true, subtree: true });
-      return { jets, observer };
+      return { jets, observer, missingPaint };
     });
     await page.setViewportSize({ width: 844, height: 390 });
     await expect(page.getByTestId('liquid-board-idle')).toBeVisible();
@@ -53,6 +61,10 @@ async function main() {
       observer.disconnect();
       return jets.size;
     });
+    expect(
+      await stream.evaluate(({ missingPaint }) => missingPaint),
+      'all paints resolve in their own layer during a pour',
+    ).toEqual([]);
     expect(jetsAfterRotation, 'one continuous stream per move').toBe(1);
     const saved = await page.evaluate(
       () => JSON.parse(localStorage.getItem('color-world.save')!) as Save,

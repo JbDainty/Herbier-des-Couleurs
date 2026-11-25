@@ -5,7 +5,7 @@ import {
   lightColors,
   opposite,
   neighbor,
-  traceVitrail,
+  type LightTrace,
   opticalLessons,
   type VitrailPuzzle,
   type GlassPort,
@@ -80,6 +80,7 @@ function BeamFlash({ path, extent, width }: { path: string; extent: number; widt
 export function VitrailBoard({
   puzzle,
   rotations,
+  trace,
   width,
   selected,
   patterns,
@@ -89,6 +90,7 @@ export function VitrailBoard({
 }: {
   puzzle: VitrailPuzzle;
   rotations: number[];
+  trace: LightTrace;
   width: number;
   selected: number | null;
   patterns: boolean;
@@ -96,7 +98,6 @@ export function VitrailBoard({
   disabled: boolean;
   onRotate: (cell: number) => void;
 }) {
-  const trace = React.useMemo(() => traceVitrail(puzzle, rotations), [puzzle, rotations]);
   const gesture = useRef<{ before: typeof trace; expected: number[]; id: number } | null>(null);
   const extent = (puzzle.size + 1) * 100,
     unit = width / (puzzle.size + 1);

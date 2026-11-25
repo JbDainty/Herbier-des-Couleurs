@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { BookScrollView } from '../src/components/BookScrollView';
@@ -37,7 +37,11 @@ export default function Vitrail() {
   const puzzle = session ? activeVitrail(session) : undefined;
   const [calendar, setCalendar] = useState(false);
   const [recall, setRecall] = useState<OpticalMechanic[] | null>(null);
-  const trace = puzzle && session ? traceVitrail(puzzle, session.rotations) : undefined;
+  const rotations = session?.rotations;
+  const trace = useMemo(
+    () => (puzzle && rotations ? traceVitrail(puzzle, rotations) : undefined),
+    [puzzle, rotations],
+  );
   const lessons = puzzle && !trace?.solved ? newOpticalLessons(save, puzzle) : [];
   const firstMirror = !recall && session?.level === 0 && lessons[0] === 'mirror';
   const lesson = recall?.[0] ?? (firstMirror ? undefined : lessons[0]);
@@ -58,13 +62,14 @@ export default function Vitrail() {
         motion={save.settings.motion}
         background={require('../assets/home/clearing.jpg')}
       />
-      {allowed && !save.testSession && puzzle && session ? (
+      {allowed && !save.testSession && puzzle && session && trace ? (
         <VitrailScene
           day={day}
           today={today}
           date={dateLabel(day)}
           session={session}
           puzzle={puzzle}
+          trace={trace}
           blocked={!!lesson}
           guideMirror={firstMirror}
           onCalendar={() => {

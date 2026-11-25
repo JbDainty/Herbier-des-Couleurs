@@ -36,7 +36,11 @@ export function HomeScreen({ active }: { active: boolean }) {
   const frame = measured.size;
   const layout = homeLayout(frame.width, frame.height, fontScale);
   const { short, tight, gap } = layout;
-  const progress = useMemo(() => homeProgress(save), [save]);
+  const { current, completed, moves } = save;
+  const progress = useMemo(
+    () => homeProgress({ current, completed, moves }),
+    [current, completed, moves],
+  );
   const [focusReady, setFocused] = useState(active);
   const focused = active && focusReady;
   const entering = useRef(false);

@@ -22,7 +22,7 @@ import {
   undoVitrail,
   type VitrailSession,
 } from '../state/vitrail';
-import { traceVitrail, vitrailHint, type VitrailPuzzle } from '../engine/vitrail';
+import { type LightTrace, vitrailHint, type VitrailPuzzle } from '../engine/vitrail';
 import { vitrailDifficulties } from '../data/vitrails';
 
 export function VitrailScene({
@@ -31,6 +31,7 @@ export function VitrailScene({
   date,
   session,
   puzzle,
+  trace,
   blocked,
   guideMirror,
   onCalendar,
@@ -41,6 +42,7 @@ export function VitrailScene({
   date: string;
   session: VitrailSession;
   puzzle: VitrailPuzzle;
+  trace: LightTrace;
   blocked: boolean;
   guideMirror: boolean;
   onCalendar: () => void;
@@ -52,7 +54,6 @@ export function VitrailScene({
     measured = useMeasuredSize();
   const width = measured.size.width || chrome.availableWidth || window.width,
     height = measured.size.height || chrome.availableHeight || window.height;
-  const trace = traceVitrail(puzzle, session.rotations);
   const guidedCell = guideMirror ? vitrailHint(puzzle, session.rotations) : null;
   const layout = vitrailLayout(
     width,
@@ -418,6 +419,7 @@ export function VitrailScene({
     <VitrailBoard
       puzzle={puzzle}
       rotations={session.rotations}
+      trace={trace}
       width={layout.boardSize}
       selected={trace.solved ? null : (guidedCell ?? selected)}
       motion={save.settings.motion}
