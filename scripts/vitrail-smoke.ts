@@ -55,8 +55,7 @@ async function main() {
     await passStudio(page);
     await page.getByTestId('home-future-day').click();
     await expect(page.getByTestId('daily-vitrail-screen')).toBeVisible();
-    await expect(page.getByTestId('vitrail-lesson-title')).toHaveText('Les miroirs du vitrail');
-    await button('J’ai compris').click();
+    await expect(page.getByTestId('vitrail-first-gesture')).toContainText('miroir entouré');
     await expect(finishedTabs).toHaveCount(0);
     await expect(page.getByTestId('vitrail-stage-0')).toHaveAttribute('aria-selected', 'true');
     await expect(page.getByTestId('vitrail-stage-1')).toBeDisabled();
@@ -139,6 +138,9 @@ async function main() {
     await expect(page.getByTestId('vitrail-calendar')).toBeVisible();
     await expect(page.getByTestId('vitrail-calendar-2026-11-20')).toBeDisabled();
     await page.getByTestId('vitrail-calendar-2026-11-18').click();
+    await expect(page.getByTestId('calendar-day-details')).toContainText('Journée estampillée');
+    await button('Rejouer un vitrail').click();
+    await page.getByRole('button', { name: /^Rejouer le vitrail 3/ }).click();
     await expect(page.getByTestId('vitrail-date')).toHaveText('18 novembre');
     await expect(finishedTabs).toHaveCount(3);
     await finish();
@@ -156,7 +158,7 @@ async function main() {
     expect(end.completed).toEqual(base.completed);
     expect(end.board).toEqual(base.board);
     expect(end.gardens).toEqual(base.gardens);
-    expect(end.vitrail!.days['2026-11-18']).toEqual(earned.vitrail!.days['2026-11-18']);
+    expect(end.vitrail!.days['2026-11-18']).toMatchObject(earned.vitrail!.days['2026-11-18']);
     await page.clock.setFixedTime(new Date('2027-11-18T12:00:00Z'));
     await expect(page.getByTestId('vitrail-unavailable')).toBeVisible();
     expect((await stored()).seeds).toBe(22);

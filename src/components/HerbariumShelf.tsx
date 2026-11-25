@@ -11,7 +11,7 @@ import { VictoryAction } from './VictoryAction';
 import { AntiqueHerbarium, OpeningHerbarium } from './AntiqueHerbarium';
 import { useAmbientMotion } from './usePrimaryAnimation';
 import { preparePageArtwork } from '../services/pageArtwork';
-import { GoldenHerbarium } from './GoldenHerbarium';
+import { GoldenHerbarium, OpeningGoldenHerbarium } from './GoldenHerbarium';
 import { GOLDEN_COLLECTION_ID } from '../data/collections';
 
 /** One shared native clock lights one binding at a time; no SVG frame updates. */
@@ -196,7 +196,13 @@ export function HerbariumShelf({
                   />
                 );
                 return opening === chapters.length ? (
-                  <OpeningHerbarium onDone={() => enter(chapters.length)}>{art}</OpeningHerbarium>
+                  <OpeningGoldenHerbarium
+                    width={layout.gridWidth}
+                    height={layout.gridHeight}
+                    onDone={() => enter(chapters.length)}
+                  >
+                    {art}
+                  </OpeningGoldenHerbarium>
                 ) : (
                   art
                 );

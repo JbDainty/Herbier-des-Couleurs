@@ -289,7 +289,7 @@ export default function Boutique() {
           <T serif accessibilityRole="header" style={styles.sectionTitle}>
             Les décors
           </T>
-          <T style={styles.help}>Un paysage à collectionner pour chaque écosystème découvert.</T>
+          <T style={styles.help}>Changez le paysage derrière vos fioles dans Mon Herbier.</T>
           <ShopPaper testID="wallpaper-preview" style={{ gap: 12 }}>
             <Image
               source={wallpaperArtwork(item.id)}
@@ -363,13 +363,14 @@ export default function Boutique() {
                 <View
                   style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: w.color }}
                 />
-                <T style={{ flex: 1, fontSize: 17 }}>{w.name}</T>
-                <T style={{ fontSize: 13, color: C.muted }}>
-                  {save.ownedWallpapers?.includes(w.id)
-                    ? 'Acquis'
-                    : wallpaperUnlocked(save, w.id)
-                      ? `${w.cost} graines`
-                      : 'À découvrir'}
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <T style={{ fontSize: 17 }}>{w.name}</T>
+                  {!wallpaperUnlocked(save, w.id) && (
+                    <T style={{ fontSize: 14, color: C.muted }}>Dès la page {w.firstPage}</T>
+                  )}
+                </View>
+                <T style={{ fontFamily: F.medium, color: C.green }}>
+                  {save.ownedWallpapers?.includes(w.id) ? 'Acquis' : `${w.cost} graines`}
                 </T>
               </Pressable>
             ))}

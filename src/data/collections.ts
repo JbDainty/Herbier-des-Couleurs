@@ -85,7 +85,7 @@ export const collections: GardenCollection[] = [
         id: 'phenix',
         name: 'Orchidée du Phénix',
         description:
-          'Des pétales pourpres et corail se déploient comme des flammes. Des nervures d’or rejoignent un cœur de braise.',
+          'La nuit, une braise veille au creux de ses pétales. Au matin, elle éclot en orchidée.',
         cost: 200,
         color: '#b34d67',
       },
@@ -93,7 +93,7 @@ export const collections: GardenCollection[] = [
         id: 'constellations',
         name: 'Lotus des Constellations',
         description:
-          'Ses pétales bleu nuit et violets portent un ciel d’étoiles. De longs filaments argentés entourent son cœur.',
+          'Sur ses pétales bleu nuit, une constellation manque au ciel. C’est le lotus qui la garde.',
         cost: 200,
         color: '#626db6',
       },
@@ -101,7 +101,7 @@ export const collections: GardenCollection[] = [
         id: 'eclipse',
         name: 'Rose de l’Éclipse',
         description:
-          'Une rose de velours noir et bordeaux, bordée d’or, dont le cœur s’entoure d’un halo lumineux.',
+          'Ses pétales de velours sombre gardent un fin cercle d’or, souvenir de sa première éclipse.',
         cost: 200,
         color: '#773e59',
       },
@@ -109,7 +109,7 @@ export const collections: GardenCollection[] = [
         id: 'cristal',
         name: 'Lys de Cristal',
         description:
-          'Ses pétales translucides mêlent turquoise et nacre. Des gouttes de diamant brillent près de ses étamines dorées.',
+          'À travers ses pétales de cristal, la rosée du matin prend la couleur des lagons.',
         cost: 200,
         color: '#77adb7',
       },
@@ -117,7 +117,7 @@ export const collections: GardenCollection[] = [
         id: 'temps',
         name: 'Passiflore du Temps',
         description:
-          'Une couronne de filaments dorés s’enroule autour de pétales émeraude et mauves, comme une spirale suspendue.',
+          'Entre deux de ses filaments d’or, la dernière minute du printemps dure encore.',
         cost: 200,
         color: '#8e7da8',
       },

@@ -204,17 +204,20 @@ function LiquidBoardDrawing({
     scale: scale * Math.cbrt(capacity(rules, i) / 4),
     angle: 0,
   }));
+  const sourceUnits = pouring
+    ? ((board[pouring.from].length - count * state.sent) * 4) / capacity(rules, pouring.from)
+    : null;
+  const lipAngle = useMemo(
+    () => (sourceUnits === null ? 0 : contactAngle(sourceUnits)),
+    [sourceUnits],
+  );
   let spout: Point | null = null,
     landing: Point | null = null;
   if (pouring && width && layout[pouring.to]) {
     const source = poses[pouring.from],
       target = poses[pouring.to],
       direction = target.x >= width / 2 ? 1 : -1;
-    const units = board[pouring.from].length - count * state.sent;
-    const angle =
-      contactAngle((units * 4) / capacity(rules, pouring.from)) *
-      direction *
-      (1 - state.settling * 0.09);
+    const angle = lipAngle * direction * (1 - state.settling * 0.09);
     const lip = rotate({ x: direction * 20 * source.scale, y: 12 * source.scale }, angle);
     const hold = { x: target.x - lip.x, y: target.y + MOUTH_Y * target.scale - 45 * scale - lip.y };
     const approach = state.approach;

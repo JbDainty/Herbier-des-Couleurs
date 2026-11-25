@@ -394,7 +394,7 @@ function AboutSection({
 const styles = StyleSheet.create({
   screen: { flex: 1, minHeight: 0, backgroundColor: '#e4e8dc' },
   page: { flex: 1, minHeight: 0, width: '100%', maxWidth: 640, alignSelf: 'center', paddingTop: 8 },
-  tabs: { flexDirection: 'row', gap: 5, paddingHorizontal: 10, marginBottom: -1 },
+  tabs: { flexDirection: 'row', gap: 3, paddingHorizontal: 14, marginBottom: -1 },
   tab: {
     flex: 1,
     minWidth: 0,
@@ -406,8 +406,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderBottomWidth: 0,
     borderColor: '#bca46e',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
   folio: {
     flex: 1,

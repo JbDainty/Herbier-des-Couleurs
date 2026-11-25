@@ -466,6 +466,9 @@ export function BotanicalGuide({
                           {practicing ? 'Fermer l’essai' : 'Tester un versement'}
                         </T>
                       </Pressable>
+                      <T style={[styles.prose, { textAlign: 'center', color: C.muted }]}>
+                        Pour jouer sans animations, ouvrez Paramètres → Jeu → Animations.
+                      </T>
                     </>
                   )}
                   {id === 'plante' && (
@@ -518,7 +521,7 @@ export function BotanicalGuide({
         })}
         <View style={styles.footer}>
           <VictoryAction icon="flask-outline" onPress={onEnter} compact={compact} narrow>
-            {firstRun ? 'Entrer dans la serre' : 'Retrouver mon atelier'}
+            {firstRun ? 'Entrer dans la serre' : 'Mon atelier'}
           </VictoryAction>
         </View>
       </ScrollView>

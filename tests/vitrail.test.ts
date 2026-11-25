@@ -188,7 +188,7 @@ it('gives no seeds for archives or for a previous day finished after midnight', 
   for (let stage = 0; stage < 3; stage++)
     save = finish(open(save, '2026-11-18', stage, false, tomorrow), tomorrow);
   expect(save.seeds).toBe(0);
-  expect(save.vitrail!.days['2026-11-18']).toEqual({ completed: 3, rewarded: false });
+  expect(save.vitrail!.days['2026-11-18']).toMatchObject({ completed: 3, rewarded: false });
   for (let stage = 0; stage < 3; stage++)
     save = finish(open(save, '2026-11-19', stage, false, tomorrow), tomorrow);
   expect(save.seeds).toBe(1);
@@ -230,4 +230,63 @@ it('rejects corrupt progress, impossible rotations, unlocked future stages and f
     mutate(copy);
     expect(() => restore(JSON.stringify(copy))).toThrow();
   }
+});
+
+it('restores a stamped layout and a partial attempt including undo after visiting other days', () => {
+  const day = '2026-11-18';
+  const first = finish(open());
+  const solved = first.vitrail!.session!;
+  let save = open(first, day, 1);
+  const step = vitrailHint(
+    activeVitrail(save.vitrail!.session!)!,
+    save.vitrail!.session!.rotations,
+  )!;
+  save = rotateVitrail(save, step, today);
+  const partial = save.vitrail!.session!;
+  save = open(save, '2026-11-19', 0, false, tomorrow);
+  save = restore(JSON.stringify(save));
+  expect(open(save, day, 0, false, tomorrow).vitrail!.session).toEqual(solved);
+  const resumed = open(save, day, undefined, false, tomorrow);
+  expect(resumed.vitrail!.session).toEqual(partial);
+  expect(undoVitrail(resumed).vitrail!.session!.rotations).toEqual(partial.history.at(-1));
+});
+
+it('opens a completed legacy day already solved and only resets a board on explicit replay', () => {
+  const day = '2026-11-18';
+  let save = open();
+  save = {
+    ...save,
+    vitrail: { version: 1, seen: [], days: { [day]: { completed: 3, rewarded: true } } },
+  };
+  save = open(restore(JSON.stringify(save)), day);
+  const current = save.vitrail!.session!;
+  expect(traceVitrail(activeVitrail(current)!, current.rotations).solved).toBe(true);
+  const replay = open(save, day, 0, true);
+  expect(replay.vitrail!.session!.rotations).toEqual(vitrailForDay(day)!.puzzles[0].initial);
+  expect(finish(replay).seeds).toBe(save.seeds);
+});
+
+it('repairs the untouched last grid in an older stamped trio and keeps an explicitly restarted grid', () => {
+  const day = '2026-11-18';
+  const save = open();
+  const legacy = {
+    ...save,
+    vitrail: {
+      ...save.vitrail!,
+      days: { [day]: { completed: 3, rewarded: true } },
+      session: {
+        day,
+        level: 2,
+        moves: 0,
+        history: [],
+        rotations: vitrailForDay(day)!.puzzles[2].initial,
+      },
+    },
+  };
+  const repaired = open(restore(JSON.stringify(legacy)));
+  const current = repaired.vitrail!.session!;
+  expect(traceVitrail(activeVitrail(current)!, current.rotations).solved).toBe(true);
+  const replay = open(repaired, day, 2, true);
+  const resumed = open(restore(JSON.stringify(replay)));
+  expect(resumed.vitrail!.session).toEqual(replay.vitrail!.session);
 });
