@@ -1,15 +1,17 @@
-import React from 'react';
-import { Pressable, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Easing, Platform, Pressable, View } from 'react-native';
 import Svg, { Circle, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
 import {
   lightColors,
   opposite,
-  traceVitrail,
+  neighbor,
+  type LightTrace,
   opticalLessons,
   type VitrailPuzzle,
   type GlassPort,
 } from '../engine/vitrail';
 import { C } from './ui';
+import { useNativeProgress } from './useNativeProgress';
 
 const delta = [
   [0, -1],
@@ -17,30 +19,106 @@ const delta = [
   [0, 1],
   [-1, 0],
 ];
+function Mirror({ rotation, unit, motion }: { rotation: number; unit: number; motion: boolean }) {
+  const angle = useRef(new Animated.Value(rotation)).current;
+  const turns = useRef(rotation);
+  const previous = useRef(rotation);
+  useEffect(() => {
+    const changed = previous.current !== rotation;
+    if (changed) turns.current++;
+    previous.current = rotation;
+    if (!motion || !changed) {
+      angle.setValue(turns.current);
+      return;
+    }
+    const run = Animated.timing(angle, {
+      toValue: turns.current,
+      duration: 145,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: Platform.OS !== 'web',
+      isInteraction: false,
+    });
+    run.start();
+    return () => run.stop();
+  }, [rotation, motion, angle]);
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={{
+        transform: [
+          { rotate: angle.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '90deg'] }) },
+        ],
+      }}
+    >
+      <Svg accessible={false} width={unit} height={unit} viewBox="-50 -50 100 100">
+        <Path d="M-39 39 39-39" stroke="#ac995e" strokeWidth={9} strokeLinecap="round" />
+        <Path d="M-39 37 37-39" stroke="#eaf1df" strokeWidth={4} strokeLinecap="round" />
+      </Svg>
+    </Animated.View>
+  );
+}
+
+function BeamFlash({ path, extent, width }: { path: string; extent: number; width: number }) {
+  const { value, settled } = useNativeProgress(220, true);
+  if (settled) return null;
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        opacity: value.interpolate({ inputRange: [0, 0.24, 1], outputRange: [0, 0.9, 0] }),
+      }}
+    >
+      <Svg width={width} height={width} viewBox={`0 0 ${extent} ${extent}`} accessible={false}>
+        <Path d={path} fill="none" stroke="#fff0c4" strokeWidth={3.5} strokeLinecap="round" />
+      </Svg>
+    </Animated.View>
+  );
+}
 export function VitrailBoard({
   puzzle,
   rotations,
+  trace,
   width,
   selected,
   patterns,
+  motion,
   disabled,
   onRotate,
 }: {
   puzzle: VitrailPuzzle;
   rotations: number[];
+  trace: LightTrace;
   width: number;
   selected: number | null;
   patterns: boolean;
+  motion: boolean;
   disabled: boolean;
   onRotate: (cell: number) => void;
 }) {
-  const trace = traceVitrail(puzzle, rotations);
+  const gesture = useRef<{ before: typeof trace; expected: number[]; id: number } | null>(null);
   const extent = (puzzle.size + 1) * 100,
     unit = width / (puzzle.size + 1);
   const center = (cell: number) => [
     100 + (cell % puzzle.size) * 100,
     100 + Math.floor(cell / puzzle.size) * 100,
   ];
+  const currentGesture = gesture.current;
+  const trail =
+    motion && currentGesture && currentGesture.expected.every((r, i) => r === rotations[i])
+      ? trace.outgoing
+          .flatMap((directions, i) =>
+            directions.map((color, d) => {
+              if (!color || currentGesture.before.outgoing[i][d] === color) return '';
+              const [x, y] = center(i);
+              const length = neighbor(i, d, puzzle.size) < 0 ? 70 : 100;
+              return `M${x} ${y}l${delta[d][0] * length} ${delta[d][1] * length}`;
+            }),
+          )
+          .join(' ')
+      : '';
   const portPoint = (port: GlassPort) => {
     const [x, y] = center(port.cell),
       [dx, dy] = delta[port.side];
@@ -125,22 +203,7 @@ export function VitrailBoard({
           if (kind === 'glass') return null;
           return (
             <G key={`piece-${i}`} transform={`translate(${x} ${y})`}>
-              {kind === 'mirror' ? (
-                <G>
-                  <Path
-                    d={r === 0 ? 'M-39 39 39-39' : 'M-39-39 39 39'}
-                    stroke="#ac995e"
-                    strokeWidth={9}
-                    strokeLinecap="round"
-                  />
-                  <Path
-                    d={r === 0 ? 'M-39 37 37-39' : 'M-37-39 39 37'}
-                    stroke="#eaf1df"
-                    strokeWidth={4}
-                    strokeLinecap="round"
-                  />
-                </G>
-              ) : (
+              {kind === 'mirror' ? null : (
                 <G transform={`rotate(${r * 90})`}>
                   <Path
                     d={kind === 'splitter' ? 'M0 38V0H34M0 0V-34' : 'M0 36V-32M-31 0H31'}
@@ -331,6 +394,9 @@ export function VitrailBoard({
           );
         })}
       </Svg>
+      {!!trail.trim() && (
+        <BeamFlash key={currentGesture!.id} path={trail} extent={extent} width={width} />
+      )}
       {puzzle.cells.map((kind, i) =>
         kind === 'glass' ? null : (
           <Pressable
@@ -341,7 +407,14 @@ export function VitrailBoard({
             accessibilityHint="Faire pivoter ce fragment d’un quart de tour"
             accessibilityState={{ disabled, selected: selected === i }}
             disabled={disabled}
-            onPress={() => onRotate(i)}
+            onPress={() => {
+              if (motion) {
+                const expected = rotations.slice();
+                expected[i] = (expected[i] + 1) % (kind === 'mirror' ? 2 : 4);
+                gesture.current = { expected, before: trace, id: (gesture.current?.id ?? 0) + 1 };
+              }
+              onRotate(i);
+            }}
             style={{
               position: 'absolute',
               left: ((i % puzzle.size) + 0.5) * unit,
@@ -350,7 +423,9 @@ export function VitrailBoard({
               height: unit,
               borderRadius: 8,
             }}
-          />
+          >
+            {kind === 'mirror' && <Mirror unit={unit} motion={motion} rotation={rotations[i]} />}
+          </Pressable>
         ),
       )}
     </View>

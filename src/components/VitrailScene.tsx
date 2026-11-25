@@ -15,8 +15,14 @@ import { C, Icon, T } from './ui';
 import { F } from './fonts';
 import { vitrailLayout } from '../layout/vitrail';
 import { useGame } from '../state/store';
-import { openVitrail, rotateVitrail, undoVitrail, type VitrailSession } from '../state/vitrail';
-import { traceVitrail, vitrailHint, type VitrailPuzzle } from '../engine/vitrail';
+import {
+  acknowledgeOptics,
+  openVitrail,
+  rotateVitrail,
+  undoVitrail,
+  type VitrailSession,
+} from '../state/vitrail';
+import { type LightTrace, vitrailHint, type VitrailPuzzle } from '../engine/vitrail';
 import { vitrailDifficulties } from '../data/vitrails';
 
 export function VitrailScene({
@@ -25,7 +31,9 @@ export function VitrailScene({
   date,
   session,
   puzzle,
+  trace,
   blocked,
+  guideMirror,
   onCalendar,
   onRules,
 }: {
@@ -34,7 +42,9 @@ export function VitrailScene({
   date: string;
   session: VitrailSession;
   puzzle: VitrailPuzzle;
+  trace: LightTrace;
   blocked: boolean;
+  guideMirror: boolean;
   onCalendar: () => void;
   onRules: () => void;
 }) {
@@ -44,8 +54,15 @@ export function VitrailScene({
     measured = useMeasuredSize();
   const width = measured.size.width || chrome.availableWidth || window.width,
     height = measured.size.height || chrome.availableHeight || window.height;
-  const trace = traceVitrail(puzzle, session.rotations);
-  const layout = vitrailLayout(width, height, puzzle.size, window.fontScale, trace.solved);
+  const guidedCell = guideMirror ? vitrailHint(puzzle, session.rotations) : null;
+  const layout = vitrailLayout(
+    width,
+    height,
+    puzzle.size,
+    window.fontScale,
+    trace.solved,
+    guidedCell !== null,
+  );
   const tabsWidth = layout.landscape ? layout.controlsWidth : layout.panelWidth;
   const [selected, setSelected] = useState<number | null>(null),
     [hint, setHint] = useState<number | null>(null);
@@ -244,18 +261,34 @@ export function VitrailScene({
       testID="vitrail-caption"
       style={[styles.caption, { height: layout.captionHeight, width: layout.actionWidth }]}
     >
-      <T
-        testID="vitrail-target-status"
-        maxFontSizeMultiplier={1.15}
-        accessibilityLiveRegion="polite"
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        style={{ fontFamily: F.scientific, fontSize: 14, flexShrink: 1 }}
-      >
-        {trace.lit.filter(Boolean).length} / {puzzle.targets.length}{' '}
-        {puzzle.targets.length === 1 ? 'fleur éclairée' : 'fleurs éclairées'}
-      </T>
-      {hint !== null && (
+      {guidedCell !== null ? (
+        <T
+          testID="vitrail-first-gesture"
+          accessibilityLiveRegion="polite"
+          style={{
+            flex: 1,
+            textAlign: 'center',
+            fontFamily: F.medium,
+            lineHeight: 18,
+            color: C.green,
+          }}
+        >
+          Touchez le miroir entouré pour guider le rayon vers la fleur de même couleur.
+        </T>
+      ) : (
+        <T
+          testID="vitrail-target-status"
+          maxFontSizeMultiplier={1.15}
+          accessibilityLiveRegion="polite"
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          style={{ fontFamily: F.scientific, fontSize: 14, flexShrink: 1 }}
+        >
+          {trace.lit.filter(Boolean).length} / {puzzle.targets.length}{' '}
+          {puzzle.targets.length === 1 ? 'fleur éclairée' : 'fleurs éclairées'}
+        </T>
+      )}
+      {guidedCell === null && hint !== null && (
         <T
           testID="vitrail-hint"
           accessibilityLiveRegion="polite"
@@ -386,15 +419,25 @@ export function VitrailScene({
     <VitrailBoard
       puzzle={puzzle}
       rotations={session.rotations}
+      trace={trace}
       width={layout.boardSize}
-      selected={trace.solved ? null : selected}
+      selected={trace.solved ? null : (guidedCell ?? selected)}
+      motion={save.settings.motion}
+      key={day + session.level}
       patterns={save.settings.patterns}
       disabled={blocked || trace.solved}
       onRotate={(cell) => {
         prepareMelody();
         setSelected(cell);
         setHint(null);
-        setSave((s) => rotateVitrail(s, cell));
+        setSave((s) =>
+          rotateVitrail(
+            guidedCell !== null && puzzle.cells[cell] === 'mirror'
+              ? acknowledgeOptics(s, 'mirror')
+              : s,
+            cell,
+          ),
+        );
       }}
     />
   );
@@ -505,8 +548,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 3,
     paddingHorizontal: 3,
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     borderWidth: 1,
     borderBottomWidth: 0,
     borderColor: '#bca46e',

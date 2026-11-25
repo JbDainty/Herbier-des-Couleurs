@@ -44,7 +44,7 @@ export function GoldenGallery({
   const width = Math.min(chrome.availableWidth || viewport.width, 500);
   const height = chrome.availableHeight || viewport.height;
   const compact = width < 360 || height < 720;
-  const artHeight = Math.max(138, Math.min(360, (width - 28) * 0.91, height - 350));
+  const artHeight = Math.max(138, Math.min(360, (width - 28) * 0.91, height - 394));
   const specimen = garden.species.find((species) => species.id === selection) ?? garden.species[0];
   const acquired = save.gardens?.[garden.id]?.species ?? [];
   const owned = acquired.includes(specimen.id);
@@ -120,6 +120,9 @@ export function GoldenGallery({
             style={[styles.specimen, compact && styles.compactSpecimen]}
           >
             {specimen.name}
+          </T>
+          <T testID="golden-gallery-description" style={styles.description}>
+            {specimen.description}
           </T>
           <T style={styles.progress}>
             {owned ? `${stage} / 5 pages restaurées` : '5 pages à restaurer'}
@@ -235,6 +238,7 @@ const styles = StyleSheet.create({
     color: '#274635',
   },
   compactSpecimen: { fontSize: 25, lineHeight: 30 },
+  description: { fontSize: 17, lineHeight: 21, textAlign: 'center', color: C.ink, maxWidth: 360 },
   progress: { fontFamily: F.scientific, fontSize: 16, lineHeight: 21, textAlign: 'center' },
   missing: { fontSize: 14, lineHeight: 18, color: C.muted, textAlign: 'center' },
   thumbnails: { flexDirection: 'row', gap: 5 },

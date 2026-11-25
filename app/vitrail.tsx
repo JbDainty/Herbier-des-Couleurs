@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { BookScrollView } from '../src/components/BookScrollView';
@@ -37,11 +37,19 @@ export default function Vitrail() {
   const puzzle = session ? activeVitrail(session) : undefined;
   const [calendar, setCalendar] = useState(false);
   const [recall, setRecall] = useState<OpticalMechanic[] | null>(null);
-  const trace = puzzle && session ? traceVitrail(puzzle, session.rotations) : undefined;
+  const rotations = session?.rotations;
+  const trace = useMemo(
+    () => (puzzle && rotations ? traceVitrail(puzzle, rotations) : undefined),
+    [puzzle, rotations],
+  );
   const lessons = puzzle && !trace?.solved ? newOpticalLessons(save, puzzle) : [];
-  const lesson = lessons[0] ?? recall?.[0];
+  const firstMirror = !recall && session?.level === 0 && lessons[0] === 'mirror';
+  const lesson = recall?.[0] ?? (firstMirror ? undefined : lessons[0]);
+  const calendarOpen = useRef<string | null>(null);
   useEffect(() => {
-    if (save.started && allowed) setSave((s) => openVitrail(s, day));
+    if (calendarOpen.current !== day && save.started && allowed)
+      setSave((s) => openVitrail(s, day));
+    calendarOpen.current = null;
   }, [day, save.started, !!save.testSession]);
   useEffect(() => {
     setRecall(null);
@@ -54,14 +62,16 @@ export default function Vitrail() {
         motion={save.settings.motion}
         background={require('../assets/home/clearing.jpg')}
       />
-      {allowed && !save.testSession && puzzle && session ? (
+      {allowed && !save.testSession && puzzle && session && trace ? (
         <VitrailScene
           day={day}
           today={today}
           date={dateLabel(day)}
           session={session}
           puzzle={puzzle}
+          trace={trace}
           blocked={!!lesson}
+          guideMirror={firstMirror}
           onCalendar={() => {
             setCalendar(true);
           }}
@@ -119,7 +129,9 @@ export default function Vitrail() {
         visible={calendar}
         initialDay={allowed ? day : today}
         today={today}
-        onSelect={(key) => {
+        onSelect={(key, replayLevel) => {
+          calendarOpen.current = key !== day ? key : null;
+          setSave((s) => openVitrail(s, key, replayLevel, replayLevel !== undefined));
           router.setParams({ day: key === today ? undefined : key });
           setCalendar(false);
         }}

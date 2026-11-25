@@ -112,6 +112,7 @@ export default function Carte() {
             justifyContent: 'space-between',
             paddingHorizontal: 5,
             paddingTop: short ? 0 : 1,
+            marginBottom: short ? 4 : 10,
             gap: 8,
           }}
         >

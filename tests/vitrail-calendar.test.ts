@@ -115,15 +115,9 @@ it('keeps month controls and closing action inside the dialog across phone and t
         l.monthHeight +
         l.weekHeight +
         l.summaryHeight +
-        l.legendHeight +
-        l.noteHeight +
+        l.detailHeight +
         l.closeHeight +
-        l.gap *
-          (3 +
-            (l.headerHeight ? 1 : 0) +
-            (l.summaryHeight ? 1 : 0) +
-            (l.legendHeight ? 1 : 0) +
-            (l.noteHeight ? 1 : 0));
+        l.gap * (3 + (l.headerHeight ? 1 : 0) + (l.summaryHeight ? 1 : 0) + 1);
       if (!l.landscape) expect(fixed + l.gridHeight).toBeLessThanOrEqual(l.paperHeight + 0.01);
       else
         expect(

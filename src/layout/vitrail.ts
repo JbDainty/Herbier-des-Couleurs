@@ -5,6 +5,7 @@ export function vitrailLayout(
   size: number,
   fontScale = 1,
   won = false,
+  guided = false,
 ) {
   const landscape = width >= 480 && width > height * 1.15;
   const tight = height < 650 || landscape;
@@ -14,7 +15,9 @@ export function vitrailLayout(
   const contentHeight = height - padding * 2;
   const headerHeight = tight ? 48 : 104;
   const stagesHeight = 44;
-  const playingCaptionHeight = Math.ceil((tight ? 22 : 26) * Math.min(1.2, Math.max(1, fontScale)));
+  const playingCaptionHeight = Math.ceil(
+    (guided ? 46 : tight ? 22 : 26) * Math.min(1.2, Math.max(1, fontScale)),
+  );
   const captionHeight = won ? 0 : playingCaptionHeight;
   const actionsHeight = tight ? 48 : 60;
   const footerInset = tight ? 4 : 6;

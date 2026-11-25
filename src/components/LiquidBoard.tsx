@@ -68,6 +68,81 @@ type Props = {
 };
 type Pose = { x: number; y: number; angle: number; scale: number };
 const emptySample = samplePour(0, 1);
+const GlassFront = React.memo(function GlassFront({
+  board,
+  rules,
+  tube,
+  selected,
+  marked,
+  scale,
+  fitted,
+  rimId,
+}: Pick<Props, 'board' | 'rules' | 'selected'> & {
+  tube: number;
+  marked: boolean;
+  scale: number;
+  fitted: boolean;
+  rimId: string;
+}) {
+  const active = selected === tube;
+  const marks = capacity(rules, tube);
+  return (
+    <>
+      <Path
+        d="M-24 9 L-23 137 Q-23 160 0 160 Q23 160 23 137 L24 9"
+        fill="none"
+        stroke={marked ? C.gold : active ? '#638c83' : '#79918d'}
+        strokeWidth={Math.max(
+          marked || active ? 1.5 : 0.95,
+          fitted ? (marked || active ? 0.95 : 0.7) / scale : 0,
+        )}
+        strokeOpacity="0.9"
+      />
+      <Path
+        d="M-18 20 L-17 132 Q-17 147-7 151"
+        fill="none"
+        stroke="#fffdf0"
+        strokeWidth="3.6"
+        strokeOpacity="0.57"
+        strokeLinecap="round"
+      />
+      <Path d="M19 26 18 137" fill="none" stroke="#fff9e6" strokeWidth="1" strokeOpacity="0.53" />
+      <Ellipse
+        cx="0"
+        cy="9"
+        rx="25"
+        ry="3.8"
+        fill={`url(#${rimId})`}
+        stroke="#82948a"
+        strokeWidth="0.9"
+      />
+      <Ellipse
+        cx="0"
+        cy="9"
+        rx="20.5"
+        ry="2.2"
+        fill="#f7efdb"
+        fillOpacity="0.42"
+        stroke="#fdf9eb"
+        strokeWidth="0.7"
+      />
+      {Array.from({ length: marks }, (_, tick) => (
+        <Line
+          key={tick}
+          x1="17"
+          x2="21"
+          y1={36 + tick * (116 / marks)}
+          y2={36 + tick * (116 / marks)}
+          stroke="#faf8df"
+          strokeOpacity="0.56"
+          strokeWidth="0.8"
+        />
+      ))}
+      <TubeInsignia board={board} rules={rules} tube={tube} unitScale={scale} selected={selected} />
+    </>
+  );
+});
+
 function LiquidBoardDrawing({
   board,
   rules,
@@ -204,17 +279,20 @@ function LiquidBoardDrawing({
     scale: scale * Math.cbrt(capacity(rules, i) / 4),
     angle: 0,
   }));
+  const sourceUnits = pouring
+    ? ((board[pouring.from].length - count * state.sent) * 4) / capacity(rules, pouring.from)
+    : null;
+  const lipAngle = useMemo(
+    () => (sourceUnits === null ? 0 : contactAngle(sourceUnits)),
+    [sourceUnits],
+  );
   let spout: Point | null = null,
     landing: Point | null = null;
   if (pouring && width && layout[pouring.to]) {
     const source = poses[pouring.from],
       target = poses[pouring.to],
       direction = target.x >= width / 2 ? 1 : -1;
-    const units = board[pouring.from].length - count * state.sent;
-    const angle =
-      contactAngle((units * 4) / capacity(rules, pouring.from)) *
-      direction *
-      (1 - state.settling * 0.09);
+    const angle = lipAngle * direction * (1 - state.settling * 0.09);
     const lip = rotate({ x: direction * 20 * source.scale, y: 12 * source.scale }, angle);
     const hold = { x: target.x - lip.x, y: target.y + MOUTH_Y * target.scale - 45 * scale - lip.y };
     const approach = state.approach;
@@ -249,64 +327,22 @@ function LiquidBoardDrawing({
   const front = (i: number, activeLayer = false) => {
     const p = poses[i],
       scale = p.scale,
-      active = selected === i,
       marked = hint?.from === i || hint?.to === i;
     return (
       <G
         key={`glass${i}`}
         transform={`translate(${p.x} ${p.y}) rotate(${(p.angle * 180) / Math.PI}) scale(${scale})`}
       >
-        <Path
-          d="M-24 9 L-23 137 Q-23 160 0 160 Q23 160 23 137 L24 9"
-          fill="none"
-          stroke={marked ? C.gold : active ? '#638c83' : '#79918d'}
-          strokeWidth={Math.max(
-            marked || active ? 1.5 : 0.95,
-            fitted ? (marked || active ? 0.95 : 0.7) / scale : 0,
-          )}
-          strokeOpacity="0.9"
+        <GlassFront
+          board={board}
+          rules={rules}
+          tube={i}
+          selected={selected}
+          marked={marked}
+          scale={scale}
+          fitted={!!fitted}
+          rimId={id('rim', activeLayer)}
         />
-        <Path
-          d="M-18 20 L-17 132 Q-17 147-7 151"
-          fill="none"
-          stroke="#fffdf0"
-          strokeWidth="3.6"
-          strokeOpacity="0.57"
-          strokeLinecap="round"
-        />
-        <Path d="M19 26 18 137" fill="none" stroke="#fff9e6" strokeWidth="1" strokeOpacity="0.53" />
-        <Ellipse
-          cx="0"
-          cy="9"
-          rx="25"
-          ry="3.8"
-          fill={`url(#${id('rim', activeLayer)})`}
-          stroke="#82948a"
-          strokeWidth="0.9"
-        />
-        <Ellipse
-          cx="0"
-          cy="9"
-          rx="20.5"
-          ry="2.2"
-          fill="#f7efdb"
-          fillOpacity="0.42"
-          stroke="#fdf9eb"
-          strokeWidth="0.7"
-        />
-        {Array.from({ length: capacity(rules, i) }, (_, tick) => (
-          <Line
-            key={tick}
-            x1="17"
-            x2="21"
-            y1={36 + tick * (116 / capacity(rules, i))}
-            y2={36 + tick * (116 / capacity(rules, i))}
-            stroke="#faf8df"
-            strokeOpacity="0.56"
-            strokeWidth="0.8"
-          />
-        ))}
-        <TubeInsignia board={board} rules={rules} tube={i} unitScale={scale} selected={selected} />
       </G>
     );
   };
@@ -534,7 +570,7 @@ function LiquidBoardDrawing({
       </G>
     );
   };
-  const definitions = (activeLayer: boolean) => (
+  const definitions = (activeLayer: boolean, colors: Set<number>, jetColor?: number) => (
     <>
       <RackDefinitions prefix={id('rack', activeLayer)} />
       <Defs>
@@ -551,38 +587,58 @@ function LiquidBoardDrawing({
           <Stop offset="0" stopColor="#fffcf0" stopOpacity="0.9" />
           <Stop offset="1" stopColor="#a5b5a6" stopOpacity="0.45" />
         </LinearGradient>
-        {palette.map((base, c) => (
-          <React.Fragment key={c}>
-            <LinearGradient id={id(`pigment${c}`, activeLayer)} x1="0" x2="1">
-              <Stop offset="0" stopColor={colorMix(base, '#182d3b', 0.36)} />
-              <Stop offset="0.24" stopColor={base} />
-              <Stop offset="0.5" stopColor={colorMix(base, '#ffdfac', 0.16)} />
-              <Stop offset="0.78" stopColor={base} />
-              <Stop offset="1" stopColor={colorMix(base, '#19223d', 0.3)} />
-            </LinearGradient>
-            <LinearGradient id={id(`sheen${c}`, activeLayer)} x1="0" y1="0" x2="0.8" y2="1">
-              <Stop offset="0" stopColor="#fff2cf" stopOpacity="0.55" />
-              <Stop offset="0.35" stopColor={base} stopOpacity="0" />
-              <Stop offset="0.8" stopColor={colorMix(base, '#b89ee5', 0.35)} stopOpacity="0.1" />
-              <Stop offset="1" stopColor="#fff4d0" stopOpacity="0.4" />
-            </LinearGradient>
-            <LinearGradient id={id(`jet${c}`, activeLayer)} x1="0" y1="0" x2="1" y2="0">
-              <Stop offset="0" stopColor={colorMix(base, '#1f2440', 0.15)} />
-              <Stop offset="0.5" stopColor={colorMix(base, '#fff0cd', 0.25)} />
-              <Stop offset="1" stopColor={base} />
-            </LinearGradient>
-            <RadialGradient id={id(`glow${c}`, activeLayer)}>
-              <Stop offset="0" stopColor={base} stopOpacity="0.2" />
-              <Stop offset="0.65" stopColor={base} stopOpacity="0.06" />
-              <Stop offset="1" stopColor={base} stopOpacity="0" />
-            </RadialGradient>
-          </React.Fragment>
-        ))}
+        {palette.map(
+          (base, c) =>
+            colors.has(c) && (
+              <React.Fragment key={c}>
+                <LinearGradient id={id(`pigment${c}`, activeLayer)} x1="0" x2="1">
+                  <Stop offset="0" stopColor={colorMix(base, '#182d3b', 0.36)} />
+                  <Stop offset="0.24" stopColor={base} />
+                  <Stop offset="0.5" stopColor={colorMix(base, '#ffdfac', 0.16)} />
+                  <Stop offset="0.78" stopColor={base} />
+                  <Stop offset="1" stopColor={colorMix(base, '#19223d', 0.3)} />
+                </LinearGradient>
+                <LinearGradient id={id(`sheen${c}`, activeLayer)} x1="0" y1="0" x2="0.8" y2="1">
+                  <Stop offset="0" stopColor="#fff2cf" stopOpacity="0.55" />
+                  <Stop offset="0.35" stopColor={base} stopOpacity="0" />
+                  <Stop
+                    offset="0.8"
+                    stopColor={colorMix(base, '#b89ee5', 0.35)}
+                    stopOpacity="0.1"
+                  />
+                  <Stop offset="1" stopColor="#fff4d0" stopOpacity="0.4" />
+                </LinearGradient>
+                {c === jetColor && (
+                  <LinearGradient id={id(`jet${c}`, activeLayer)} x1="0" y1="0" x2="1" y2="0">
+                    <Stop offset="0" stopColor={colorMix(base, '#1f2440', 0.15)} />
+                    <Stop offset="0.5" stopColor={colorMix(base, '#fff0cd', 0.25)} />
+                    <Stop offset="1" stopColor={base} />
+                  </LinearGradient>
+                )}
+                {!activeLayer && (
+                  <RadialGradient id={id(`glow${c}`, activeLayer)}>
+                    <Stop offset="0" stopColor={base} stopOpacity="0.2" />
+                    <Stop offset="0.65" stopColor={base} stopOpacity="0.06" />
+                    <Stop offset="1" stopColor={base} stopOpacity="0" />
+                  </RadialGradient>
+                )}
+              </React.Fragment>
+            ),
+        )}
       </Defs>
     </>
   );
-  const stillDefinitions = useMemo(() => definitions(false), [unique]);
-  const activeDefinitions = useMemo(() => definitions(true), [unique]);
+  const stillDefinitions = useMemo(
+    () => definitions(false, new Set(board.flat())),
+    [unique, board],
+  );
+  const activeDefinitions = useMemo(
+    () =>
+      pouring
+        ? definitions(true, new Set([...board[pouring.from], ...board[pouring.to]]), color)
+        : null,
+    [unique, board, pouring, color],
+  );
   const stillScene = useMemo(
     () => (
       <Svg

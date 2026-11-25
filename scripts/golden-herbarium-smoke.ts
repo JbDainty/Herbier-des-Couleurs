@@ -73,6 +73,10 @@ async function main() {
     ).toHaveCount(5);
     await expect(page.locator('[data-testid^="golden-silhouette-"]')).toHaveCount(4);
     await expect(page.getByRole('heading', { name: 'Les Merveilles', exact: true })).toBeVisible();
+    for (const plant of golden.species) {
+      await chooseSpecies(plant.id);
+      await expect(page.getByTestId('golden-gallery-description')).toHaveText(plant.description);
+    }
     await chooseSpecies('temps');
     const temps = page.getByTestId('garden-species-temps');
     await temps.getByRole('button', { name: 'Acquérir · 200 graines', exact: true }).click();

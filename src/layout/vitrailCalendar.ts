@@ -11,9 +11,8 @@ export function vitrailCalendarLayout(width: number, height: number, rows: numbe
     monthHeight = 44,
     weekHeight = compact ? 14 : 16;
   const summaryHeight = minimal ? 0 : compact ? 20 : 28,
-    legendHeight = minimal ? 0 : compact ? 24 : 26;
-  const noteHeight = minimal ? 0 : 16,
-    closeHeight = 48;
+    detailHeight = compact ? 116 : 152;
+  const closeHeight = 48;
   if (landscape) {
     const sideWidth = Math.min(240, Math.max(164, innerWidth * 0.34));
     const columnGap = 12,
@@ -28,7 +27,7 @@ export function vitrailCalendarLayout(width: number, height: number, rows: numbe
     );
     const leftHeight = monthHeight + weekHeight + gridHeight + gap * 2;
     const tightSide = height - padding * 2 < 300;
-    const sideMinimum = tightSide ? 156 : 298;
+    const sideMinimum = Math.max(detailHeight + closeHeight + gap, tightSide ? 156 : 298);
     const paperHeight = Math.min(height, Math.max(leftHeight, sideMinimum) + padding * 2);
     return {
       landscape,
@@ -42,8 +41,7 @@ export function vitrailCalendarLayout(width: number, height: number, rows: numbe
       monthHeight,
       weekHeight,
       summaryHeight,
-      legendHeight,
-      noteHeight,
+      detailHeight,
       closeHeight,
       sideWidth,
       columnGap,
@@ -61,15 +59,9 @@ export function vitrailCalendarLayout(width: number, height: number, rows: numbe
     monthHeight +
     weekHeight +
     summaryHeight +
-    legendHeight +
-    noteHeight +
+    detailHeight +
     closeHeight +
-    gap *
-      (3 +
-        (headerHeight ? 1 : 0) +
-        (summaryHeight ? 1 : 0) +
-        (legendHeight ? 1 : 0) +
-        (noteHeight ? 1 : 0));
+    gap * (3 + (headerHeight ? 1 : 0) + (summaryHeight ? 1 : 0) + 1);
   const cellHeight = Math.max(36, Math.min(62, Math.floor((height - fixed) / rows)));
   const gridHeight = Math.min(rows * cellHeight, Math.max(32, height - fixed));
   return {
@@ -84,8 +76,7 @@ export function vitrailCalendarLayout(width: number, height: number, rows: numbe
     monthHeight,
     weekHeight,
     summaryHeight,
-    legendHeight,
-    noteHeight,
+    detailHeight,
     closeHeight,
     sideWidth: 0,
     columnGap: 0,

@@ -170,9 +170,12 @@ async function main() {
     await page.setViewportSize({ width: 393, height: 852 });
     await fits();
     await page.getByTestId('vitrail-calendar-2026-11-18').click();
+    await expect(page.getByTestId('calendar-day-details')).toContainText('Journée estampillée');
+    await button('Rejouer un vitrail').click();
+    await page.getByRole('button', { name: /^Rejouer le vitrail 3/ }).click();
     await expect(page.getByTestId('vitrail-date')).toHaveText('18 novembre');
     expect((await stored()).seeds).toBe(28);
-    expect((await stored()).vitrail!.days).toEqual(before.vitrail!.days);
+    expect((await stored()).vitrail!.days).toMatchObject(before.vitrail!.days);
     await seed(
       fixture(
         '2026-11-19',

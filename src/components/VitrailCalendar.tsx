@@ -27,7 +27,7 @@ import {
   shiftCalendarMonth,
 } from '../state/vitrailCalendar';
 import { vitrailCalendarLayout } from '../layout/vitrailCalendar';
-import { vitrailForDay } from '../data/vitrails';
+import { vitrailForDay, vitrailDifficulties } from '../data/vitrails';
 
 function CalendarBook({
   initialDay,
@@ -37,7 +37,7 @@ function CalendarBook({
 }: {
   initialDay: string;
   today: string;
-  onSelect: (day: string) => void;
+  onSelect: (day: string, replayLevel?: number) => void;
   onClose: () => void;
 }) {
   const { save } = useGame(),
@@ -46,6 +46,15 @@ function CalendarBook({
     measured = useMeasuredSize();
   const [month, setMonth] = useState(() => calendarInitialMonth(initialDay, today));
   const content = calendarMonth(month, today, save.vitrail);
+  const [picked, setPicked] = useState(initialDay);
+  const [chooseReplay, setChooseReplay] = useState(false);
+  const selectedDay =
+    content.cells.find((d) => d?.day === picked && d.available) ??
+    content.cells.find((d) => d?.available);
+  const pick = (key: string) => {
+    setPicked(key);
+    setChooseReplay(false);
+  };
   const horizontalInset = 12,
     top = Math.max(12, insets.top),
     bottom = Math.max(12, insets.bottom);
@@ -108,8 +117,10 @@ function CalendarBook({
   const date = new Date(month + '-01T12:00:00Z');
   const vine = calendarVine(content.cells, layout.cellWidth, layout.cellHeight);
   const shift = (amount: number) => {
-    if (amount < 0 ? content.canPrevious : content.canNext)
+    if (amount < 0 ? content.canPrevious : content.canNext) {
       setMonth(shiftCalendarMonth(month, amount));
+      setChooseReplay(false);
+    }
   };
   const title = (
     <View style={{ height: layout.headerHeight, alignItems: 'center', justifyContent: 'center' }}>
@@ -157,7 +168,10 @@ function CalendarBook({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Afficher le mois d’aujourd’hui"
-        onPress={() => setMonth(calendarInitialMonth(today, today))}
+        onPress={() => {
+          setMonth(calendarInitialMonth(today, today));
+          pick(today);
+        }}
         style={{ flex: 1, minWidth: 0, height: 44, alignItems: 'center', justifyContent: 'center' }}
       >
         {layout.compact && (
@@ -288,9 +302,12 @@ function CalendarBook({
               testID={`vitrail-calendar-${day.day}`}
               accessibilityRole="button"
               accessibilityLabel={`${new Date(day.day + 'T12:00:00Z').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', timeZone: 'UTC' })}, ${day.completed} vitraux sur 3 terminés${day.completed === 3 ? ', journée estampillée' : ''}${day.today ? ', aujourd’hui' : ''}`}
-              accessibilityState={{ disabled: !day.available, selected: day.day === initialDay }}
+              accessibilityState={{
+                disabled: !day.available,
+                selected: day.day === selectedDay?.day,
+              }}
               disabled={!day.available}
-              onPress={() => onSelect(day.day)}
+              onPress={() => pick(day.day)}
               style={({ pressed }) => ({
                 position: 'absolute',
                 left: (index % 7) * layout.cellWidth,
@@ -307,7 +324,7 @@ function CalendarBook({
                 day={day}
                 width={layout.cellWidth}
                 height={layout.cellHeight}
-                selected={day.day === initialDay}
+                selected={day.day === selectedDay?.day}
                 glow={glow}
               />
             </Pressable>
@@ -316,56 +333,93 @@ function CalendarBook({
       </View>
     </ScrollView>
   );
-  const legend = (
+  const count = selectedDay?.completed ?? 0;
+  const rewarded = selectedDay && save.vitrail?.days[selectedDay.day]?.rewarded;
+  const cta =
+    count === 3
+      ? 'Rejouer un vitrail'
+      : count
+        ? `Continuer le vitrail ${count + 1}`
+        : 'Jouer au vitrail 1';
+  const details = selectedDay && (
     <View
-      testID="calendar-legend"
-      style={{ height: layout.legendHeight, flexDirection: 'row', alignItems: 'center', gap: 6 }}
-    >
-      {[
-        { icon: 'leaf-outline' as const, text: 'En cours', color: '#829469' },
-        { icon: 'ribbon-outline' as const, text: 'Estampillé', color: '#6e8662' },
-        { icon: 'sunny-outline' as const, text: 'Aujourd’hui', color: '#aa8848' },
-      ].map((item) => (
-        <View
-          key={item.text}
-          style={{
-            flex: 1,
-            minWidth: 0,
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: 2,
-          }}
-        >
-          <Icon name={item.icon} size={13} color={item.color} />
-          <T
-            maxFontSizeMultiplier={1}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            style={{ fontSize: 10, lineHeight: 14, color: C.muted, flexShrink: 1 }}
-          >
-            {item.text}
-          </T>
-        </View>
-      ))}
-    </View>
-  );
-  const note = (
-    <T
-      testID="calendar-archive-rule"
-      maxFontSizeMultiplier={1}
-      numberOfLines={1}
-      adjustsFontSizeToFit
+      testID="calendar-day-details"
       style={{
-        height: layout.noteHeight,
-        fontSize: 11,
-        lineHeight: 16,
-        color: C.muted,
-        textAlign: 'center',
+        height: layout.detailHeight,
+        justifyContent: 'space-evenly',
+        alignItems: 'center',
+        paddingHorizontal: 6,
+        backgroundColor: '#f4e6c8',
+        borderWidth: 1,
+        borderColor: '#c9b78d',
+        borderRadius: 14,
       }}
     >
-      Archives gratuites · sans nouvelle graine.
-    </T>
+      <T
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        style={{ fontFamily: F.scientific, textAlign: 'center', color: C.muted }}
+      >
+        {new Date(selectedDay.day + 'T12:00:00Z').toLocaleDateString('fr-FR', {
+          day: 'numeric',
+          month: 'long',
+          timeZone: 'UTC',
+        })}{' '}
+        · {count}/3
+      </T>
+      <T
+        serif
+        accessibilityRole="header"
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        style={{ fontSize: layout.compact ? 19 : 26, textAlign: 'center' }}
+      >
+        {count === 3
+          ? 'Journée estampillée'
+          : count
+            ? 'À vous de continuer'
+            : 'Trois vitraux à découvrir'}
+      </T>
+      {(rewarded || selectedDay.day !== today) && (
+        <T style={{ fontSize: 14, textAlign: 'center' }}>
+          {rewarded ? 'Graine du jour obtenue' : 'Archive · sans graine'}
+        </T>
+      )}
+      {chooseReplay && count === 3 ? (
+        <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'center' }}>
+          {vitrailDifficulties.map((name, level) => (
+            <Pressable
+              key={name}
+              accessibilityRole="button"
+              accessibilityLabel={`Rejouer le vitrail ${level + 1}, ${name}`}
+              onPress={() => onSelect(selectedDay.day, level)}
+              style={{
+                flex: 1,
+                minHeight: 44,
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderRadius: 12,
+                backgroundColor: '#e4e6ce',
+                margin: 1,
+              }}
+            >
+              <T numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 14 }}>
+                {layout.landscape ? level + 1 : name}
+              </T>
+            </Pressable>
+          ))}
+        </View>
+      ) : (
+        <VictoryAction
+          compact
+          narrow
+          label={cta}
+          onPress={() => (count === 3 ? setChooseReplay(true) : onSelect(selectedDay.day))}
+        >
+          {cta}
+        </VictoryAction>
+      )}
+    </View>
   );
   const close = (
     <View testID="calendar-close" style={{ height: 48, width: '100%', alignItems: 'center' }}>
@@ -469,80 +523,7 @@ function CalendarBook({
               <View
                 style={{ width: layout.sideWidth, height: '100%', justifyContent: 'space-between' }}
               >
-                <T
-                  serif
-                  accessibilityRole="header"
-                  maxFontSizeMultiplier={1}
-                  numberOfLines={layout.tightSide ? 1 : 2}
-                  adjustsFontSizeToFit
-                  style={{
-                    fontSize: layout.tightSide ? 19 : 25,
-                    lineHeight: layout.tightSide ? 24 : 29,
-                    textAlign: 'center',
-                  }}
-                >
-                  {layout.tightSide ? 'Jours de lumière' : 'Les jours de lumière'}
-                </T>
-                <View style={{ alignItems: 'center', gap: 2 }}>
-                  {!layout.tightSide && (
-                    <CalendarCrest restored={content.restored} total={content.scheduled * 3} />
-                  )}
-                  <T
-                    testID="calendar-side-summary"
-                    maxFontSizeMultiplier={1.1}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    style={{
-                      fontFamily: F.scientific,
-                      fontSize: 14,
-                      lineHeight: 20,
-                      textAlign: 'center',
-                    }}
-                  >
-                    {content.stamped}{' '}
-                    {content.stamped === 1 ? 'jour estampillé' : 'jours estampillés'}
-                  </T>
-                </View>
-                <View style={{ gap: layout.tightSide ? 0 : 8 }}>
-                  {[
-                    { icon: 'leaf-outline' as const, text: 'Feuilles : en cours' },
-                    { icon: 'ribbon-outline' as const, text: 'Tampon : journée terminée' },
-                    { icon: 'sunny-outline' as const, text: 'Halo : aujourd’hui' },
-                  ].map((item) => (
-                    <View
-                      key={item.text}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 4,
-                        height: layout.tightSide ? 11 : 18,
-                      }}
-                    >
-                      <Icon name={item.icon} size={layout.tightSide ? 11 : 15} />
-                      <T
-                        maxFontSizeMultiplier={1}
-                        numberOfLines={1}
-                        adjustsFontSizeToFit
-                        style={{
-                          fontSize: layout.tightSide ? 9 : 12,
-                          lineHeight: layout.tightSide ? 11 : 18,
-                          flexShrink: 1,
-                          color: C.muted,
-                        }}
-                      >
-                        {item.text}
-                      </T>
-                    </View>
-                  ))}
-                </View>
-                <T
-                  maxFontSizeMultiplier={1}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  style={{ fontSize: 10, lineHeight: 16, color: C.muted, textAlign: 'center' }}
-                >
-                  Archives · sans graine.
-                </T>
+                {details}
                 {close}
               </View>
             </>
@@ -553,8 +534,7 @@ function CalendarBook({
               {!!layout.summaryHeight && summary}
               {weekdays}
               {grid}
-              {!!layout.legendHeight && legend}
-              {!!layout.noteHeight && note}
+              {details}
               {close}
             </>
           )}
@@ -574,7 +554,7 @@ export function VitrailCalendar({
   visible: boolean;
   initialDay: string;
   today: string;
-  onSelect: (day: string) => void;
+  onSelect: (day: string, replayLevel?: number) => void;
   onClose: () => void;
 }) {
   const { save } = useGame();
