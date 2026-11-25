@@ -64,7 +64,35 @@ async function main() {
     await page.waitForTimeout(350);
     expect(await pollen.evaluate((node) => getComputedStyle(node).transform)).not.toBe(before);
     await book.screenshot({ path: 'test-results/golden-herbarium-book.png' });
-    await book.click();
+    const opening = await book.evaluate((cover) => {
+      return new Promise((resolve, reject) => {
+        let temporaryPage = false;
+        let plant: Element | null = null;
+        let fadedIn = false;
+        const observer = new MutationObserver(() => {
+          temporaryPage ||= !!document.querySelector('[data-testid="antique-book-opening"]');
+          const gallery = document.querySelector('[data-testid="golden-gallery"]');
+          const flower = gallery?.querySelector('[data-testid="golden-gallery-plant"]');
+          if (!gallery || !flower) return;
+          plant ??= flower;
+          const opacity = Number(getComputedStyle(gallery).opacity);
+          if (opacity < 1) fadedIn = true;
+          if (opacity === 1) {
+            clearTimeout(timeout);
+            observer.disconnect();
+            resolve({ temporaryPage, fadedIn, samePlant: plant === flower });
+          }
+        });
+        const timeout = setTimeout(() => {
+          observer.disconnect();
+          reject(new Error('La galerie dorée n’a pas fini d’apparaître.'));
+        }, 5000);
+        observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+        (cover as HTMLElement).click();
+        (cover as HTMLElement).click();
+      });
+    });
+    expect(opening).toEqual({ temporaryPage: false, fadedIn: true, samePlant: true });
     await expect(page.getByTestId('collection-garden')).toBeVisible();
     expect((await stored()).seeds).toBe(1200);
     expect((await stored()).gardens![golden.id]).toBeUndefined();
@@ -157,6 +185,11 @@ async function main() {
     }
     await page.reload();
     await passStudio(page);
+    await expect(book).toBeVisible();
+    await book.click();
+    await expect(page.getByTestId('golden-gallery')).toHaveCSS('opacity', '1');
+    await expect(page).not.toHaveURL(/entree=herbier/);
+    await page.goBack();
     await expect(book).toBeVisible();
     expect((await stored()).seeds).toBe(200);
     expect((await stored()).gardens![golden.id].species).toHaveLength(5);

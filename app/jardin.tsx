@@ -38,7 +38,12 @@ import { playPourSound } from '../src/services/pourSound';
 export default function Jardin() {
   const { save, setSave } = useGame();
   const { width, height } = useWindowDimensions();
-  const params = useLocalSearchParams<{ collection?: string; espece?: string; vue?: string }>();
+  const params = useLocalSearchParams<{
+    collection?: string;
+    espece?: string;
+    vue?: string;
+    entree?: string;
+  }>();
   const requested = collectionById(params.collection ?? '');
   const shouldResume =
     params.vue !== 'galerie' &&
@@ -210,6 +215,9 @@ export default function Jardin() {
         <GoldenGallery
           garden={requested}
           selection={params.espece}
+          onRevealed={
+            params.entree === 'herbier' ? () => router.setParams({ entree: undefined }) : undefined
+          }
           onSelect={(species) => router.setParams({ espece: species.id })}
           onAction={(species) => openSpecies(requested, species)}
           onHome={() => router.dismissTo('/')}

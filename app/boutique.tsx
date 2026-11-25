@@ -22,15 +22,9 @@ import {
 } from '../src/components/ShopPresentation';
 import { campaignTestAdsEnabled } from '../src/services/campaignAds';
 import { useGame } from '../src/state/store';
-import {
-  acquireGarden,
-  acquireGardenSpecies,
-  acquireWallpaper,
-  wallpapers,
-  wallpaperUnlocked,
-} from '../src/state/economy';
+import { acquireGarden, acquireGardenSpecies, wallpapers } from '../src/state/economy';
 import { collections, featuredCollection, GOLDEN_COLLECTION_ID } from '../src/data/collections';
-import { wallpaperArtwork } from '../src/data/wallpaperArtwork';
+import { WallpaperGallery } from '../src/components/WallpaperGallery';
 import { Button, C, Icon, T } from '../src/components/ui';
 import { F } from '../src/components/fonts';
 
@@ -46,15 +40,8 @@ export default function Boutique() {
   const section: Section =
     params.rayon === 'jardins' || params.rayon === 'decors' ? params.rayon : 'accueil';
   const scroll = useRef<ScrollView>(null);
-  const [selected, select] = useState(
-    save.wallpaper?.startsWith('ecosystem-') ? save.wallpaper : wallpapers[0].id,
-  );
   const [purchase, confirm] = useState<Purchase | null>(null);
   const [info, setInfo] = useState<'seeds' | 'ads' | null>(params.offre === 'pubs' ? 'ads' : null);
-  const item = wallpapers.find((w) => w.id === selected) ?? wallpapers[0];
-  const owned = save.ownedWallpapers?.includes(item.id);
-  const unlocked = wallpaperUnlocked(save, item.id);
-  const active = save.wallpaper === item.id;
   const featured = featuredCollection();
   const gardenOwned = featured && !!save.gardens?.[featured.id];
   const golden = collections.find((c) => c.id === GOLDEN_COLLECTION_ID)!;
@@ -285,104 +272,10 @@ export default function Boutique() {
         </>
       )}
       {section === 'decors' && (
-        <>
-          <T serif accessibilityRole="header" style={styles.sectionTitle}>
-            Les décors
-          </T>
-          <T style={styles.help}>Changez le paysage derrière vos fioles dans Mon Herbier.</T>
-          <ShopPaper testID="wallpaper-preview" style={{ gap: 12 }}>
-            <Image
-              source={wallpaperArtwork(item.id)}
-              resizeMode="cover"
-              resizeMethod="resize"
-              fadeDuration={0}
-              style={{ width: '100%', height: compact ? 155 : 185, borderRadius: 14 }}
-              accessibilityLabel={`Aperçu : ${item.name}`}
-            />
-            <T serif style={styles.sectionTitle}>
-              {item.name}
-            </T>
-            <T style={styles.help}>
-              {owned ? 'Ce décor est dans votre collection.' : `${item.cost} graines`}
-            </T>
-            {!unlocked && !owned && (
-              <T style={styles.help}>
-                Disponible à la découverte de cet écosystème, page {item.firstPage}.
-              </T>
-            )}
-            {unlocked && !owned && save.seeds < item.cost && (
-              <T style={styles.help}>Encore {item.cost - save.seeds} graines.</T>
-            )}
-            <ShopRibbon
-              disabled={
-                active || !!save.testSession || (!owned && (!unlocked || save.seeds < item.cost))
-              }
-              onPress={() => {
-                if (owned) {
-                  setSave((s) => acquireWallpaper(s, item.id));
-                  return;
-                }
-                confirm({
-                  title: `Acquérir « ${item.name} » ?`,
-                  cost: item.cost,
-                  detail:
-                    'Ce paysage remplacera le fond de l’atelier de Mon Herbier. Vous pourrez passer gratuitement d’un décor acquis à l’autre.',
-                  action: () => setSave((s) => acquireWallpaper(s, item.id)),
-                });
-              }}
-            >
-              {active
-                ? 'Décor utilisé'
-                : owned
-                  ? 'Utiliser ce décor'
-                  : `Acquérir ce décor · ${item.cost} graines`}
-            </ShopRibbon>
-          </ShopPaper>
-          <View style={{ gap: 7 }}>
-            {wallpapers.map((w) => (
-              <Pressable
-                key={w.id}
-                testID={`wallpaper-choice-${w.ecosystem}`}
-                accessibilityRole="button"
-                accessibilityLabel={`Voir le décor ${w.name}`}
-                accessibilityState={{ selected: selected === w.id }}
-                aria-selected={selected === w.id}
-                onPress={() => {
-                  select(w.id);
-                  scroll.current?.scrollTo({ y: 0, animated: save.settings.motion });
-                }}
-                style={({ pressed }) => [
-                  styles.wallpaperChoice,
-                  {
-                    backgroundColor: selected === w.id ? '#dce5ce' : '#f5eddcdd',
-                    borderColor: selected === w.id ? '#809563' : C.line,
-                    opacity: pressed ? 0.7 : 1,
-                  },
-                ]}
-              >
-                <View
-                  style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: w.color }}
-                />
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <T style={{ fontSize: 17 }}>{w.name}</T>
-                  {!wallpaperUnlocked(save, w.id) && (
-                    <T style={{ fontSize: 14, color: C.muted }}>Dès la page {w.firstPage}</T>
-                  )}
-                </View>
-                <T style={{ fontFamily: F.medium, color: C.green }}>
-                  {save.ownedWallpapers?.includes(w.id) ? 'Acquis' : `${w.cost} graines`}
-                </T>
-              </Pressable>
-            ))}
-          </View>
-          <Button
-            secondary
-            disabled={!save.wallpaper || save.wallpaper === 'default'}
-            onPress={() => setSave((s) => acquireWallpaper(s, 'default'))}
-          >
-            Retrouver le décor d’origine
-          </Button>
-        </>
+        <WallpaperGallery
+          onPurchase={confirm}
+          onSelect={() => scroll.current?.scrollTo({ y: 0, animated: save.settings.motion })}
+        />
       )}
       <Pressable
         accessibilityRole="button"
@@ -485,15 +378,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { fontSize: 28, lineHeight: 34, color: C.green },
   help: { fontSize: 16, lineHeight: 22, color: C.muted },
-  wallpaperChoice: {
-    minHeight: 56,
-    padding: 12,
-    borderRadius: 14,
-    borderWidth: 0.8,
-    flexDirection: 'row',
-    gap: 10,
-    alignItems: 'center',
-  },
   rules: {
     minHeight: 44,
     flexDirection: 'row',

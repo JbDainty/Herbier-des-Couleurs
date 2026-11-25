@@ -30,6 +30,14 @@ export const wallpaperUnlocked = (s: Save, id: string) => {
   const item = wallpapers.find((w) => w.id === id);
   return !!item && (item.firstPage === 1 || !!s.completed[item.firstPage - 1]);
 };
+export function shopWallpapers(save: Save) {
+  const owned = save.ownedWallpapers ?? [];
+  const available = wallpapers.filter(
+    (w) => owned.includes(w.id) || (wallpaperUnlocked(save, w.id) && save.seeds >= w.cost),
+  );
+  const upcoming = wallpapers.find((w) => !owned.includes(w.id) && !wallpaperUnlocked(save, w.id));
+  return { available, upcoming };
+}
 export function acquireWallpaper(s: Save, id: string): Save {
   if (s.testSession) return s;
   if (id === 'default') return s.wallpaper === 'default' ? s : { ...s, wallpaper: 'default' };

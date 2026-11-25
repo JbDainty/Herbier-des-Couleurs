@@ -82,17 +82,17 @@ async function main() {
     expect((await stored()).seeds).toBe(800);
     await openScreen(page, 'Boutique');
     await button('Voir les décors').click();
-    await button('Acquérir ce décor · 20 graines').click();
+    await button('Acquérir · 20 graines').click();
     await button('Garder mes graines').click();
     expect((await stored()).seeds).toBe(800);
-    await button('Acquérir ce décor · 20 graines').click();
+    await button('Acquérir · 20 graines').click();
     await button('Confirmer pour 20 graines').dblclick();
-    await expect(button('Décor utilisé')).toBeDisabled();
+    await expect(button('Retirer')).toBeEnabled();
     expect((await stored()).seeds).toBe(780);
     await page.reload();
     await passStudio(page);
     await expect(page.getByTestId('wallpaper-preview')).toBeVisible();
-    await expect(button('Décor utilisé')).toBeDisabled();
+    await expect(button('Retirer')).toBeEnabled();
     expect((await stored()).seeds).toBe(780);
     await expect(page.getByTestId('selected-wallpaper')).toHaveCount(0);
     await openHome(page);
@@ -111,25 +111,40 @@ async function main() {
     ).toHaveAttribute('src', /\/home\/clearing\./);
     await page.goto(url + 'boutique?rayon=decors');
     await passStudio(page);
-    await page.getByTestId('wallpaper-choice-19').click();
-    await expect(button(/^Acquérir ce décor ·/)).toBeDisabled();
-    await expect(page.getByText(/Disponible à la découverte de cet écosystème/)).toBeVisible();
-    expect((await stored()).seeds).toBe(780);
+    const choices = page.getByTestId(/^wallpaper-choice-/);
+    const landscape = page.getByTestId('wallpaper-preview-landscape').locator('img');
+    await expect(choices).toHaveCount(2);
+    await expect(page.getByTestId('wallpaper-next')).toContainText('Les zones humides');
+    await expect(page.getByTestId('wallpaper-next')).toContainText('Dès la page 41');
+    await expect(page.getByTestId('wallpaper-preview-rack').locator('img')).toHaveAttribute(
+      'src',
+      /workshop-rack/,
+    );
     await page.getByTestId('wallpaper-choice-1').click();
-    await button('Acquérir ce décor · 20 graines').click();
+    await expect(landscape).toHaveAttribute('src', /sous-bois/);
+    expect((await stored()).wallpaper).toBe('ecosystem-0');
+    expect((await stored()).seeds).toBe(780);
+    await button('Acquérir · 20 graines').click();
     await button('Confirmer pour 20 graines').click();
     expect((await stored()).seeds).toBe(760);
     await page.getByTestId('wallpaper-choice-0').click();
-    await button('Utiliser ce décor').click();
+    await button('Utiliser').click();
     expect((await stored()).seeds).toBe(760);
     expect((await stored()).wallpaper).toBe('ecosystem-0');
-    await button('Retrouver le décor d’origine').click();
+    await button('Retirer').click();
     expect((await stored()).wallpaper).toBe('default');
+    expect((await stored()).ownedWallpapers).toEqual(['ecosystem-0', 'ecosystem-1']);
+    await button('Utiliser').click();
+    expect((await stored()).wallpaper).toBe('ecosystem-0');
+    await button('Retirer').click();
+    expect((await stored()).seeds).toBe(760);
+    await openHome(page);
+    await openCarnet(page);
     await expect(page.getByTestId('workshop-wallpaper').locator('img')).toHaveAttribute(
       'src',
       /\/illustrations\/serre\./,
     );
-    await button('Retour à la boutique').click();
+    await openScreen(page, 'Boutique');
     await button('Voir le jardin des orchidées').click();
     await button('Débloquer le jardin · 150 graines').click();
     await button('Confirmer pour 150 graines').dblclick();
@@ -175,7 +190,7 @@ async function main() {
         await page.getByTestId('seed-shop').evaluate((n) => n.scrollWidth - n.clientWidth),
       ).toBeLessThanOrEqual(1);
       await button('Voir les décors').click();
-      await expect(button('Acquérir ce décor · 20 graines')).toBeEnabled();
+      await expect(button('Acquérir · 20 graines')).toBeEnabled();
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
         width,
       );
@@ -190,7 +205,10 @@ async function main() {
     await page.setViewportSize({ width: 393, height: 852 });
     await visit({ ...save, seeds: 0 });
     await button('Voir les décors').click();
-    await expect(button('Acquérir ce décor · 20 graines')).toBeDisabled();
+    await expect(choices).toHaveCount(0);
+    await expect(landscape).toHaveAttribute('src', /illustrations\/serre/);
+    await expect(button(/^Acquérir/)).toHaveCount(0);
+    await expect(page.getByTestId('wallpaper-next')).toContainText('Dès la page 41');
     await button('Retour à la boutique').click();
     const trial = { ...save, testSession: { returnSave: save } };
     await visit(trial);
