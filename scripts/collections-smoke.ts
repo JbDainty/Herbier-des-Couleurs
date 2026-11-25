@@ -48,15 +48,15 @@ async function main() {
     await page.getByRole('link', { name: 'Boutique', exact: true }).click();
     await expect(page.getByTestId('seed-shop')).toBeVisible();
     await button('Voir les décors').click();
-    await button('Acquérir ce décor · 20 graines').click();
+    await button('Acquérir · 20 graines').click();
     await button('Garder mes graines').click();
     expect((await stored()).seeds).toBe(240);
-    await button('Acquérir ce décor · 20 graines').click();
+    await button('Acquérir · 20 graines').click();
     await button('Confirmer pour 20 graines').dblclick();
     expect((await stored()).seeds).toBe(220);
     expect((await stored()).ownedWallpapers).toEqual(['ecosystem-0']);
     await page.reload();
-    await expect(button('Décor utilisé')).toBeDisabled();
+    await expect(button('Retirer')).toBeEnabled();
     expect((await stored()).seeds).toBe(220);
     await button('Menu principal').click();
     await expect(page.getByTestId('selected-wallpaper')).toHaveCount(0);
@@ -195,7 +195,7 @@ async function main() {
     await expect(page.getByTestId('seed-count').filter({ visible: true })).toHaveText('157');
     await page.getByRole('link', { name: 'Boutique', exact: true }).click();
     await button('Voir les décors').click();
-    await button('Acquérir ce décor · 20 graines').click();
+    await button('Acquérir · 20 graines').click();
     await button('Confirmer pour 20 graines').click();
     expect((await stored()).seeds).toBe(137);
     await page.reload();

@@ -5,6 +5,7 @@ import {
   acquireGarden,
   acquireGardenSpecies,
   acquireWallpaper,
+  shopWallpapers,
   wallpapers,
 } from '../src/state/economy';
 import {
@@ -70,6 +71,24 @@ it('rejects locked, unaffordable and unknown purchases and switches owned wallpa
   expect(normal.seeds).toBe(first.seeds);
   expect(acquireWallpaper(normal, 'ecosystem-0').seeds).toBe(first.seeds);
   expect(restore(JSON.stringify(first))).toEqual(first);
+});
+
+it('shows owned and affordable landscapes plus only the next undiscovered ecosystem', () => {
+  const fresh = initial();
+  expect(shopWallpapers(fresh)).toEqual({ available: [], upcoming: wallpapers[1] });
+  const rich = { ...fresh, seeds: wallpapers[0].cost };
+  expect(shopWallpapers(rich)).toEqual({ available: [wallpapers[0]], upcoming: wallpapers[1] });
+  const bought = acquireWallpaper(rich, wallpapers[0].id);
+  expect(shopWallpapers(acquireWallpaper(bought, 'default'))).toEqual(shopWallpapers(rich));
+  const completed = Object.fromEntries(
+    wallpapers.slice(1).map((w) => [w.firstPage - 1, { stars: 3, date: '2026-11-25' }]),
+  );
+  const all = { ...fresh, completed, seeds: 20, ownedWallpapers: [wallpapers[19].id] };
+  expect(shopWallpapers(all)).toEqual({
+    available: wallpapers.filter((w) => w.cost <= 20 || w.id === wallpapers[19].id),
+    upcoming: undefined,
+  });
+  expect(shopWallpapers({ ...all, seeds: 0 }).available).toEqual([wallpapers[19]]);
 });
 
 it('preserves collection seeds through free hints and certified remixes', () => {
