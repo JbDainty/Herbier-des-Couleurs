@@ -1,8 +1,12 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { C, Icon, T } from './ui';
 import { F } from './fonts';
 import { HerbariumBookCover } from './HerbariumBookButton';
+import { CarnetIllustration } from './CarnetIllustration';
+import { workshopActionIllustrations } from './WorkshopActionBar';
+
+const illustrationSize = 28;
 
 type Props = {
   reveal: boolean;
@@ -16,14 +20,24 @@ export function VictoryToolbar({ reveal, onReplay, onMiddle, onMenu }: Props) {
     {
       title: 'Rejouer',
       label: 'Rejouer la page',
-      icon: <Icon name="refresh-outline" size={20} color={C.green} />,
+      icon: (
+        <Image
+          source={workshopActionIllustrations.restart}
+          accessible={false}
+          fadeDuration={0}
+          resizeMode="contain"
+          style={styles.replayArt}
+        />
+      ),
       press: onReplay,
     },
     {
       title: reveal ? 'Herbier' : 'Passer',
       label: reveal ? 'Ouvrir l’herbier' : 'Passer l’animation',
-      icon: (
-        <Icon name={reveal ? 'book-outline' : 'arrow-forward-outline'} size={20} color={C.green} />
+      icon: reveal ? (
+        <CarnetIllustration name="herbier" size={illustrationSize} />
+      ) : (
+        <Icon name="arrow-forward-outline" size={20} color={C.green} />
       ),
       press: onMiddle,
     },
@@ -89,7 +103,8 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     paddingHorizontal: 4,
   },
-  icon: { height: 22, justifyContent: 'center', alignItems: 'center' },
+  replayArt: { width: illustrationSize, height: illustrationSize },
+  icon: { height: illustrationSize, justifyContent: 'center', alignItems: 'center' },
   divider: {
     width: StyleSheet.hairlineWidth,
     alignSelf: 'center',
