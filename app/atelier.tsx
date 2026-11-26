@@ -33,6 +33,7 @@ import { usePrimaryAnimation } from '../src/components/usePrimaryAnimation';
 import { won, pour, Move } from '../src/engine/puzzle';
 import { findHintPath } from '../src/engine/hintSearch';
 import { ecosystemForPage } from '../src/data/ecology';
+import { journeyFrontier } from '../src/journey/layout';
 import { species } from '../src/data/botany';
 import { LiquidBoard } from '../src/components/LiquidBoard';
 import { Botanical } from '../src/components/Botanical';
@@ -401,6 +402,16 @@ function Workshop() {
       continuePlaying();
     });
   };
+  const returnToMenu = () => {
+    leaveResult(() => {
+      setDismissed(true);
+      setSave((s) => {
+        const resumeAt = s.testSession ? Math.min(s.current + 1, 1000) : journeyFrontier(s);
+        return loadLevel(s, resumeAt);
+      });
+      router.dismissTo('/');
+    });
+  };
   const next = () => {
     if (sealPage && !sealFinished) return;
     leaveResult(() => {
@@ -685,6 +696,7 @@ function Workshop() {
       </Modal>
       <Modal
         visible={victory && winReady && !dismissed && save.started}
+        onRequestClose={returnToMenu}
         transparent
         animationType={save.settings.motion ? 'fade' : 'none'}
       >
@@ -697,6 +709,7 @@ function Workshop() {
             sealFinished={sealFinished}
             onReveal={restorePigment}
             onContinue={next}
+            onMenu={returnToMenu}
             onReplay={() => leaveResult(replayPage)}
             onHerbarium={() =>
               leaveResult(() => {

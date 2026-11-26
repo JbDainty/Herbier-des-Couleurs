@@ -31,23 +31,28 @@ async function unchanged(page: Page, ms: number) {
 }
 
 async function buttonFits(page: Page, testID: string) {
-  const button = page.getByTestId(testID).first();
-  await button.scrollIntoViewIfNeeded();
-  const bounds = await button.boundingBox();
-  const art = await button.locator('svg').first().boundingBox();
-  const text = await button
-    .getByText(/Révéler la couleur|Rejouer|Page suivante|Herbier/)
-    .last()
-    .boundingBox();
-  expect(bounds).toBeTruthy();
-  expect(art).toBeTruthy();
-  expect(text).toBeTruthy();
-  expect(Math.abs(art!.height - bounds!.height)).toBeLessThan(2);
-  expect(Math.abs(art!.width - bounds!.width)).toBeLessThan(2);
-  expect(text!.y).toBeGreaterThanOrEqual(bounds!.y);
-  expect(text!.y + text!.height).toBeLessThanOrEqual(bounds!.y + bounds!.height + 1);
-  expect(text!.x).toBeGreaterThanOrEqual(bounds!.x);
-  expect(text!.x + text!.width).toBeLessThanOrEqual(bounds!.x + bounds!.width + 1);
+  const buttons = page.getByTestId('victory-actions').getByTestId(testID);
+  await expect(buttons).toHaveCount(testID === 'victory-action-primary' ? 1 : 3);
+  for (const button of await buttons.all()) {
+    await button.scrollIntoViewIfNeeded();
+    const bounds = (await button.boundingBox())!;
+    const art = (await button.locator('svg').first().boundingBox())!;
+    const text = (await button
+      .getByText(/^(Révéler la couleur|Rejouer|Page suivante|Herbier|Menu|Passer)$/)
+      .last()
+      .boundingBox())!;
+    expect(bounds.height).toBeGreaterThanOrEqual(44);
+    if (testID === 'victory-action-primary') {
+      expect(Math.abs(art.height - bounds.height)).toBeLessThan(2);
+      expect(Math.abs(art.width - bounds.width)).toBeLessThan(2);
+    }
+    for (const item of [art, text]) {
+      expect(item.y).toBeGreaterThanOrEqual(bounds.y - 1);
+      expect(item.y + item.height).toBeLessThanOrEqual(bounds.y + bounds.height + 1);
+      expect(item.x).toBeGreaterThanOrEqual(bounds.x - 1);
+      expect(item.x + item.width).toBeLessThanOrEqual(bounds.x + bounds.width + 1);
+    }
+  }
 }
 
 async function main() {

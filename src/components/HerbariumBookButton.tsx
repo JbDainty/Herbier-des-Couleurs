@@ -75,10 +75,14 @@ const Folio = memo(function Folio({ reverse = false }: { reverse?: boolean }) {
   );
 });
 
-const Cover = memo(function Cover() {
+export const HerbariumBookCover = memo(function HerbariumBookCover({
+  height = 48,
+}: {
+  height?: number;
+}) {
   const id = 'menu-cover-' + useId().replace(/[^a-zA-Z0-9_-]/g, '');
   return (
-    <Svg width={38} height={48} viewBox="0 0 38 48" accessible={false}>
+    <Svg width={(height * 38) / 48} height={height} viewBox="0 0 38 48" accessible={false}>
       <Defs>
         <LinearGradient id={`${id}-leather`} x1="0" y1="0" x2="1" y2="1">
           <Stop stopColor="#668066" />
@@ -246,7 +250,7 @@ function Glyph({ value }: { value?: Animated.Value }) {
           transform: [{ perspective: 220 }, { rotateY: turn(0.12, -150) }],
         }}
       >
-        <Cover />
+        <HerbariumBookCover />
       </Animated.View>
       {value &&
         [0, 1].map((i) => (

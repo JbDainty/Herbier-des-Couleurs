@@ -9,6 +9,7 @@ import { botanicalFact } from '../data/botanicalFacts';
 import { useMeasuredSize } from './useMeasuredSize';
 import { VictoryPaper } from './VictoryPaper';
 import { VictoryAction } from './VictoryAction';
+import { VictoryToolbar } from './VictoryToolbar';
 import { RewardStars } from './RewardStars';
 import { Botanical } from './Botanical';
 import { ColorReveal } from './ColorReveal';
@@ -27,6 +28,7 @@ type Props = {
   onContinue: () => void;
   onReplay: () => void;
   onHerbarium: () => void;
+  onMenu: () => void;
   onSealDone: () => void;
 };
 
@@ -67,6 +69,7 @@ function ResultFolio({
   onContinue,
   onReplay,
   onHerbarium,
+  onMenu,
   onSealDone,
   viewport,
 }: Props & { viewport: { width: number; height: number } }) {
@@ -296,51 +299,12 @@ function ResultFolio({
           {save.current === 1000 ? 'Mon herbier' : sealPage ? 'Espèce suivante' : 'Page suivante'}
         </VictoryAction>
       )}
-      <View style={{ width: '100%', maxWidth: 350, flexDirection: 'row', gap: 6 }}>
-        <View style={{ flex: 1 }}>
-          <VictoryAction
-            icon="refresh-outline"
-            secondary
-            rounded
-            compact
-            narrow
-            maxFontSizeMultiplier={1.3}
-            label="Rejouer la page"
-            onPress={onReplay}
-          >
-            Rejouer
-          </VictoryAction>
-        </View>
-        <View style={{ flex: 1 }}>
-          {reveal ? (
-            <VictoryAction
-              icon="book-outline"
-              secondary
-              rounded
-              compact
-              narrow
-              maxFontSizeMultiplier={1.3}
-              label="Ouvrir l’herbier"
-              onPress={onHerbarium}
-            >
-              Herbier
-            </VictoryAction>
-          ) : (
-            <VictoryAction
-              icon="arrow-forward-outline"
-              secondary
-              rounded
-              compact
-              narrow
-              maxFontSizeMultiplier={1.3}
-              label="Passer l’animation"
-              onPress={() => onReveal(false)}
-            >
-              Passer
-            </VictoryAction>
-          )}
-        </View>
-      </View>
+      <VictoryToolbar
+        reveal={reveal}
+        onReplay={onReplay}
+        onMiddle={reveal ? onHerbarium : () => onReveal(false)}
+        onMenu={onMenu}
+      />
     </View>
   );
   return (
