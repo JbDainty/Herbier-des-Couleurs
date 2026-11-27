@@ -31,23 +31,28 @@ async function unchanged(page: Page, ms: number) {
 }
 
 async function buttonFits(page: Page, testID: string) {
-  const button = page.getByTestId(testID).first();
-  await button.scrollIntoViewIfNeeded();
-  const bounds = await button.boundingBox();
-  const art = await button.locator('svg').first().boundingBox();
-  const text = await button
-    .getByText(/Révéler la couleur|Rejouer|Page suivante|Herbier/)
-    .last()
-    .boundingBox();
-  expect(bounds).toBeTruthy();
-  expect(art).toBeTruthy();
-  expect(text).toBeTruthy();
-  expect(Math.abs(art!.height - bounds!.height)).toBeLessThan(2);
-  expect(Math.abs(art!.width - bounds!.width)).toBeLessThan(2);
-  expect(text!.y).toBeGreaterThanOrEqual(bounds!.y);
-  expect(text!.y + text!.height).toBeLessThanOrEqual(bounds!.y + bounds!.height + 1);
-  expect(text!.x).toBeGreaterThanOrEqual(bounds!.x);
-  expect(text!.x + text!.width).toBeLessThanOrEqual(bounds!.x + bounds!.width + 1);
+  const buttons = page.getByTestId('victory-actions').getByTestId(testID);
+  await expect(buttons).toHaveCount(testID === 'victory-action-primary' ? 1 : 3);
+  for (const button of await buttons.all()) {
+    await button.scrollIntoViewIfNeeded();
+    const bounds = (await button.boundingBox())!;
+    const art = (await button.locator('svg, img').first().boundingBox())!;
+    const text = (await button
+      .getByText(/^(Révéler la couleur|Rejouer|Page suivante|Herbier|Menu|Passer)$/)
+      .last()
+      .boundingBox())!;
+    expect(bounds.height).toBeGreaterThanOrEqual(44);
+    if (testID === 'victory-action-primary') {
+      expect(Math.abs(art.height - bounds.height)).toBeLessThan(2);
+      expect(Math.abs(art.width - bounds.width)).toBeLessThan(2);
+    }
+    for (const item of [art, text]) {
+      expect(item.y).toBeGreaterThanOrEqual(bounds.y - 1);
+      expect(item.y + item.height).toBeLessThanOrEqual(bounds.y + bounds.height + 1);
+      expect(item.x).toBeGreaterThanOrEqual(bounds.x - 1);
+      expect(item.x + item.width).toBeLessThanOrEqual(bounds.x + bounds.width + 1);
+    }
+  }
 }
 
 async function main() {
@@ -106,8 +111,16 @@ async function main() {
         expect(text!.x).toBeGreaterThanOrEqual(outer!.x);
         expect(text!.x + text!.width).toBeLessThanOrEqual(outer!.x + outer!.width + 1);
       }
+      const restartArt = await page
+        .getByTestId('workshop-action-icon-restart')
+        .locator('img')
+        .getAttribute('src');
+      expect(restartArt).toBeTruthy();
       await tube(fixture.last.from).click();
       await tube(fixture.last.to).click();
+      const toolbar = page.getByTestId('victory-toolbar');
+      const replay = toolbar.getByRole('button', { name: 'Rejouer la page' });
+      await expect(replay.locator('img')).toHaveAttribute('src', restartArt!);
       await buttonFits(page, 'victory-action-primary');
       await buttonFits(page, 'victory-action-secondary');
       await page.screenshot({
@@ -115,12 +128,19 @@ async function main() {
         fullPage: true,
       });
       await page.getByRole('button', { name: 'Révéler la couleur', exact: true }).click();
+      await expect(
+        toolbar
+          .getByRole('button', { name: 'Ouvrir l’herbier' })
+          .getByTestId('carnet-emblem-herbier'),
+      ).toBeVisible();
       await buttonFits(page, 'victory-action-primary');
       await buttonFits(page, 'victory-action-secondary');
       await page.screenshot({
         path: `test-results/mobile-reveal-${viewport.width}.png`,
         fullPage: true,
       });
+      await toolbar.getByRole('button', { name: 'Ouvrir l’herbier' }).click();
+      await expect(page).toHaveURL(/\/herbier\/?$/);
     }
 
     let hard = { ...initial(), started: true, nickname: 'Camille' };

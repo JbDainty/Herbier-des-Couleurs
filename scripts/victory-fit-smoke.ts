@@ -3,6 +3,7 @@ import { mkdirSync } from 'node:fs';
 import { initial, loadLevel, move } from '../src/state/model';
 import levels from '../src/data/campaign';
 import { openCarnet } from './navigation-test-helper';
+import { passStudio } from './studio-test-helper';
 import { mechanicIds } from '../src/engine/mechanics';
 import { firstPageAttempt } from './test-fixtures';
 
@@ -21,7 +22,7 @@ async function main() {
   page.on('pageerror', (e) => errors.push(e.message));
   const stored = () => page.evaluate(() => JSON.parse(localStorage.getItem('color-world.save')!));
   const tube = (n: number) => page.getByRole('button', { name: new RegExp(`^Flacon ${n + 1},`) });
-  const win = async (id: number, motion = false) => {
+  const win = async (id: number, motion = false, completedPages = id - 1) => {
     let save: ReturnType<typeof initial> = {
       ...initial(),
       started: true,
@@ -29,7 +30,7 @@ async function main() {
       nickname: 'Camille',
       seenMechanics: [...mechanicIds],
     };
-    for (const prior of levels.slice(0, id - 1)) {
+    for (const prior of levels.slice(0, completedPages)) {
       save = loadLevel(save, prior.id);
       for (const step of prior.solution) save = move(save, step.from, step.to);
     }
@@ -44,7 +45,9 @@ async function main() {
     await tube(last.to).click();
     await expect(page.getByTestId('victory-result-view')).toBeVisible();
   };
-  const fits = async (view: Page, names: string[], width: number, height: number) => {
+  const menuLabel = 'Retour au menu principal';
+  const fits = async (view: Page, actions: string[], width: number, height: number) => {
+    const names = [...actions, menuLabel];
     const paper = view.getByTestId('victory-living-paper');
     await expect(view.getByTestId('victory-summary').getByRole('heading')).toHaveCount(0);
     for (const target of [
@@ -144,6 +147,36 @@ async function main() {
     await page.getByRole('button', { name: 'Poursuivre la restauration', exact: true }).click();
     await expect(page.getByTestId('page-folio')).toHaveText('PAGE 04');
     expect((await stored()).seeds).toBe(won.seeds);
+    // Leaving the result preserves the award and bookmarks the next playable page, even after reload.
+    for (const revealed of [false, true]) {
+      await win(revealed ? 3 : 5);
+      const awarded = await stored();
+      if (revealed)
+        await page.getByRole('button', { name: 'Révéler la couleur', exact: true }).click();
+      await page.getByRole('button', { name: menuLabel, exact: true }).click();
+      await expect(page.getByTestId('home-screen')).toBeVisible();
+      await expect(page.getByTestId('victory-result-view')).toHaveCount(0);
+      const saved = await stored();
+      expect(saved.completed).toEqual(awarded.completed);
+      expect(saved.pigments).toEqual(awarded.pigments);
+      expect(saved.seeds).toBe(awarded.seeds);
+      expect(saved.current).toBe(awarded.current + 1);
+      await page.reload();
+      await openCarnet(page);
+      await expect(page.getByTestId('page-folio')).toHaveText(
+        `PAGE ${String(saved.current).padStart(2, '0')}`,
+      );
+      expect(await stored()).toEqual(saved);
+    }
+    // Leaving an improved or repeated result resumes the campaign at its first unfinished page.
+    await win(2, false, 6);
+    const replayed = await stored();
+    await page.getByRole('button', { name: menuLabel, exact: true }).click();
+    await expect(page.getByTestId('home-screen')).toBeVisible();
+    const resumed = await stored();
+    expect(resumed.current).toBe(7);
+    expect(resumed.seeds).toBe(replayed.seeds);
+    expect(resumed.completed).toEqual(replayed.completed);
     // A lower-star attempt keeps its replay action on the same visible bottom row.
     const low = firstPageAttempt(3);
     low.save.guideSeen = true;
@@ -200,6 +233,14 @@ async function main() {
     await page.getByRole('button', { name: 'Contempler mon herbier', exact: true }).click();
     await expect(page).toHaveURL(/\/herbier\/?$/);
     expect(await stored()).toEqual(final);
+    await page.goto(url + 'atelier');
+    await passStudio(page);
+    await page.getByRole('button', { name: menuLabel, exact: true }).click({ timeout: 20000 });
+    await expect(page.getByTestId('home-screen')).toBeVisible();
+    await openCarnet(page);
+    await expect(page.getByTestId('page-folio')).toHaveText('PAGE 1000');
+    await expect(page.getByTestId('victory-result-view')).toHaveCount(0);
+    expect((await stored()).seeds).toBe(final.seeds);
     expect(errors).toEqual([]);
     console.log(
       'Victory fit passed: all controls, botanical artwork and stars within fifteen phone/tablet/landscape viewports before and after reveal, low-star replay, large/short wax ceremony, last page, no scroll and unchanged rewards.',
